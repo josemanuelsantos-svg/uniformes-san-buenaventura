@@ -3,15 +3,30 @@ import os
 import json
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "uniformes.db")
-BACKUP_FILE = os.path.join(os.path.dirname(__file__), "orders_backup.jsonl")
+import shutil
+
+DB_ORIGINAL_PATH = os.path.join(os.path.dirname(__file__), "uniformes.db")
+if os.environ.get("VERCEL"):
+    DB_PATH = "/tmp/uniformes.db"
+    if not os.path.exists(DB_PATH) and os.path.exists(DB_ORIGINAL_PATH):
+        try:
+            shutil.copy2(DB_ORIGINAL_PATH, DB_PATH)
+        except Exception as e:
+            print(f"Error copying DB to /tmp on Vercel: {e}")
+else:
+    DB_PATH = DB_ORIGINAL_PATH
+
+BACKUP_FILE = os.path.join(os.path.dirname(DB_PATH), "orders_backup.jsonl")
 
 def get_db():
     conn = sqlite3.connect(DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     # Habilitar modo WAL para máxima durabilidad y concurrencia sin bloqueos
-    conn.execute("PRAGMA journal_mode=WAL;")
-    conn.execute("PRAGMA synchronous=NORMAL;")
+    try:
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+    except Exception:
+        pass
     conn.execute("PRAGMA foreign_keys=ON;")
     return conn
 
