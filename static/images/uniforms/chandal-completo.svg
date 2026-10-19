@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EDF2F7"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg-grad)" rx="20"/>
+  
+  <!-- Chándal Completo CSB (Chaqueta + Pantalón) -->
+  <g filter="url(#card-shadow)">
+    <!-- JACKET (Top) -->
+    <g transform="translate(0, -6)">
+      <!-- Dark Navy lower torso & sleeves base -->
+      <path d="M64 45 L76 38 L100 42 L124 38 L136 45 L164 78 L148 92 L136 80 L136 118 L64 118 L64 80 L52 92 L36 78 Z" fill="#0D1B2A" stroke="#09121C" stroke-width="1.2"/>
+      <!-- Royal Blue upper chest & upper arms -->
+      <path d="M64 45 L76 38 L100 42 L124 38 L136 45 L154 66 L136 66 L136 70 L64 70 L64 66 L46 66 Z" fill="#1B5EBF"/>
+      <!-- Bold White horizontal stripe across chest & sleeves -->
+      <path d="M46 66 L154 66 L158 71 L136 78 L64 78 L42 71 Z" fill="#FFFFFF"/>
+      <!-- Front Zipper -->
+      <line x1="100" y1="42" x2="100" y2="118" stroke="#CBD5E1" stroke-width="1.5"/>
+      <rect x="98.5" y="45" width="3" height="5" fill="#E2E8F0" rx="1"/>
+      <!-- Collar -->
+      <path d="M76 38 L100 48 L68 46 Z" fill="#0D1B2A" stroke="#09121C" stroke-width="1"/>
+      <path d="M124 38 L100 48 L132 46 Z" fill="#0D1B2A" stroke="#09121C" stroke-width="1"/>
+      <!-- CSB badge on upper royal blue chest -->
+      
+    <!-- Official CSB Emblem -->
+    <g transform="translate(118,56) scale(0.45)">
+      <!-- Shadow/backing subtle glow -->
+      <circle cx="0" cy="-2" r="14" fill="#FFFFFF" opacity="0.2"/>
+      <!-- Center figure (Gold body, Blue head) -->
+      <circle cx="0" cy="-11" r="4.2" fill="#005CB9"/>
+      <path d="M-3.5 -5 L3.5 -5 C4.5 -5 5.5 -4 5.5 -2.5 L5.5 10 C5.5 11 4.5 12 3.5 12 L-3.5 12 C-4.5 12 -5.5 11 -5.5 10 L-5.5 -2.5 C-5.5 -4 -4.5 -5 -3.5 -5 Z" fill="#F5A623"/>
+      <!-- Left figure (Gold head, Blue body) -->
+      <circle cx="-7.5" cy="-6" r="3.3" fill="#F5A623"/>
+      <path d="M-10.5 -1 L-4.5 -1 C-3.8 -1 -3.3 -0.5 -3.3 0.5 L-3.3 9 C-3.3 10 -3.8 10.5 -4.5 10.5 L-10.5 10.5 C-11.2 10.5 -11.7 10 -11.7 9 L-11.7 0.5 C-11.7 -0.5 -11.2 -1 -10.5 -1 Z" fill="#005CB9"/>
+      <!-- Right figure (Gold head, Blue body with Tau) -->
+      <circle cx="7.5" cy="-6" r="3.3" fill="#F5A623"/>
+      <path d="M4.5 -1 L10.5 -1 C11.2 -1 11.7 -0.5 11.7 0.5 L11.7 9 C11.7 10 11.2 10.5 10.5 10.5 L4.5 10.5 C3.8 10.5 3.3 10 3.3 9 L3.3 0.5 C3.3 -0.5 3.8 -1 4.5 -1 Z" fill="#005CB9"/>
+      <!-- White Tau Cross -->
+      <path d="M6 2 L9 2 M7.5 2 L7.5 6" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round"/>
+    </g>
+    
+    </g>
+
+    <!-- PANTS (Bottom) -->
+    <g transform="translate(0, 116)">
+      <path d="M68 5 L132 5 L130 76 L108 76 L100 32 L92 76 L70 76 Z" fill="#0D1B2A" stroke="#09121C" stroke-width="1.2"/>
+      <!-- Side Royal Blue & White Stripes on right leg -->
+      <path d="M124 5 L132 5 L130 76 L123 76 Z" fill="#1B5EBF"/>
+      <rect x="123" y="32" width="8" height="8" fill="#FFFFFF"/>
+      <!-- Waistband -->
+      <rect x="68" y="5" width="64" height="7" fill="#1A2C42" rx="1"/>
+      <circle cx="100" cy="8.5" r="1.5" fill="#CBD5E1"/>
+    </g>
+  </g>
+
+</svg>

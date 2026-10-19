@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserva de Uniformes - Colegio San Buenaventura</title>
+  <!-- Favicon Oficial Colegio San Buenaventura -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <meta name="theme-color" content="#002B66">
+  <!-- Tailwind CSS -->
+  <script src="/static/js/tailwind.js"></script>
+  <!-- Precarga de datos del catálogo -->
+  <script>
+    window.__INITIAL_LOCATOR__ = "{{ initial_locator or '' }}";
+    window.__INITIAL_CATEGORIES__ = {{ categories_json | safe }};
+    window.__INITIAL_PRODUCTS__ = {{ products_json | safe }};
+  </script>
+  <!-- Lógica de aplicación -->
+  <script src="/static/js/app.js"></script>
+  <!-- Alpine.js -->
+  <script defer src="/static/js/alpine.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-serif-title { font-family: 'Cinzel', serif; }
+    [x-cloak] { display: none !important; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col"
+      x-data="uniformApp()"
+      x-init="initApp('{{ initial_locator }}')">
+
+  <!-- ================= TOP HEADER INSTITUCIONAL ================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <!-- Brand / Logo Oficial -->
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="/static/images/logo.png" alt="Colegio San Buenaventura" class="h-14 sm:h-16 w-auto object-contain transition-transform group-hover:scale-105">
+        </a>
+
+        <!-- Right action buttons -->
+        <div class="flex items-center gap-1.5 sm:gap-3">
+          <!-- Botón Packs por Etapa -->
+          <a href="#packs-escolares"
+             class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition shadow-2xs">
+            <span>🎒 Packs</span>
+          </a>
+
+          <!-- Botón Recomendador de Tallas -->
+          <button @click="openRecommenderModal = true"
+                  class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition cursor-pointer">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span class="hidden md:inline">Recomendador</span> Tallas
+          </button>
+
+          <!-- Botón Guía de Tallas -->
+          <button @click="openSizeGuideModal = true"
+                  class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold text-[#002B66] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition cursor-pointer">
+            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <span class="hidden sm:inline">Guía</span> Tallas
+          </button>
+
+          <!-- Botón Consultar Pedido -->
+          <button @click="openTrackerModal = true"
+                  class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <span class="hidden sm:inline">Consultar mi</span> Pedido
+          </button>
+
+          <!-- Acceso Administración -->
+          <a href="/admin" class="inline-flex items-center gap-1 px-2.5 py-2 text-xs font-medium text-slate-500 hover:text-blue-900 hover:bg-blue-50 rounded-xl transition" title="Panel de Gestión del Colegio">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <span class="hidden md:inline">Secretaría</span>
+          </a>
+
+          <!-- Botón Carrito Flotante / Encabezado -->
+          <button @click="openCartDrawer = true"
+                  class="relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#002B66] hover:bg-[#001D47] border border-blue-900 rounded-xl shadow-md transition cursor-pointer">
+            <svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <span class="hidden sm:inline">Mi Reserva</span>
+            <span x-show="totalCartCount > 0" x-cloak
+                  class="absolute -top-1.5 -right-1.5 bg-[#F5A623] text-slate-900 font-extrabold text-xs rounded-full h-5.5 min-w-[22px] px-1 flex items-center justify-center shadow"
+                  x-text="totalCartCount"></span>
+            <span class="font-bold ml-1 text-amber-200" x-text="formatMoney(cartTotal)"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= TOP TICKER EDITORIAL ESTILO ZARA ================= -->
+  <div class="bg-slate-950 text-slate-300 text-[11px] uppercase tracking-[0.2em] font-medium py-2 px-4 border-b border-white/10 text-center flex items-center justify-center gap-2 sm:gap-4 overflow-hidden">
+    <span class="font-bold text-amber-400">EDITORIAL SS26</span>
+    <span class="text-white/30">•</span>
+    <span>LOOKBOOK OFICIAL COLEGIO SAN BUENAVENTURA</span>
+    <span class="text-white/30 hidden sm:inline">•</span>
+    <span class="hidden sm:inline text-slate-400">ENCARGO ONLINE & RECOGIDA EN SECRETARÍA</span>
+  </div>
+
+  <!-- ================= HERO BANNER ESTILO ZARA LOOKBOOK ================= -->
+  <section class="bg-gradient-to-br from-[#001D47] via-[#002B66] to-[#0A264F] text-white py-10 sm:py-14 px-4 sm:px-6 lg:px-8 relative overflow-hidden border-b-4 border-[#F5A623]">
+    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+    
+    <div class="max-w-7xl mx-auto relative z-10"
+         @mouseenter="lookbookAutoRotate = false"
+         @mouseleave="lookbookAutoRotate = true">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        
+        <!-- Columna Izquierda: Tipografía y Controles -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-amber-300 border border-white/20 backdrop-blur-md shadow-2xs">
+            <svg class="w-3.5 h-3.5 text-[#F5A623]" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <span>CAMPAÑA 2026 / 2027 • PATRONAJE OFICIAL HOMOLOGADO</span>
+          </div>
+
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight font-serif-title text-white leading-[1.08]">
+            UNIFORMIDAD<br>
+            <span class="font-sans font-light italic text-[#F5A623] tracking-normal text-2xl sm:text-4xl lg:text-5xl">SAN BUENAVENTURA</span>
+          </h1>
+
+          <p class="text-sm sm:text-base text-blue-100/90 leading-relaxed font-light">
+            Catálogo y reserva oficial de uniformidad del Colegio San Buenaventura para el curso 2026/2027. Prendas homologadas para todas las etapas educativas con reserva online y recogida directa en secretaría.
+          </p>
+
+          <!-- Selector de las 3 Secciones Rotatorias en Cabecera -->
+          <div class="space-y-2 pt-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <button @click="setLookbook('uniforme')"
+                      :class="lookbookMode === 'uniforme' ? 'bg-amber-400 text-slate-950 font-bold shadow-lg scale-102 ring-2 ring-amber-300' : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'"
+                      class="px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5">
+                <span>👕 Uniforme</span>
+              </button>
+              <button @click="setLookbook('infantil')"
+                      :class="lookbookMode === 'infantil' ? 'bg-amber-400 text-slate-950 font-bold shadow-lg scale-102 ring-2 ring-amber-300' : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'"
+                      class="px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5">
+                <span>🧸 Ropa Infantil</span>
+              </button>
+              <button @click="setLookbook('chandal')"
+                      :class="lookbookMode === 'chandal' ? 'bg-amber-400 text-slate-950 font-bold shadow-lg scale-102 ring-2 ring-amber-300' : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'"
+                      class="px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5">
+                <span>🏃‍♂️ Chándal</span>
+              </button>
+            </div>
+            
+            <!-- Barra de rotación automática sutil -->
+            <div class="flex items-center gap-2 text-[11px] text-blue-200/70 font-mono">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Rotación automática de catálogo</span>
+              <span class="text-white/40">•</span>
+              <button @click="nextLookbook()" class="text-amber-300 hover:underline cursor-pointer">Siguiente ↻</button>
+            </div>
+          </div>
+
+          <!-- Tarjeta Editorial: Prendas de la sección activa -->
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 shadow-xl space-y-3">
+            <div class="flex items-center justify-between text-xs tracking-wider uppercase font-mono text-slate-300 border-b border-white/10 pb-2">
+              <span class="flex items-center gap-1.5 font-bold text-white">
+                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+                <span x-text="lookbookMode === 'uniforme' ? 'Prendas Oficiales de Uniforme' : (lookbookMode === 'infantil' ? 'Equipación Oficial Infantil' : 'Chándal y Deporte Oficial')"></span>
+              </span>
+              <span class="text-amber-300 font-bold" x-text="lookbookMode === 'uniforme' ? 'Pack desde 128,40 €' : (lookbookMode === 'infantil' ? 'Pack desde 98,50 €' : 'Pack desde 84,00 €')"></span>
+            </div>
+
+            <!-- Prendas 1: Uniforme Diario -->
+            <div x-show="lookbookMode === 'uniforme'" class="space-y-1.5 text-xs">
+              <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5" @click="activeHotspot = (activeHotspot === 'jersey' ? null : 'jersey')">
+                <span class="font-medium text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#205E86]"></span>
+                  Jersey uniforme oficial - CSB (Azul Petróleo)
+                </span>
+                <span class="font-bold font-mono text-amber-300">34,00 €</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5" @click="activeHotspot = (activeHotspot === 'polo' ? null : 'polo')">
+                <span class="font-medium text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#8EBEEC]"></span>
+                  Polo oficial CSB manga corta (Azul Celeste)
+                </span>
+                <span class="font-bold font-mono text-amber-300">22,00 €</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5" @click="activeHotspot = (activeHotspot === 'pantalon' ? null : 'pantalon')">
+                <span class="font-medium text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                  Pantalón de vestir largo (Gris Marengo)
+                </span>
+                <span class="font-bold font-mono text-amber-300">38,00 €</span>
+              </div>
+            </div>
+
+            <!-- Prendas 2: Ropa Infantil -->
+            <div x-show="lookbookMode === 'infantil'" class="space-y-1.5 text-xs">
+              <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5" @click="activeHotspot = (activeHotspot === 'babi' ? null : 'babi')">
+                <span class="font-medium text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#F5A623]"></span>
+                  Baby escolar oficial CSB (Vichy y Cuello Amarillo)
+                </span>
+                <span class="font-bold font-mono text-amber-300">22,00 €</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5">
+                <span class="font-medium text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#1B5EBF]"></span>
+                  Chándal completo - INFANTIL CSB
+                </span>
+                <span class="font-bold font-mono text-amber-300">46,00 €</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5">
+                <span class="font-medium text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#8EBEEC]"></span>
+                  Polo oficial CSB manga corta
+                </span>
+                <span class="font-bold font-mono text-amber-300">22,00 €</span>
+              </div>
+            </div>
+
+            <!-- Prendas 3: Chándal y E. Física (Nueva Sección) -->
+            <div x-show="lookbookMode === 'chandal'" class="space-y-1.5 text-xs">
+              <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5" @click="activeHotspot = (activeHotspot === 'camiseta_dep' ? null : 'camiseta_dep')">
+                <span class="font-medium text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#1B5EBF]"></span>
+                  Camiseta deporte oficial - CSB (3 franjas azules)
+                </span>
+                <span class="font-bold font-mono text-amber-300">18,00 €</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5" @click="activeHotspot = (activeHotspot === 'pantalon_corto' ? null : 'pantalon_corto')">
+                <span class="font-medium text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#005CB9]"></span>
+                  Pantalón corto de deporte oficial - CSB
+                </span>
+                <span class="font-bold font-mono text-amber-300">20,00 €</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5" @click="activeHotspot = (activeHotspot === 'chandal_largo' ? null : 'chandal_largo')">
+                <span class="font-medium text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#154B98]"></span>
+                  Chándal completo oficial - CSB
+                </span>
+                <span class="font-bold font-mono text-amber-300">46,00 €</span>
+              </div>
+            </div>
+
+            <!-- Acciones directas -->
+            <div class="pt-2 flex flex-col sm:flex-row gap-2">
+              <button @click="openPackById(lookbookMode === 'infantil' ? 'infantil' : (lookbookMode === 'chandal' ? 'deporte' : 'primaria_nino'))"
+                      class="flex-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-md cursor-pointer flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                <span x-text="lookbookMode === 'infantil' ? 'Configurar Pack Infantil en 1 Clic' : (lookbookMode === 'chandal' ? 'Configurar Pack Deporte en 1 Clic' : 'Configurar Pack Primaria en 1 Clic')"></span>
+              </button>
+              <button @click="openRecommenderModal = true"
+                      class="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold transition border border-white/20 flex items-center justify-center gap-1.5 cursor-pointer">
+                <span>📏 Asesor Tallas</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Fotografía Lookbook Real con Hotspots Interactivos -->
+        <div class="lg:col-span-6 relative">
+          <div class="relative rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 bg-slate-950 group aspect-[4/5] sm:aspect-[16/11] lg:aspect-[4/5] max-h-[580px] w-full">
+            
+            <!-- Fotografía 1: Alumnos Uniforme Oficial (Jersey) -->
+            <img x-show="lookbookMode === 'uniforme'"
+                 src="/static/images/csb_real_alumnos_jersey.jpg"
+                 alt="Alumnos con uniforme oficial Colegio San Buenaventura"
+                 class="w-full h-full object-cover object-center filter brightness-[0.98] transition-all duration-700 group-hover:scale-103">
+
+            <!-- Fotografía 2: Alumnos Ropa Infantil (Babi) -->
+            <img x-show="lookbookMode === 'infantil'"
+                 src="/static/images/csb_real_infantil_babi.jpg"
+                 alt="Alumnos de Infantil con babi oficial Colegio San Buenaventura"
+                 class="w-full h-full object-cover object-center filter brightness-[0.98] transition-all duration-700 group-hover:scale-103">
+
+            <!-- Fotografía 3: Alumnos con Chándal Oficial y Deporte (Foto Real Alumnos) -->
+            <img x-show="lookbookMode === 'chandal'"
+                 src="/static/images/csb_real_chandal_deporte.jpg"
+                 alt="Alumnos con chándal y camiseta de deporte oficial Colegio San Buenaventura"
+                 class="w-full h-full object-cover object-center filter brightness-[0.98] transition-all duration-700 group-hover:scale-103">
+
+            <!-- Viñeta y degradados de iluminación -->
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/30 pointer-events-none"></div>
+
+            <!-- Barra Superior Editorial dentro de la foto -->
+            <div class="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] font-mono tracking-widest uppercase text-white/90 drop-shadow-md z-20">
+              <span class="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow">FOTOGRAFÍA REAL CSB</span>
+              <span class="bg-amber-400 text-slate-950 px-3 py-1 rounded-full font-bold shadow" x-text="lookbookMode === 'uniforme' ? '01 · UNIFORME OFICIAL' : (lookbookMode === 'infantil' ? '02 · ROPA INFANTIL' : '03 · CHÁNDAL')"></span>
+            </div>
+
+            <!-- ================= PINS INTERACTIVOS (HOTSPOTS) - UNIFORME ================= -->
+            <div x-show="lookbookMode === 'uniforme'" class="z-20">
+              <!-- Pin 1: Bordado Oficial CSB en el pecho -->
+              <div class="absolute top-[36%] left-[68%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'bordado' ? null : 'bordado')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'bordado'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-52 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">Bordado Oficial CSB</p>
+                  <p class="text-[11px] text-slate-300">Escudo y tipografía oficial bordados de alta definición</p>
+                </div>
+              </div>
+
+              <!-- Pin 2: Jersey -->
+              <div class="absolute top-[58%] left-[55%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'jersey' ? null : 'jersey')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'jersey'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-56 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">Jersey uniforme - CSB</p>
+                  <p class="text-[11px] text-slate-300">Punto fino azul petróleo oficial • 34,00 €</p>
+                </div>
+              </div>
+
+              <!-- Pin 3: Polo Cuello Celeste -->
+              <div class="absolute top-[10%] left-[63%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'polo' ? null : 'polo')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'polo'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-52 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">Polo M/corta - CSB</p>
+                  <p class="text-[11px] text-slate-300">Azul celeste con ribete en cuello • 22,00 €</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ================= PINS INTERACTIVOS (HOTSPOTS) - INFANTIL ================= -->
+            <div x-show="lookbookMode === 'infantil'" class="z-20">
+              <!-- Pin 1: Babi Vichy -->
+              <div class="absolute top-[48%] left-[30%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'babi' ? null : 'babi')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'babi'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-52 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">Baby escolar oficial CSB</p>
+                  <p class="text-[11px] text-slate-300">Tejido vichy azul celeste y blanco • 22,00 €</p>
+                </div>
+              </div>
+
+              <!-- Pin 2: Bolsillo con Cruz Tau -->
+              <div class="absolute top-[66%] left-[20%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'bolsillo' ? null : 'bolsillo')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'bolsillo'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-52 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">Bolsillo con Cruz Tau</p>
+                  <p class="text-[11px] text-slate-300">Emblema franciscano oficial del colegio</p>
+                </div>
+              </div>
+
+              <!-- Pin 3: Cuello Amarillo -->
+              <div class="absolute top-[24%] left-[26%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'cuello' ? null : 'cuello')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'cuello'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-52 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">Cuello Amarillo Infantil</p>
+                  <p class="text-[11px] text-slate-300">Cuello ergonómico con cinta para colgar</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ================= PINS INTERACTIVOS (HOTSPOTS) - CHÁNDAL Y DEPORTE ================= -->
+            <div x-show="lookbookMode === 'chandal'" class="z-20">
+              <!-- Pin 1: 3 Franjas Diagonales Azules en hombro/pecho -->
+              <div class="absolute top-[56%] left-[17%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'rayas' ? null : 'rayas')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'rayas'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-56 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">3 Franjas Diagonales</p>
+                  <p class="text-[11px] text-slate-300">Patronaje oficial del colegio en pecho y manga</p>
+                </div>
+              </div>
+
+              <!-- Pin 2: Camiseta de Deporte -->
+              <div class="absolute top-[70%] left-[25%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'camiseta_dep' ? null : 'camiseta_dep')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'camiseta_dep'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-56 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">Camiseta deporte - CSB</p>
+                  <p class="text-[11px] text-slate-300">Escudo oficial bordado y cuello en V • 18,00 €</p>
+                </div>
+              </div>
+
+              <!-- Pin 3: Pantalón Corto de Deporte -->
+              <div class="absolute top-[86%] left-[26%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'pantalon_corto' ? null : 'pantalon_corto')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'pantalon_corto'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-56 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">Pantalón corto deporte</p>
+                  <p class="text-[11px] text-slate-300">Azul royal con franja lateral y logo CSB • 20,00 €</p>
+                </div>
+              </div>
+
+              <!-- Pin 4: Pantalón de chándal largo con rodilleras -->
+              <div class="absolute top-[64%] left-[61%] -translate-x-1/2 -translate-y-1/2">
+                <button @click="activeHotspot = (activeHotspot === 'chandal_largo' ? null : 'chandal_largo')"
+                        class="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/90 text-slate-900 shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative text-[11px] font-bold">+</span>
+                </button>
+                <div x-show="activeHotspot === 'chandal_largo'"
+                     class="absolute left-1/2 -translate-x-1/2 bottom-9 w-56 bg-slate-900/95 backdrop-blur-md text-white p-2.5 rounded-xl shadow-2xl border border-white/20 text-xs">
+                  <p class="font-bold text-amber-300">Pantalón chándal oficial</p>
+                  <p class="text-[11px] text-slate-300">Rodilleras oficiales en amarillo y celeste • 23,00 €</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Barra Inferior en la foto con selector de modelo -->
+            <div class="absolute bottom-4 left-4 right-4 bg-black/75 backdrop-blur-md rounded-2xl p-3 border border-white/20 text-white flex items-center justify-between z-20">
+              <div>
+                <p class="text-xs font-bold font-serif-title uppercase tracking-wider text-amber-300" x-text="lookbookMode === 'uniforme' ? 'Uniforme Oficial Primaria / ESO' : (lookbookMode === 'infantil' ? 'Babi Oficial Educación Infantil' : 'Chándal Oficial y E. Física')"></p>
+                <p class="text-[11px] text-slate-300" x-text="lookbookMode === 'uniforme' ? 'Jersey de punto oficial, polo celeste y pantalón marengo' : (lookbookMode === 'infantil' ? 'Tejido vichy con cuello y bolsillo contrastados' : 'Camiseta de deporte con 3 franjas y pantalón reglamentario')"></p>
+              </div>
+              <button @click="nextLookbook()"
+                      class="px-3.5 py-1.5 bg-white text-slate-950 rounded-xl text-xs font-bold hover:bg-amber-300 transition cursor-pointer flex items-center gap-1 shadow">
+                <span x-text="lookbookMode === 'uniforme' ? 'Ver Infantil →' : (lookbookMode === 'infantil' ? 'Ver Chándal →' : 'Ver Uniforme →')"></span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3 Pasos sencillos de reserva -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12 pt-6 border-t border-white/10 text-xs sm:text-sm">
+        <div class="flex items-center gap-3 bg-white/5 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
+          <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shrink-0">1</div>
+          <div>
+            <p class="font-bold text-white">Elige prendas o packs por etapa</p>
+            <p class="text-slate-400 text-xs">Con guía y recomendador inteligente de tallas.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 bg-white/5 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
+          <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center font-bold text-slate-900 shrink-0">2</div>
+          <div>
+            <p class="font-bold text-white">Reserva conjunta para hermanos</p>
+            <p class="text-slate-400 text-xs">Etiquetado por hijo y resguardo con código QR.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 bg-white/5 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-white shrink-0">3</div>
+          <div>
+            <p class="font-bold text-white">Recogida rápida en Secretaría</p>
+            <p class="text-slate-400 text-xs">Te avisamos por correo cuando tu paquete esté listo.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= SECCIÓN NOVEDAD: PACKS POR ETAPA ESCOLAR ================= -->
+  <section id="packs-escolares" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 mb-8 relative z-20">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/80">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5 mb-6">
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 mb-1.5 shadow-2xs">
+            ✨ Novedad • Equipación en 1 Clic
+          </span>
+          <h2 class="text-xl sm:text-2xl font-black font-serif-title text-[#002B66]">Packs Completos por Etapa Escolar</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">Ahorra tiempo seleccionando el conjunto oficial recomendado para cada curso con tallaje coordinado.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button @click="openRecommenderModal = true" class="px-3.5 py-2 text-xs font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>Asesor de Tallas Inteligente</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid de Packs -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <template x-for="pk in schoolPacks" :key="pk.id">
+          <div class="bg-slate-50/70 rounded-2xl p-5 border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between group">
+            
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border" :class="pk.badgeColor" x-text="pk.badge"></span>
+                <span class="text-xs font-mono font-bold text-slate-400" x-text="pk.items.length + ' prendas'"></span>
+              </div>
+
+              <h3 class="font-bold text-slate-900 text-base group-hover:text-[#002B66] transition" x-text="pk.name"></h3>
+              <p class="text-xs text-slate-500 mt-1 leading-relaxed" x-text="pk.description"></p>
+
+              <!-- Lista de prendas que incluye -->
+              <div class="mt-4 pt-3 border-t border-slate-200/80 space-y-1.5 text-xs">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Incluye en el lote:</p>
+                <template x-for="(it, i) in pk.items" :key="i">
+                  <div class="flex items-center justify-between text-slate-700 text-xs">
+                    <span class="truncate mr-2 font-medium" x-text="'• ' + it.productName"></span>
+                    <span class="font-bold font-mono text-[11px] bg-white px-1.5 py-0.2 rounded border border-slate-200 text-slate-600" x-text="'x' + it.qty"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-slate-200">
+              <div class="flex items-baseline justify-between mb-3">
+                <span class="text-[11px] text-slate-500 font-medium">Estimado oficial:</span>
+                <span class="text-lg font-black text-blue-950" x-text="formatMoney(calculatePackTotal(pk))"></span>
+              </div>
+
+              <button @click="openConfigurePackModal(pk)"
+                      class="w-full py-2.5 px-3 bg-[#002B66] hover:bg-[#001D47] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                <span>Elegir Tallas y Añadir</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </button>
+            </div>
+
+          </div>
+        </template>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= CATÁLOGO Y CONTENIDO PRINCIPAL ================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+    
+    <!-- Filtros de Categoría y Búsqueda -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      
+      <!-- Pills de categorías -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <button @click="selectedCategory = 'all'"
+                :class="selectedCategory === 'all' ? 'bg-[#002B66] text-white shadow-sm font-bold' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium'"
+                class="px-4 py-2 rounded-xl text-xs sm:text-sm whitespace-nowrap transition cursor-pointer flex items-center gap-1.5">
+          <span>Todas las Prendas</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full"
+                :class="selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 font-bold'"
+                x-text="products.length">{{ products|length }}</span>
+        </button>
+        {% for cat in categories %}
+        <button @click="selectedCategory = {{ cat.id }}"
+                :class="selectedCategory === {{ cat.id }} ? 'bg-[#002B66] text-white shadow-sm font-bold' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium'"
+                class="px-4 py-2 rounded-xl text-xs sm:text-sm whitespace-nowrap transition cursor-pointer flex items-center gap-1.5">
+          <span>{{ cat.name }}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full"
+                :class="selectedCategory === {{ cat.id }} ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 font-bold'">
+            {{ cat.product_count }}
+          </span>
+        </button>
+        {% endfor %}
+      </div>
+
+      <!-- Buscador y filtro -->
+      <div class="flex items-center gap-2 shrink-0">
+        <div class="relative w-full sm:w-60">
+          <input type="text" x-model="searchQuery" placeholder="Buscar prenda (polo, chándal...)"
+                 class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-800">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra informativa de prendas visibles -->
+    <div class="flex flex-wrap items-center justify-between gap-3 text-xs mb-6 bg-blue-50/60 p-3.5 rounded-2xl border border-blue-100 shadow-2xs">
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 rounded-lg bg-[#002B66] text-white flex items-center justify-center font-bold text-xs">👕</span>
+        <span class="text-slate-700">
+          Mostrando <strong class="text-[#002B66] text-sm" x-text="visibleProductsCount">{{ products|length }}</strong> de <strong class="text-slate-900">{{ products|length }}</strong> prendas oficiales del catálogo escolar.
+          <template x-if="selectedCategory !== 'all'">
+            <span class="text-blue-900 font-bold ml-1" x-text="'• Categoría: ' + getCategoryName(selectedCategory)"></span>
+          </template>
+          <template x-if="searchQuery">
+            <span class="text-amber-800 font-semibold ml-1" x-text="'• Búsqueda: ' + searchQuery"></span>
+          </template>
+        </span>
+      </div>
+
+      <button x-show="selectedCategory !== 'all' || searchQuery"
+              @click="selectedCategory = 'all'; searchQuery = ''"
+              class="px-3 py-1.5 bg-[#002B66] hover:bg-[#001D47] text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <span>Ver todas las prendas ({{ products|length }})</span>
+      </button>
+    </div>
+
+    <!-- Grid de Productos -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {% for product in products %}
+      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group product-card"
+           x-show="isProductVisible({{ product.id }})">
+        
+        <!-- Imagen de la prenda -->
+        <div class="relative bg-gradient-to-b from-slate-50 to-white aspect-square p-6 flex items-center justify-center overflow-hidden border-b border-slate-100">
+          <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" loading="lazy">
+          
+          <!-- Etiquetas superiores -->
+          <div class="absolute top-3 left-3 flex flex-col gap-1.5">
+            <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase shadow-2xs {% if product.gender == 'Niña' %}bg-pink-100 text-pink-700 border border-pink-200{% elif product.gender == 'Niño' %}bg-blue-100 text-blue-700 border border-blue-200{% else %}bg-slate-800 text-white{% endif %}">
+              {{ product.gender }}
+            </span>
+            {% if 'Polo' in product.name or 'Jersey' in product.name or 'Chándal' in product.name or 'Camiseta' in product.name %}
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-400 text-slate-950 shadow-2xs flex items-center gap-1">
+              ⭐ Top Ventas
+            </span>
+            {% endif %}
+          </div>
+
+          <span class="absolute top-3 right-3 text-[11px] font-mono font-bold text-slate-400 bg-white/90 px-2 py-0.5 rounded border border-slate-200/70">{{ product.code or '' }}</span>
+
+          {% if 'Polo' in product.name or 'Camiseta' in product.name or 'Calcetines' in product.name or 'Babi' in product.name %}
+          <div class="absolute bottom-2.5 inset-x-3 flex justify-center">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+              💡 Recomendado: 2 uds. para recambio semanal
+            </span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Información y selección -->
+        <div class="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              {% for cat in categories if cat.id == product.category_id %}
+              <span class="text-[10px] font-bold uppercase tracking-wider text-blue-900 bg-blue-50 px-2 py-0.5 rounded inline-block border border-blue-100">{{ cat.name }}</span>
+              {% endfor %}
+              <span class="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Disponible
+              </span>
+            </div>
+            <h3 class="font-bold text-slate-900 text-base leading-snug group-hover:text-blue-900 transition">{{ product.name }}</h3>
+            <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ product.description }}</p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100">
+            <!-- Precio dinámico según talla + desglose IVA -->
+            <div class="flex items-baseline justify-between mb-3">
+              <div>
+                <span class="text-[11px] text-slate-400 font-semibold block">Precio oficial (IVA incl.):</span>
+                <span class="text-[10px] text-slate-400" x-text="'Base: ' + formatMoney(getCurrentPrice(getProductById({{ product.id }})) / 1.21)"></span>
+              </div>
+              <span class="text-2xl font-black text-blue-950" x-text="formatMoney(getCurrentPrice(getProductById({{ product.id }})))">{{ "%.2f"|format(product.price) }} €</span>
+            </div>
+
+            <!-- Selector Rápido de Talla con Píldoras + Desplegable -->
+            <div class="mb-3.5">
+              <div class="flex justify-between items-center mb-1.5">
+                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">Selecciona Talla:</label>
+                <button type="button" @click="openSizeGuide = true" class="text-[10px] font-bold text-blue-700 hover:underline flex items-center gap-0.5 cursor-pointer">
+                  📏 Guía de tallas
+                </button>
+              </div>
+
+              <!-- Píldoras rápidas de talla -->
+              <div class="flex flex-wrap gap-1 mb-2">
+                {% for sz in product.sizes %}
+                <button type="button"
+                        @click="selectedSizes[{{ product.id }}] = '{{ sz }}'"
+                        :class="selectedSizes[{{ product.id }}] === '{{ sz }}' ? 'bg-blue-900 text-white border-blue-900 shadow-2xs scale-105' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/40'"
+                        class="px-2 py-1 text-[11px] font-bold rounded-lg border transition cursor-pointer">
+                  {{ sz }}
+                </button>
+                {% endfor %}
+              </div>
+
+              <select x-model="selectedSizes[{{ product.id }}]" class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-800 cursor-pointer">
+                {% for sz in product.sizes %}
+                <option value="{{ sz }}">Talla {{ sz }}{% if product.size_prices and product.size_prices.get(sz) %} — {{ "%.2f"|format(product.size_prices.get(sz)) }} €{% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Botones de Compra: +1 ud y +2 uds rápido -->
+            <div class="flex gap-2">
+              <button @click="addToCart(getProductById({{ product.id }}))"
+                      class="flex-1 py-2.5 px-3 bg-[#002B66] hover:bg-blue-950 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <span>Añadir</span>
+              </button>
+              <button @click="addToCart(getProductById({{ product.id }}), null, '', 2)"
+                      title="Añadir 2 unidades de esta talla para recambio semanal"
+                      class="py-2.5 px-3 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-xl text-xs font-extrabold transition flex items-center justify-center shrink-0 cursor-pointer">
+                +2 uds
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Si no hay resultados -->
+    <div x-show="visibleProductsCount === 0" class="text-center py-16 bg-white rounded-2xl border border-slate-200">
+      <svg class="w-12 h-12 text-slate-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <h3 class="text-base font-bold text-slate-800 mt-2">No se han encontrado prendas</h3>
+      <p class="text-xs text-slate-500 mt-1">Prueba a cambiar el filtro de categoría o tu búsqueda.</p>
+    </div>
+
+  </main>
+
+  <!-- ================= DRAWER / CARRITO DE RESERVA ================= -->
+  <div x-show="openCartDrawer" x-cloak class="relative z-50">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="openCartDrawer = false"></div>
+
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+        
+        <!-- Header Drawer -->
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <h2 class="text-base font-bold text-slate-900">Tu Reserva de Uniforme</h2>
+          </div>
+          <button @click="openCartDrawer = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Lista de Items en Carrito -->
+        <div class="flex-1 overflow-y-auto p-5 divide-y divide-slate-100">
+          <template x-if="cart.length === 0">
+            <div class="text-center py-16">
+              <svg class="w-16 h-16 text-slate-200 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+              <p class="text-sm font-semibold text-slate-700 mt-3">Tu reserva está vacía</p>
+              <p class="text-xs text-slate-400 mt-1">Selecciona prendas del catálogo o usa un Lote Recomendado.</p>
+            </div>
+          </template>
+
+          <template x-for="(item, index) in cart" :key="item.product_id + '-' + item.size">
+            <div class="py-4 flex gap-3 items-center">
+              <img :src="item.image_url" class="w-14 h-14 bg-slate-50 rounded-lg p-1 border border-slate-200 object-contain">
+              <div class="flex-1 min-w-0">
+                <h4 class="text-xs font-bold text-slate-900 truncate" x-text="item.product_name"></h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono font-semibold" x-text="'Talla: ' + item.size"></span>
+                  <span class="text-xs font-bold text-slate-900" x-text="formatMoney(item.unit_price)"></span>
+                </div>
+
+                <!-- Controles de cantidad y Hermano -->
+                <div class="flex items-center gap-2 mt-2">
+                  <div class="inline-flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+                    <button @click="updateCartQuantity(index, item.quantity - 1)" class="px-2 py-0.5 text-slate-600 hover:bg-slate-200 text-xs font-bold">-</button>
+                    <span class="px-2.5 text-xs font-bold text-slate-800" x-text="item.quantity"></span>
+                    <button @click="updateCartQuantity(index, item.quantity + 1)" class="px-2 py-0.5 text-slate-600 hover:bg-slate-200 text-xs font-bold">+</button>
+                  </div>
+                  <span class="text-xs font-bold text-blue-900 ml-auto" x-text="formatMoney(item.unit_price * item.quantity)"></span>
+                </div>
+
+                <!-- Asignar a Hermano / Alumno (opcional) -->
+                <div class="mt-2 flex items-center gap-1.5 bg-slate-50 p-1 rounded-md border border-slate-200/80">
+                  <span class="text-[10px] text-slate-500 font-bold">👦 Alumno:</span>
+                  <input type="text" x-model="item.student_name" placeholder="Ej: Lucas (opcional si son hermanos)"
+                         class="w-full text-[11px] bg-white border border-slate-200 rounded px-1.5 py-0.5 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-700">
+                </div>
+              </div>
+
+              <!-- Eliminar -->
+              <button @click="removeCartItem(index)" class="text-slate-300 hover:text-red-600 p-1 transition" title="Eliminar prenda">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </template>
+
+          <!-- Recomendador Cross-Selling en Carrito ("Completa el uniforme") -->
+          <template x-if="cart.length > 0 && upsellSuggestions.length > 0">
+            <div class="pt-4 mt-2 border-t border-dashed border-amber-300">
+              <div class="bg-amber-50/70 rounded-xl p-3 border border-amber-200/80">
+                <p class="text-[11px] font-extrabold text-amber-950 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <span>✨ Completa el equipamiento escolar</span>
+                </p>
+                <div class="space-y-2">
+                  <template x-for="sug in upsellSuggestions" :key="sug.id">
+                    <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-amber-100 shadow-2xs gap-2">
+                      <img :src="sug.image_url" class="w-9 h-9 object-contain rounded bg-slate-50 p-0.5 border border-slate-100 shrink-0">
+                      <div class="flex-1 min-w-0">
+                        <p class="text-[11px] font-bold text-slate-800 truncate" x-text="sug.name"></p>
+                        <p class="text-[10px] text-blue-900 font-bold" x-text="'Desde ' + formatMoney(sug.price)"></p>
+                      </div>
+                      <button type="button"
+                              @click="addToCart(sug)"
+                              class="px-2.5 py-1 bg-blue-900 hover:bg-blue-950 text-white text-[10px] font-bold rounded-lg transition shrink-0 cursor-pointer">
+                        + Añadir
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Footer / Total con desglose IVA y Botón Tramitar -->
+        <div class="p-5 border-t border-slate-200 bg-slate-50">
+          <div class="space-y-1 mb-3 text-xs text-slate-500">
+            <div class="flex justify-between">
+              <span>Base Imponible:</span>
+              <span class="font-semibold text-slate-700" x-text="formatMoney(cartTotal / 1.21)"></span>
+            </div>
+            <div class="flex justify-between">
+              <span>IVA (21% incluido):</span>
+              <span class="font-semibold text-slate-700" x-text="formatMoney(cartTotal - (cartTotal / 1.21))"></span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mb-4 pt-2 border-t border-slate-200">
+            <span class="text-sm font-bold text-slate-800">Total Factura:</span>
+            <span class="text-2xl font-black text-blue-950" x-text="formatMoney(cartTotal)"></span>
+          </div>
+
+          <button @click="openCheckoutModal = true; openCartDrawer = false"
+                  :disabled="cart.length === 0"
+                  class="w-full py-3.5 px-4 bg-blue-900 hover:bg-blue-950 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+            <span>Datos de Alumno y Facturación</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+          <p class="text-[11px] text-slate-500 text-center mt-2 font-medium">
+            🧾 Sin pago con tarjeta en la web. Se factura a través de la gestión administrativa del colegio.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL FORMULARIO DE CHECKOUT / DATOS Y FACTURACIÓN ================= -->
+  <div x-show="openCheckoutModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="openCheckoutModal = false"></div>
+
+      <div class="relative bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-4 mb-5">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-100 text-blue-900 mb-1">Reserva Oficial Sin Pago Online</span>
+            <h3 class="text-xl font-bold font-serif-title text-slate-900">Datos del Alumno y Facturación</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Completa los datos para preparar las prendas y emitir la factura oficial del colegio.</p>
+          </div>
+          <button @click="openCheckoutModal = false" class="text-slate-400 hover:text-slate-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <form @submit.prevent="submitOrder" class="space-y-4 text-xs sm:text-sm">
+          
+          <!-- Aviso Pedido Conjunto Hermanos -->
+          <div x-show="hasMultipleSiblingsInCart" class="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-start gap-2.5">
+            <span class="text-lg">👥</span>
+            <div>
+              <p class="font-bold">¡Pedido conjunto para varios hermanos detectado!</p>
+              <p class="text-indigo-800 text-[11px] mt-0.5 leading-relaxed">
+                Has etiquetado prendas para diferentes alumnos. Prepararemos paquetes etiquetados para cada hermano bajo una única factura familiar.
+              </p>
+            </div>
+          </div>
+
+          <!-- 1. Datos Alumno -->
+          <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3">
+            <h4 class="font-bold text-blue-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <span>🎓 1. Información del Alumno/a</span>
+            </h4>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Nombre y Apellidos del Alumno/a *</label>
+                <input type="text" x-model="orderForm.student_name" required placeholder="Ej: Mateo Gómez Fernández"
+                       class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800">
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Curso Escolar *</label>
+                <select x-model="orderForm.student_course" required class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800 font-medium">
+                  <option value="">-- Selecciona el curso --</option>
+                  <optgroup label="Educación Infantil">
+                    <option value="1º Infantil (3 años)">1º Infantil (3 años)</option>
+                    <option value="2º Infantil (4 años)">2º Infantil (4 años)</option>
+                    <option value="3º Infantil (5 años)">3º Infantil (5 años)</option>
+                  </optgroup>
+                  <optgroup label="Educación Primaria">
+                    <option value="1º Primaria">1º Primaria</option>
+                    <option value="2º Primaria">2º Primaria</option>
+                    <option value="3º Primaria">3º Primaria</option>
+                    <option value="4º Primaria">4º Primaria</option>
+                    <option value="5º Primaria">5º Primaria</option>
+                    <option value="6º Primaria">6º Primaria</option>
+                  </optgroup>
+                  <optgroup label="Educación Secundaria (ESO)">
+                    <option value="1º ESO">1º ESO</option>
+                    <option value="2º ESO">2º ESO</option>
+                    <option value="3º ESO">3º ESO</option>
+                    <option value="4º ESO">4º ESO</option>
+                  </optgroup>
+                  <optgroup label="Bachillerato">
+                    <option value="1º Bachillerato">1º Bachillerato</option>
+                    <option value="2º Bachillerato">2º Bachillerato</option>
+                  </optgroup>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Datos de Contacto Familiar -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+            <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">📱 2. Contacto Familiar (Avisos de Recogida)</h4>
+            
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Nombre y Apellidos del Padre / Madre / Tutor *</label>
+              <input type="text" x-model="orderForm.parent_name"
+                     @input="if (!orderForm.billing_name) orderForm.billing_name = orderForm.parent_name"
+                     required placeholder="Ej: Laura Fernández Ruiz"
+                     class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Teléfono Móvil *</label>
+                <input type="tel" x-model="orderForm.parent_phone" required placeholder="Ej: 612 345 678"
+                       class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Correo Electrónico *</label>
+                <input type="email" x-model="orderForm.parent_email" required placeholder="Ej: familia@ejemplo.com"
+                       class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800">
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Datos Fiscales de Facturación Claros (Para App de Facturación del Colegio) -->
+          <div class="bg-amber-50/60 p-4 rounded-xl border-2 border-amber-200/90 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-extrabold text-amber-950 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <span>🧾 3. Datos Fiscales para Emisión de Factura Oficial</span>
+              </h4>
+              <span class="text-[10px] font-bold bg-white text-amber-900 px-2 py-0.5 rounded border border-amber-300">Facturación Colegio</span>
+            </div>
+            <p class="text-[11px] text-amber-900/90 leading-relaxed">
+              Estos datos se utilizarán directamente para emitir tu factura reglamentaria y tramitar el cargo en la aplicación de facturación del colegio.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-2">
+                <label class="block font-semibold text-slate-800 mb-1">Titular de la Factura / Razón Social *</label>
+                <input type="text" x-model="orderForm.billing_name" required placeholder="Nombre completo o Razón Social"
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-800">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-800 mb-1">DNI / NIF / NIE / CIF *</label>
+                <input type="text" x-model="orderForm.parent_nif" required placeholder="Ej: 12345678Z"
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono uppercase focus:ring-2 focus:ring-blue-800">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div class="sm:col-span-2">
+                <label class="block font-semibold text-slate-700 mb-1">Dirección Fiscal (Calle, Nº, Piso) *</label>
+                <input type="text" x-model="orderForm.billing_address" required placeholder="Ej: C/ Mayor 14, 3º B"
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-800">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Código Postal *</label>
+                <input type="text" x-model="orderForm.billing_postal_code" required placeholder="Ej: 28019"
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-800">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Localidad / Ciudad *</label>
+                <input type="text" x-model="orderForm.billing_city" required placeholder="Madrid"
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-800">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label class="block font-semibold text-slate-800 mb-1">Modalidad de Facturación *</label>
+                <select x-model="orderForm.payment_method" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-semibold text-slate-800 focus:ring-2 focus:ring-blue-800">
+                  <option value="Recibo Escolar / App Facturación">Recibo Escolar / App Facturación del Colegio</option>
+                  <option value="Pago en Secretaría al Recoger">Abono en Secretaría al retirar el pedido</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Observaciones (Opcional)</label>
+                <input type="text" x-model="orderForm.notes" placeholder="Ej: Recogerá la abuela / Talla dudosa"
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-800">
+              </div>
+            </div>
+          </div>
+
+          <!-- Casilla Legal RGPD y Condiciones de Cambios -->
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+            <label class="flex items-start gap-2.5 cursor-pointer select-none">
+              <input type="checkbox" x-model="orderForm.rgpd_accepted" required class="mt-0.5 w-4 h-4 text-blue-900 border-slate-300 rounded focus:ring-blue-800 cursor-pointer">
+              <span class="text-[11px] leading-snug text-slate-700">
+                He leído y acepto la <button type="button" @click.stop="openPrivacyModal = true" class="text-blue-800 font-bold underline hover:text-blue-950">política de privacidad y protección de datos</button> y las <button type="button" @click.stop="openReturnsPolicyModal = true" class="text-blue-800 font-bold underline hover:text-blue-950">condiciones de prueba, cambio de talla y devolución</button> del Colegio San Buenaventura. *
+              </span>
+            </label>
+          </div>
+
+          <!-- Resumen Fiscal del Pedido (Base + IVA + Total) -->
+          <div class="p-4 bg-[#002B66] text-white rounded-xl space-y-1.5">
+            <div class="flex items-center justify-between text-xs text-blue-200">
+              <span>Base Imponible (<span x-text="totalCartCount"></span> prendas):</span>
+              <span class="font-mono" x-text="formatMoney(cartTotal / 1.21)"></span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-blue-200">
+              <span>Cuota IVA (21%):</span>
+              <span class="font-mono" x-text="formatMoney(cartTotal - (cartTotal / 1.21))"></span>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-blue-800">
+              <span class="text-sm font-bold">Total Factura a Emitir:</span>
+              <span class="text-xl font-black text-amber-300" x-text="formatMoney(cartTotal)"></span>
+            </div>
+          </div>
+
+          <div x-show="errorMessage" class="p-3 bg-red-50 text-red-700 rounded-lg text-xs font-semibold" x-text="errorMessage"></div>
+
+          <!-- Botones Envío -->
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button type="button" @click="openCheckoutModal = false; openCartDrawer = true"
+                    class="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer">
+              Volver al Carrito
+            </button>
+            <button type="submit" :disabled="submittingOrder"
+                    class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+              <span x-show="!submittingOrder">Confirmar Reserva y Generar Factura</span>
+              <span x-show="submittingOrder">Registrando y generando factura...</span>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL PEDIDO CONFIRMADO ================= -->
+  <div x-show="openSuccessModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 z-10 text-center">
+        <!-- Icono Éxito -->
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        </div>
+
+        <h3 class="text-2xl font-black font-serif-title text-slate-900">¡Reserva y Factura Generadas!</h3>
+        <p class="text-xs sm:text-sm text-slate-600 mt-2">
+          Hemos registrado tu pedido y emitido el documento fiscal para el Colegio San Buenaventura.
+        </p>
+
+        <!-- Tarjeta Localizador y Nº Factura -->
+        <div class="my-5 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between text-xs border-b border-slate-200 pb-2">
+            <span class="font-bold text-slate-500 uppercase">Nº Factura Oficial:</span>
+            <span class="font-mono font-black text-blue-950 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200" x-text="confirmedOrder?.invoice_number || 'FAC-2026'"></span>
+          </div>
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Localizador de Pedido</span>
+            <div class="flex items-center justify-center gap-3">
+              <span class="text-2xl sm:text-3xl font-black text-blue-900 font-mono tracking-wider" x-text="confirmedOrder?.locator"></span>
+              <button @click="copyLocator(confirmedOrder?.locator)" class="p-2 text-slate-400 hover:text-slate-700 bg-white border border-slate-200 rounded-lg shadow-2xs" title="Copiar localizador">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </button>
+            </div>
+            <span x-show="copiedMessage" class="text-xs text-emerald-600 font-semibold block mt-1">¡Copiado al portapapeles!</span>
+          </div>
+        </div>
+
+        <!-- Tarjeta QR de Recogida Rápida en Secretaría -->
+        <template x-if="confirmedOrder?.qr_code">
+          <div class="my-4 p-4 rounded-2xl bg-amber-50/70 border border-amber-200 flex flex-col items-center">
+            <img :src="confirmedOrder.qr_code" alt="Código QR de Entrega" class="w-32 h-32 rounded-xl bg-white p-2 border border-amber-300 shadow-sm">
+            <span class="text-xs font-bold text-slate-800 mt-2">📱 Código QR de Recogida Rápida</span>
+            <p class="text-[11px] text-slate-500 mt-0.5 max-w-xs leading-relaxed">
+              Muestra este código en secretaría para retirar tu pedido rápidamente.
+            </p>
+          </div>
+        </template>
+
+        <!-- Acciones: Emisor de Factura y Cerrar -->
+        <div class="space-y-2.5">
+          <a :href="confirmedOrder?.invoice_url" target="_blank"
+             class="w-full py-3.5 px-4 bg-blue-900 hover:bg-blue-950 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>Abrir Emisor de Factura Oficial / Descargar PDF</span>
+          </a>
+
+          <button @click="openSuccessModal = false"
+                  class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition cursor-pointer">
+            Aceptar y Continuar Navegando
+          </button>
+        </div>
+
+        <p class="text-[11px] text-slate-400 mt-4 leading-relaxed">
+          También puedes editar o completar los datos fiscales desde el propio documento de factura en cualquier momento.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL CONSULTAR ESTADO DE PEDIDO ================= -->
+  <div x-show="openTrackerModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openTrackerModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
+        
+        <div class="flex items-start justify-between border-b border-slate-100 pb-4 mb-6">
+          <div>
+            <h3 class="text-xl font-bold font-serif-title text-slate-900">Seguimiento de tu Reserva</h3>
+            <p class="text-xs text-slate-500 mt-1">Introduce el código localizador recibido al hacer el pedido.</p>
+          </div>
+          <button @click="openTrackerModal = false" class="text-slate-400 hover:text-slate-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Buscador por Localizador -->
+        <div class="flex gap-2 mb-6">
+          <input type="text" x-model="trackerInput" placeholder="Ej: SB-2026-7841"
+                 @keydown.enter="trackOrder"
+                 class="flex-1 p-3 uppercase font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-800 text-sm">
+          <button @click="trackOrder" :disabled="trackingLoading"
+                  class="px-5 py-3 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+            <span x-show="!trackingLoading">Consultar</span>
+            <span x-show="trackingLoading">Buscando...</span>
+          </button>
+        </div>
+
+        <div x-show="trackerError" class="p-3 bg-red-50 text-red-700 text-xs rounded-xl mb-4" x-text="trackerError"></div>
+
+        <!-- Resultados del Pedido Consultado -->
+        <template x-if="trackedOrder">
+          <div class="space-y-6">
+            
+            <!-- Estado Visual / Stepper -->
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <span class="text-xs font-mono font-bold text-slate-400" x-text="trackedOrder.order.locator"></span>
+                  <h4 class="text-base font-bold text-slate-900" x-text="trackedOrder.order.student_name + ' (' + trackedOrder.order.student_course + ')'"></h4>
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
+                      :class="trackedOrder.order.status === 'Listo para recoger' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                              (trackedOrder.order.status === 'Entregado' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                              (trackedOrder.order.status === 'En preparación' ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-200 text-slate-700'))"
+                      x-text="trackedOrder.order.status">
+                </span>
+              </div>
+
+              <!-- Código QR si existe -->
+              <template x-if="trackedOrder?.qr_code || trackedOrder?.order?.qr_code">
+                <div class="p-3 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center gap-3 mb-4 shadow-2xs">
+                  <img :src="trackedOrder.qr_code || trackedOrder.order?.qr_code" alt="Código QR de Entrega" class="w-20 h-20 rounded-lg p-1 border border-slate-200 shrink-0 bg-white">
+                  <div class="text-left text-xs space-y-0.5">
+                    <p class="font-bold text-[#002B66]">📱 Código QR para Recogida Rápida</p>
+                    <p class="text-slate-500 text-[11px] leading-snug">Presenta este código con tu teléfono móvil en conserjería para validar y recoger tu uniforme al instante sin esperas.</p>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Banner si está listo para recoger -->
+              <div x-show="trackedOrder.order.status === 'Listo para recoger'" class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center gap-3 mb-4">
+                <svg class="w-6 h-6 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div>
+                  <p class="font-bold">¡Tu uniforme ya está preparado!</p>
+                  <p class="text-emerald-800">Puedes pasar a recogerlo por la conserjería del colegio en horario escolar.</p>
+                </div>
+              </div>
+
+              <!-- Timeline / Pasos -->
+              <div class="grid grid-cols-4 gap-2 text-center text-[11px] pt-2">
+                <div :class="isStepActive(1, trackedOrder.order.status) ? 'text-blue-900 font-bold' : 'text-slate-400'">
+                  <div class="w-7 h-7 mx-auto rounded-full flex items-center justify-center mb-1 text-xs"
+                       :class="isStepActive(1, trackedOrder.order.status) ? 'bg-blue-900 text-white' : 'bg-slate-200 text-slate-500'">✓</div>
+                  Recibido
+                </div>
+                <div :class="isStepActive(2, trackedOrder.order.status) ? 'text-blue-900 font-bold' : 'text-slate-400'">
+                  <div class="w-7 h-7 mx-auto rounded-full flex items-center justify-center mb-1 text-xs"
+                       :class="isStepActive(2, trackedOrder.order.status) ? 'bg-blue-900 text-white' : 'bg-slate-200 text-slate-500'">
+                    <span x-text="isStepActive(2, trackedOrder.order.status) ? '✓' : '2'"></span>
+                  </div>
+                  En preparación
+                </div>
+                <div :class="isStepActive(3, trackedOrder.order.status) ? 'text-emerald-700 font-bold' : 'text-slate-400'">
+                  <div class="w-7 h-7 mx-auto rounded-full flex items-center justify-center mb-1 text-xs"
+                       :class="isStepActive(3, trackedOrder.order.status) ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-200 text-slate-500'">
+                    <span x-text="isStepActive(3, trackedOrder.order.status) ? '✓' : '3'"></span>
+                  </div>
+                  Listo Recogida
+                </div>
+                <div :class="isStepActive(4, trackedOrder.order.status) ? 'text-blue-900 font-bold' : 'text-slate-400'">
+                  <div class="w-7 h-7 mx-auto rounded-full flex items-center justify-center mb-1 text-xs"
+                       :class="isStepActive(4, trackedOrder.order.status) ? 'bg-blue-900 text-white' : 'bg-slate-200 text-slate-500'">
+                    <span x-text="isStepActive(4, trackedOrder.order.status) ? '✓' : '4'"></span>
+                  </div>
+                  Entregado
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Desglose de prendas -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+              <div class="bg-slate-50 px-4 py-2 font-bold text-slate-700 border-b border-slate-200">Prendas Reservadas</div>
+              <div class="divide-y divide-slate-100 p-2">
+                <template x-for="item in trackedOrder.items" :key="item.id">
+                  <div class="flex items-center justify-between py-2 px-2">
+                    <div>
+                      <span class="font-bold text-slate-900" x-text="item.product_name"></span>
+                      <span class="ml-2 bg-slate-100 px-2 py-0.5 rounded text-[10px] font-mono text-slate-600" x-text="'Talla ' + item.size"></span>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-slate-500" x-text="item.quantity + ' ud(s).' "></span>
+                      <span class="font-bold text-slate-900 ml-2" x-text="formatMoney(item.subtotal)"></span>
+                    </div>
+                  </div>
+                </template>
+              </div>
+              <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-between items-center font-bold text-sm">
+                <span>Total:</span>
+                <span class="text-blue-950" x-text="formatMoney(trackedOrder.order.total_amount)"></span>
+              </div>
+            </div>
+
+            <!-- Botón Factura y Bloque Informativo de Cambios y Devoluciones Presenciales -->
+            <div class="space-y-2.5 pt-1">
+              <a :href="trackedOrder.invoice_url" target="_blank"
+                 class="w-full py-2.5 px-3 text-center bg-[#002B66] hover:bg-[#001D47] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>Ver / Descargar Factura Oficial (PDF)</span>
+              </a>
+
+              <!-- Información de Cambios y Devoluciones Presenciales -->
+              <div class="p-3.5 bg-amber-50/90 border-2 border-amber-200 rounded-xl space-y-1.5 text-xs text-amber-950">
+                <div class="flex items-center gap-2 font-bold text-amber-900">
+                  <span class="text-base">🏢</span>
+                  <span class="uppercase tracking-wider text-[11px]">Cambios de Talla y Devoluciones Presenciales</span>
+                </div>
+                <p class="text-[11px] text-amber-900/90 leading-relaxed">
+                  Para cambiar una talla o devolver una prenda (por ejemplo, prendas pedidas para prueba en casa), <strong>debe traer la prenda directamente a portería / secretaría del colegio</strong> e indicar la prenda por la que necesita cambiarla o devolverla.
+                </p>
+                <div class="text-[11px] text-amber-950 font-semibold bg-white p-2.5 rounded-lg border border-amber-300/70 flex items-start gap-2 shadow-2xs">
+                  <span class="text-emerald-700 font-bold text-base leading-none">✓</span>
+                  <span>El personal de portería / conserjería <strong>modificará su pedido en el sistema al instante</strong>, descontando la prenda devuelta (para que no se facture en la app del colegio) o canjeando la nueva talla.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Historial de Cambios / Devoluciones asociados -->
+            <div x-show="trackedOrder.returns && trackedOrder.returns.length > 0" class="pt-3 border-t border-slate-200 space-y-2">
+              <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                Solicitudes de Cambio / Devolución Registradas:
+              </h5>
+              <template x-for="ret in trackedOrder.returns" :key="ret.id">
+                <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl text-xs space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <span class="font-mono font-bold text-blue-950" x-text="ret.ticket_code"></span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                          :class="ret.status === 'LISTO_RECOGIDA' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                                  (ret.status === 'COMPLETADO' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                                  (ret.status === 'RECHAZADO' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800 border border-amber-300'))"
+                          x-text="ret.status === 'LISTO_RECOGIDA' ? '✓ ¡Listo para canjear en secretaría!' :
+                                  (ret.status === 'COMPLETADO' ? 'Canje completado' :
+                                  (ret.status === 'APROBADO_PREPARANDO' ? 'Preparando tallas en almacén' :
+                                  (ret.status === 'RECHAZADO' ? 'Rechazado' : 'Pendiente de tramitación')))">
+                    </span>
+                  </div>
+                  <div class="space-y-0.5 text-slate-700">
+                    <template x-for="it in ret.items" :key="it.item_id">
+                      <div class="text-[11px]">
+                        • <strong x-text="it.product_name"></strong>: 
+                        <span x-text="it.action === 'cambiar' ? 'Cambio de Talla ' + it.current_size + ' ➔ ' + it.new_size : 'Devolución de prenda'"></span>
+                      </div>
+                    </template>
+                  </div>
+                  <div x-show="ret.admin_notes" class="text-[10px] text-amber-900 bg-white/80 p-1.5 rounded border border-amber-200/50">
+                    <strong>Aviso de Secretaría:</strong> <span x-text="ret.admin_notes"></span>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+          </div>
+        </template>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL GUÍA DE TALLAS ESCOLAR ================= -->
+  <div x-show="openSizeGuideModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openSizeGuideModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-4 mb-4">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-black">📏</span>
+            <div>
+              <h3 class="text-xl font-bold font-serif-title text-[#002B66]">Guía de Tallas Oficial</h3>
+              <p class="text-xs text-slate-500">Colegio San Buenaventura • Referencias orientativas por edad y estatura</p>
+            </div>
+          </div>
+          <button @click="openSizeGuideModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto my-3">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-[#002B66] uppercase tracking-wider font-bold">
+                <th class="py-2.5 px-3 rounded-l-lg">Talla</th>
+                <th class="py-2.5 px-3">Edad Orientativa</th>
+                <th class="py-2.5 px-3">Estatura del Alumno</th>
+                <th class="py-2.5 px-3 text-right rounded-r-lg">Tramo de Precio</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700">
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-mono font-bold text-[#002B66]">T.2</td><td class="py-2 px-3">2 - 3 años</td><td class="py-2 px-3">86 - 92 cm</td><td class="py-2 px-3 text-right font-semibold text-emerald-700">Tramo 2 a 10</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-mono font-bold text-[#002B66]">T.3</td><td class="py-2 px-3">3 - 4 años</td><td class="py-2 px-3">93 - 98 cm</td><td class="py-2 px-3 text-right font-semibold text-emerald-700">Tramo 2 a 10</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-mono font-bold text-[#002B66]">T.4</td><td class="py-2 px-3">4 - 5 años</td><td class="py-2 px-3">99 - 104 cm</td><td class="py-2 px-3 text-right font-semibold text-emerald-700">Tramo 2 a 10</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-mono font-bold text-[#002B66]">T.5</td><td class="py-2 px-3">5 - 6 años</td><td class="py-2 px-3">105 - 110 cm</td><td class="py-2 px-3 text-right font-semibold text-emerald-700">Tramo 2 a 10</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-mono font-bold text-[#002B66]">T.6</td><td class="py-2 px-3">6 - 7 años</td><td class="py-2 px-3">111 - 116 cm</td><td class="py-2 px-3 text-right font-semibold text-emerald-700">Tramo 2 a 10</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-mono font-bold text-[#002B66]">T.8</td><td class="py-2 px-3">7 - 8 años</td><td class="py-2 px-3">117 - 128 cm</td><td class="py-2 px-3 text-right font-semibold text-emerald-700">Tramo 2 a 10</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-2 px-3 font-mono font-bold text-[#002B66]">T.10</td><td class="py-2 px-3">9 - 10 años</td><td class="py-2 px-3">129 - 140 cm</td><td class="py-2 px-3 text-right font-semibold text-emerald-700">Tramo 2 a 10</td></tr>
+              <tr class="hover:bg-blue-50/50 bg-blue-50/20"><td class="py-2 px-3 font-mono font-bold text-blue-900">T.12</td><td class="py-2 px-3">11 - 12 años</td><td class="py-2 px-3">141 - 152 cm</td><td class="py-2 px-3 text-right font-semibold text-blue-700">Tramo 12 a 18</td></tr>
+              <tr class="hover:bg-blue-50/50 bg-blue-50/20"><td class="py-2 px-3 font-mono font-bold text-blue-900">T.14</td><td class="py-2 px-3">13 - 14 años</td><td class="py-2 px-3">153 - 162 cm</td><td class="py-2 px-3 text-right font-semibold text-blue-700">Tramo 12 a 18</td></tr>
+              <tr class="hover:bg-blue-50/50 bg-blue-50/20"><td class="py-2 px-3 font-mono font-bold text-blue-900">T.16</td><td class="py-2 px-3">15 - 16 años</td><td class="py-2 px-3">163 - 170 cm</td><td class="py-2 px-3 text-right font-semibold text-blue-700">Tramo 12 a 18</td></tr>
+              <tr class="hover:bg-blue-50/50 bg-blue-50/20"><td class="py-2 px-3 font-mono font-bold text-blue-900">T.18</td><td class="py-2 px-3">17 - 18 años</td><td class="py-2 px-3">171 - 176 cm</td><td class="py-2 px-3 text-right font-semibold text-blue-700">Tramo 12 a 18</td></tr>
+              <tr class="hover:bg-amber-50/50 bg-amber-50/20"><td class="py-2 px-3 font-mono font-bold text-amber-900">T.20 a T.28</td><td class="py-2 px-3">Bachillerato / Adulto</td><td class="py-2 px-3">> 176 cm (Tallas S, M, L, XL)</td><td class="py-2 px-3 text-right font-semibold text-amber-800">Tramo 20 y ss.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+          <span class="text-base">💡</span>
+          <p><strong>Consejo práctico:</strong> En caso de duda entre dos tallas, aconsejamos seleccionar la talla superior para permitir el crecimiento del alumno/a durante los meses del curso escolar. Se dispone de 15 días tras la recogida para cualquier cambio con etiqueta.</p>
+        </div>
+
+        <div class="mt-4 text-right">
+          <button @click="openSizeGuideModal = false" class="px-5 py-2 bg-[#002B66] text-white font-bold text-xs rounded-xl shadow cursor-pointer">
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL CONFIGURACIÓN PACK ESCOLAR ================= -->
+  <div x-show="openPackModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openPackModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10 space-y-5">
+        
+        <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+          <div>
+            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full border mb-1.5 inline-block"
+                  :class="activePack?.badgeColor" x-text="activePack?.badge"></span>
+            <h3 class="text-xl font-bold font-serif-title text-[#002B66]" x-text="activePack?.name"></h3>
+            <p class="text-xs text-slate-500 mt-1" x-text="activePack?.description"></p>
+          </div>
+          <button @click="openPackModal = false" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- 1. Talla General del Pack (1 Clic) -->
+        <div class="bg-blue-50/60 p-4 rounded-2xl border border-blue-200/80 space-y-2">
+          <label class="block text-xs font-bold text-[#002B66] uppercase tracking-wider">
+            1. Elige la talla general para todas las prendas del pack:
+          </label>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="sz in (activePack?.sizes || [])" :key="sz">
+              <button type="button" @click="onGlobalSizeChange(sz)"
+                      :class="packForm.globalSize === sz ? 'bg-[#002B66] text-white font-bold ring-2 ring-blue-900' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 font-semibold'"
+                      class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer"
+                      x-text="sz">
+              </button>
+            </template>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">Al seleccionar una talla, se aplica automáticamente a todo el pack. Puedes personalizar prendas sueltas abajo si tu hijo/a necesita tallas distintas.</p>
+        </div>
+
+        <!-- 2. Asignar a un Alumno / Hermano -->
+        <div class="space-y-1">
+          <label class="block text-xs font-bold text-slate-700">2. ¿Para qué alumno/hermano es este pack? (Opcional):</label>
+          <input type="text" x-model="packForm.studentName" placeholder="Ej: Mateo Gómez (3º Primaria)"
+                 class="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-800">
+          <p class="text-[11px] text-slate-400">Si pides para varios hermanos, se empaquetará en una bolsa individual con este nombre.</p>
+        </div>
+
+        <!-- 3. Desglose detallado de prendas incluidas y ajuste individual -->
+        <div class="border border-slate-200 rounded-2xl overflow-hidden text-xs">
+          <div class="bg-slate-50 px-4 py-2 font-bold text-slate-700 border-b border-slate-200">
+            3. Prendas incluidas en el pack y talla específica:
+          </div>
+          <div class="divide-y divide-slate-100 p-3 space-y-2 max-h-48 overflow-y-auto">
+            <template x-for="it in (activePack?.items || [])" :key="it.productName">
+              <div class="flex items-center justify-between py-1 text-xs">
+                <div class="flex-1 mr-3">
+                  <span class="font-semibold text-slate-800" x-text="it.productName"></span>
+                  <span class="ml-1 text-slate-400 font-mono text-[11px]" x-text="'(' + it.qty + ' ud' + (it.qty > 1 ? 's' : '') + ')'"></span>
+                </div>
+                <div class="shrink-0 w-28">
+                  <select x-model="packForm.itemSizes[it.productName]"
+                          class="w-full p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-blue-800">
+                    <template x-for="sz in (activePack?.sizes || [])" :key="sz">
+                      <option :value="sz" x-text="'Talla ' + sz"></option>
+                    </template>
+                  </select>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-between items-center font-bold text-sm">
+            <span class="text-slate-700">Total Oficial Pack:</span>
+            <span class="text-blue-950 text-base" x-text="formatMoney(calculatePackTotal(activePack))"></span>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex gap-2 pt-2">
+          <button @click="openPackModal = false" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition cursor-pointer">
+            Cancelar
+          </button>
+          <button @click="addPackToCart()"
+                  class="flex-1 py-3 px-4 bg-[#002B66] hover:bg-[#001D47] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+            <span>🎒 Añadir Pack Completo a Mi Reserva</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL RECOMENDADOR INTELIGENTE DE TALLA ================= -->
+  <div x-show="openRecommenderModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openRecommenderModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10 space-y-5">
+        
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-10 h-10 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center text-lg font-black shrink-0">📏</span>
+            <div>
+              <h3 class="text-lg font-bold font-serif-title text-[#002B66]">Recomendador de Talla</h3>
+              <p class="text-xs text-slate-500">Patronaje oficial del Colegio San Buenaventura</p>
+            </div>
+          </div>
+          <button @click="openRecommenderModal = false" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- 1. Estatura en cm -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Estatura del Alumno/a:</label>
+            <span class="font-mono font-black text-sm text-[#002B66] bg-blue-50 px-2 py-0.5 rounded border border-blue-200" x-text="recommenderHeight + ' cm'"></span>
+          </div>
+          <input type="range" min="85" max="185" x-model.number="recommenderHeight"
+                 class="w-full accent-blue-900 cursor-pointer">
+          <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+            <span>85 cm (Infantil)</span>
+            <span>130 cm (Primaria)</span>
+            <span>185 cm (Secundaria/Bach.)</span>
+          </div>
+        </div>
+
+        <!-- 2. Edad -->
+        <div class="space-y-1">
+          <label class="block text-xs font-bold text-slate-700">Edad aproximada del alumno:</label>
+          <div class="flex items-center gap-2">
+            <input type="number" min="2" max="18" x-model.number="recommenderAge"
+                   class="w-24 p-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-800 font-bold text-center">
+            <span class="text-xs text-slate-500">años cumplidos</span>
+          </div>
+        </div>
+
+        <!-- 3. Tipo de prenda -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700">Tipo de prenda que vas a elegir:</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button type="button" @click="recommenderGarmentType = 'superior'"
+                    :class="recommenderGarmentType === 'superior' ? 'bg-[#002B66] text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'"
+                    class="p-2 rounded-xl text-center transition cursor-pointer">
+              👕 Polo / Jersey
+            </button>
+            <button type="button" @click="recommenderGarmentType = 'inferior'"
+                    :class="recommenderGarmentType === 'inferior' ? 'bg-[#002B66] text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'"
+                    class="p-2 rounded-xl text-center transition cursor-pointer">
+              👖 Pantalón / Falda
+            </button>
+            <button type="button" @click="recommenderGarmentType = 'deporte'"
+                    :class="recommenderGarmentType === 'deporte' ? 'bg-[#002B66] text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'"
+                    class="p-2 rounded-xl text-center transition cursor-pointer">
+              🏃 Chándal / Deporte
+            </button>
+            <button type="button" @click="recommenderGarmentType = 'babi'"
+                    :class="recommenderGarmentType === 'babi' ? 'bg-[#002B66] text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'"
+                    class="p-2 rounded-xl text-center transition cursor-pointer">
+              🧸 Babi Infantil
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Resultado de Recomendación Inteligente -->
+        <div class="p-4 rounded-2xl bg-blue-50/70 border-2 border-blue-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-blue-900 uppercase tracking-wider">Talla Recomendada:</span>
+            <span class="px-3 py-1 bg-[#002B66] text-white font-black font-mono text-base rounded-lg shadow-xs"
+                  x-text="sizeRecommendation.recommendedSize"></span>
+          </div>
+          <p class="text-xs text-slate-700 font-semibold"
+             x-text="'Rango oficial de estatura: ' + sizeRecommendation.heightRange"></p>
+          <div class="p-2.5 bg-white/90 rounded-xl border border-blue-100 text-xs text-slate-600 flex items-start gap-2">
+            <span class="text-amber-600 text-sm">💡</span>
+            <p class="leading-relaxed" x-text="sizeRecommendation.advice"></p>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex gap-2 pt-2">
+          <button @click="openRecommenderModal = false" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition cursor-pointer">
+            Cerrar
+          </button>
+          <button @click="applyRecommendedSizeToAll()"
+                  class="flex-1 py-3 px-4 bg-[#002B66] hover:bg-[#001D47] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer">
+            <span>Aplicar Talla Sugerida al Catálogo</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL POLÍTICA DE PRIVACIDAD (RGPD) ================= -->
+  <div x-show="openPrivacyModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openPrivacyModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10 text-xs text-slate-600 space-y-4">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center text-lg font-black">⚖️</span>
+            <div>
+              <h3 class="text-lg font-bold font-serif-title text-[#002B66]">Información sobre Protección de Datos</h3>
+              <p class="text-[11px] text-slate-500">Colegio San Buenaventura • RGPD (UE) 2016/679 y LOPDGDD 3/2018</p>
+            </div>
+          </div>
+          <button @click="openPrivacyModal = false" class="text-slate-400 hover:text-slate-600 p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="space-y-3 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+          <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+            <strong class="text-blue-950 block mb-1">1. Responsable del Tratamiento:</strong>
+            Colegio San Buenaventura (Provincia de la Inmaculada Concepción - Franciscanos Conventuales de España).<br>
+            <strong>CIF:</strong> R-2800045-G • <strong>Domicilio:</strong> Calle El Greco, 16, 28011 Madrid.<br>
+            <strong>Email de contacto:</strong> administracion@sanbuenaventura.org • Teléfono: 91 526 71 61.
+          </div>
+
+          <div>
+            <strong class="text-slate-800 block mb-0.5">2. Finalidad del Tratamiento:</strong>
+            Los datos personales facilitados (nombre del tutor, teléfono, email, DNI y datos del alumno/a y curso) serán tratados exclusivamente para:
+            <ul class="list-disc pl-5 mt-1 space-y-0.5">
+              <li>Gestión, preparación y entrega de los uniformes escolares reservados.</li>
+              <li>Emisión de facturas y justificantes de pago.</li>
+              <li>Envío de notificaciones relativas al estado del pedido (confirmación, disponibilidad para recogida).</li>
+              <li>Tramitación de incidencias, solicitudes de cambio de talla y devoluciones.</li>
+            </ul>
+          </div>
+
+          <div>
+            <strong class="text-slate-800 block mb-0.5">3. Base Jurídica:</strong>
+            El tratamiento se basa en la ejecución de la relación de solicitud y reserva del uniforme escolar, así como el cumplimiento de obligaciones legales de facturación.
+          </div>
+
+          <div>
+            <strong class="text-slate-800 block mb-0.5">4. Destinatarios:</strong>
+            Los datos serán accesibles únicamente por el personal de secretaría, administración y almacén del colegio. No se cederán a terceros ajenos a la entidad salvo imperativo legal.
+          </div>
+
+          <div>
+            <strong class="text-slate-800 block mb-0.5">5. Derechos de la Familia:</strong>
+            Puede ejercer sus derechos de acceso, rectificación, supresión, limitación y oposición enviando una solicitud firmada junto con copia de su DNI a <em>administracion@sanbuenaventura.org</em> o presencialmente en secretaría.
+          </div>
+        </div>
+
+        <div class="pt-2 text-right border-t border-slate-100">
+          <button @click="openPrivacyModal = false" class="px-5 py-2 bg-[#002B66] text-white font-bold text-xs rounded-xl shadow cursor-pointer">
+            Aceptar y Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL CONDICIONES DE CAMBIOS Y PRUEBA ================= -->
+  <div x-show="openReturnsPolicyModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openReturnsPolicyModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10 text-xs text-slate-600 space-y-4">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg font-black">🔄</span>
+            <div>
+              <h3 class="text-lg font-bold font-serif-title text-[#002B66]">Condiciones de Prueba, Cambio y Devolución</h3>
+              <p class="text-[11px] text-slate-500">Colegio San Buenaventura • Garantía de Uniformidad</p>
+            </div>
+          </div>
+          <button @click="openReturnsPolicyModal = false" class="text-slate-400 hover:text-slate-600 p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="space-y-3 leading-relaxed">
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-950">
+            <strong>🏠 Prueba de Tallas en Casa:</strong><br>
+            Entendemos que los niños crecen rápido y a veces es difícil acertar con la talla. Las familias pueden reservar dos tallas consecutivas para probar tranquilamente en casa y devolver la talla no utilizada.
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="font-bold text-slate-900">Requisitos para Aceptar el Cambio o Devolución:</h4>
+            <ul class="space-y-1.5 pl-1">
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span><strong>Plazo:</strong> Dispone de <strong>15 días naturales</strong> desde la retirada del paquete en secretaría.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span><strong>Etiqueta de fábrica intacta:</strong> La prenda debe conservar su etiqueta colgante o cosida original de fábrica.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span><strong>Prendas sin marcar:</strong> Por razones higiénicas y de reventa escolar, <strong>no se admiten devoluciones de prendas que hayan sido marcadas con el nombre o iniciales del alumno</strong> ni lavadas.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span><strong>Punto de canje y modificación:</strong> Directamente en la <strong>portería / conserjería / secretaría del colegio</strong>. El personal del centro modificará el pedido en el sistema al instante tras recibir la prenda.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="pt-2 text-right border-t border-slate-100">
+          <button @click="openReturnsPolicyModal = false" class="px-5 py-2 bg-amber-600 text-white font-bold text-xs rounded-xl shadow cursor-pointer">
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL INFORMATIVO: PROCEDIMIENTO DE CAMBIO O DEVOLUCIÓN EN PORTERÍA ================= -->
+  <div x-show="openExchangeModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openExchangeModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10 text-xs space-y-4">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl font-black">🏢</span>
+            <div>
+              <h3 class="text-lg font-bold font-serif-title text-[#002B66]">Devoluciones y Cambios de Talla</h3>
+              <p class="text-[11px] text-slate-500">Gestión presencial en portería / secretaría</p>
+            </div>
+          </div>
+          <button @click="openExchangeModal = false" class="text-slate-400 hover:text-slate-600 p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-amber-950 space-y-2">
+          <p class="font-bold text-sm text-amber-900 flex items-center gap-1.5">
+            <span>ℹ️</span> Procedimiento Oficial:
+          </p>
+          <p class="leading-relaxed">
+            Las devoluciones y cambios de uniformidad se gestionan <strong>de manera presencial directamente en el colegio</strong>.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-start gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+            <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-900 font-bold flex items-center justify-center shrink-0">1</span>
+            <div>
+              <strong class="text-slate-900 block mb-0.5">Traiga la prenda al centro escolar</strong>
+              <p class="text-slate-600 text-[11px] leading-relaxed">
+                Acuda a <strong>portería, conserjería o secretaría</strong> con la prenda en su bolsa original y conservando su etiqueta intacta (sin marcar con nombre ni lavar).
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+            <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-900 font-bold flex items-center justify-center shrink-0">2</span>
+            <div>
+              <strong class="text-slate-900 block mb-0.5">Indique qué necesita cambiar o devolver</strong>
+              <p class="text-slate-600 text-[11px] leading-relaxed">
+                Muestre el código QR o localizador de su pedido e indique al personal del centro la nueva talla requerida o la devolución de la prenda (por ejemplo, prendas pedidas para probar en casa).
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 bg-emerald-50 p-3 rounded-xl border border-emerald-200/80">
+            <span class="w-6 h-6 rounded-full bg-emerald-200 text-emerald-900 font-bold flex items-center justify-center shrink-0">3</span>
+            <div>
+              <strong class="text-emerald-950 block mb-0.5">Modificación instantánea del pedido</strong>
+              <p class="text-emerald-900 text-[11px] leading-relaxed">
+                El personal de portería / secretaría <strong>modificará su pedido en la aplicación en el mismo momento</strong>:
+              </p>
+              <ul class="mt-1 space-y-1 text-[11px] text-emerald-900/90 list-disc list-inside">
+                <li><strong>En devoluciones:</strong> Se descontará la prenda del pedido y no se facturará en el recibo escolar.</li>
+                <li><strong>En cambios de talla:</strong> Se entregará la nueva talla al instante registrando el cambio.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2 text-right border-t border-slate-100">
+          <button @click="openExchangeModal = false" class="px-5 py-2.5 bg-[#002B66] text-white font-bold text-xs rounded-xl shadow cursor-pointer">
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= NOTIFICACIÓN TOAST RÁPIDA ================= -->
+  <div x-show="toastMessage" x-cloak
+       class="fixed bottom-6 right-6 z-50 bg-[#002B66] text-white px-5 py-3 rounded-2xl shadow-xl border border-blue-900 text-xs font-semibold flex items-center gap-3 transition-transform"
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0 translate-y-4"
+       x-transition:enter-end="opacity-100 translate-y-0"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100 translate-y-0"
+       x-transition:leave-end="opacity-0 translate-y-4">
+    <svg class="w-5 h-5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <span x-text="toastMessage"></span>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-white border-t border-slate-200 mt-16 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <div class="flex items-center gap-3">
+        <img src="/static/images/logo.png" alt="Colegio San Buenaventura" class="h-10 w-auto">
+        <span>© 2026 Colegio San Buenaventura (Franciscanos Conventuales) • Reserva de Uniformidad Oficial</span>
+      </div>
+      <div class="flex gap-4">
+        <span>c/ El Greco, 16 - Madrid</span>
+        <span>•</span>
+        <a href="/admin" class="hover:text-blue-900 font-bold text-[#002B66]">Acceso Secretaría</a>
+      </div>
+    </div>
+  </footer>
+
+
+
+</body>
+</html>

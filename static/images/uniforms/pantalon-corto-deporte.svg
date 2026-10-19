@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EDF2F7"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg-grad)" rx="20"/>
+  
+  <!-- Pantalón Corto de Deporte CSB -->
+  <g filter="url(#card-shadow)">
+    <!-- Waistband with drawstring -->
+    <rect x="62" y="52" width="76" height="12" fill="#174FA0" stroke="#113D7C" stroke-width="1" rx="3"/>
+    <line x1="97" y1="60" x2="95" y2="70" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="103" y1="60" x2="105" y2="70" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Royal Blue Bermuda Body -->
+    <path d="M62 64 L50 148 L94 148 L100 96 L106 148 L150 148 L138 64 Z" fill="#1B5EBF" stroke="#154B98" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- TWO Bold White Horizontal Stripes on left leg (viewer right) -->
+    <polygon points="104,124 146,124 147,131 104,131" fill="#FFFFFF"/>
+    <polygon points="105,136 148,136 149,143 105,143" fill="#FFFFFF"/>
+    <!-- Right leg CSB badge -->
+    
+    <!-- Official CSB Emblem -->
+    <g transform="translate(72,116) scale(0.65)">
+      <!-- Shadow/backing subtle glow -->
+      <circle cx="0" cy="-2" r="14" fill="#FFFFFF" opacity="0.2"/>
+      <!-- Center figure (Gold body, Blue head) -->
+      <circle cx="0" cy="-11" r="4.2" fill="#005CB9"/>
+      <path d="M-3.5 -5 L3.5 -5 C4.5 -5 5.5 -4 5.5 -2.5 L5.5 10 C5.5 11 4.5 12 3.5 12 L-3.5 12 C-4.5 12 -5.5 11 -5.5 10 L-5.5 -2.5 C-5.5 -4 -4.5 -5 -3.5 -5 Z" fill="#F5A623"/>
+      <!-- Left figure (Gold head, Blue body) -->
+      <circle cx="-7.5" cy="-6" r="3.3" fill="#F5A623"/>
+      <path d="M-10.5 -1 L-4.5 -1 C-3.8 -1 -3.3 -0.5 -3.3 0.5 L-3.3 9 C-3.3 10 -3.8 10.5 -4.5 10.5 L-10.5 10.5 C-11.2 10.5 -11.7 10 -11.7 9 L-11.7 0.5 C-11.7 -0.5 -11.2 -1 -10.5 -1 Z" fill="#005CB9"/>
+      <!-- Right figure (Gold head, Blue body with Tau) -->
+      <circle cx="7.5" cy="-6" r="3.3" fill="#F5A623"/>
+      <path d="M4.5 -1 L10.5 -1 C11.2 -1 11.7 -0.5 11.7 0.5 L11.7 9 C11.7 10 11.2 10.5 10.5 10.5 L4.5 10.5 C3.8 10.5 3.3 10 3.3 9 L3.3 0.5 C3.3 -0.5 3.8 -1 4.5 -1 Z" fill="#005CB9"/>
+      <!-- White Tau Cross -->
+      <path d="M6 2 L9 2 M7.5 2 L7.5 6" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round"/>
+    </g>
+    
+  </g>
+
+</svg>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso Secretaría - Colegio San Buenaventura</title>
+  <!-- Favicon Oficial Colegio San Buenaventura -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <meta name="theme-color" content="#002B66">
+  <script src="/static/js/tailwind.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-serif-title { font-family: 'Cinzel', serif; }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+  <div class="max-w-lg w-full bg-white rounded-3xl shadow-xl border border-slate-200 p-8 space-y-6">
+    <!-- Logo Oficial -->
+    <div class="text-center">
+      <img src="/static/images/logo.png" alt="Colegio San Buenaventura" class="h-16 w-auto mx-auto mb-3 object-contain">
+      <h1 class="text-xl font-bold font-serif-title text-[#002B66]">Gestión de Uniformidad</h1>
+      <p class="text-xs text-slate-500 mt-1">Colegio San Buenaventura • Control de Accesos</p>
+    </div>
+
+    {% if error %}
+    <div class="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl text-center font-medium">
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/admin/login" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Clave de Acceso</label>
+        <div class="relative">
+          <input type="password" id="passwordField" name="password" required autofocus placeholder="Introduce tu clave de acceso"
+                 class="w-full p-3 pr-10 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002B66] focus:outline-none font-mono">
+          <button type="button" onclick="togglePassword()" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="w-full py-3 bg-[#002B66] hover:bg-[#001D47] text-white font-bold text-sm rounded-xl shadow-md transition cursor-pointer">
+        Iniciar Sesión
+      </button>
+    </form>
+
+    <!-- Perfiles Disponibles (Guía de referencia rápida) -->
+    <div class="pt-2 border-t border-slate-100">
+      <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">Perfiles de Acceso Configurados:</p>
+      
+      <div class="space-y-2">
+        <!-- Perfil 1: Maestro -->
+        <button type="button" onclick="quickFill('SanBuenaventura2026')" class="w-full text-left p-2.5 rounded-xl border border-amber-200 bg-amber-50/60 hover:bg-amber-100/70 transition flex items-start gap-3 cursor-pointer">
+          <span class="text-xl">👑</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-950">Acceso Maestro</span>
+              <span class="font-mono text-[10px] bg-amber-200/80 text-amber-900 px-1.5 py-0.5 rounded font-bold">SanBuenaventura2026</span>
+            </div>
+            <p class="text-[11px] text-amber-800/80 mt-0.5 leading-snug">Control absoluto: catálogo, precios, cancelaciones, cambios y contraseñas.</p>
+          </div>
+        </button>
+
+        <!-- Perfil 2: Operador / Cambios -->
+        <button type="button" onclick="quickFill('CambiosCSB2026')" class="w-full text-left p-2.5 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100/70 transition flex items-start gap-3 cursor-pointer">
+          <span class="text-xl">🔄</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-blue-950">Gestión de Cambios & Almacén</span>
+              <span class="font-mono text-[10px] bg-blue-200/80 text-blue-900 px-1.5 py-0.5 rounded font-bold">CambiosCSB2026</span>
+            </div>
+            <p class="text-[11px] text-blue-800/80 mt-0.5 leading-snug">Consulta, canje de tallas y devoluciones. Prohibido cancelar o alterar precios/catálogo.</p>
+          </div>
+        </button>
+
+        <!-- Perfil 3: Visor / Consulta -->
+        <button type="button" onclick="quickFill('ConsultaCSB2026')" class="w-full text-left p-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100/70 transition flex items-start gap-3 cursor-pointer">
+          <span class="text-xl">👁️</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-purple-950">Consulta y Visión</span>
+              <span class="font-mono text-[10px] bg-purple-200/80 text-purple-900 px-1.5 py-0.5 rounded font-bold">ConsultaCSB2026</span>
+            </div>
+            <p class="text-[11px] text-purple-800/80 mt-0.5 leading-snug">Portería y recepción: confirmación de si el pedido existe y su estado (solo lectura).</p>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div class="text-center pt-2">
+      <a href="/" class="text-xs text-slate-500 hover:text-[#002B66] font-medium">
+        ← Volver a la Tienda de Familias
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const f = document.getElementById('passwordField');
+      f.type = f.type === 'password' ? 'text' : 'password';
+    }
+    function quickFill(pwd) {
+      const f = document.getElementById('passwordField');
+      f.value = pwd;
+      f.focus();
+    }
+  </script>
+
+</body>
+</html>

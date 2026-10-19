@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Gestión - Uniformes Colegio San Buenaventura</title>
+  <!-- Favicon Oficial Colegio San Buenaventura -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <meta name="theme-color" content="#002B66">
+  <!-- Tailwind CSS -->
+  <script src="/static/js/tailwind.js"></script>
+  <!-- Alpine.js -->
+  <script defer src="/static/js/alpine.min.js"></script>
+  <!-- Html5Qrcode Scanner -->
+  <script src="/static/js/html5-qrcode.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-serif-title { font-family: 'Cinzel', serif; }
+    [x-cloak] { display: none !important; }
+  </style>
+  <script>
+    window.INITIAL_ROLE = {{ current_role | tojson }};
+    window.INITIAL_ROLE_INFO = {{ role_info | tojson }};
+  </script>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col"
+      x-data="adminApp()"
+      x-init="initAdmin()">
+
+  <!-- ================= TOP HEADER ADMIN ================= -->
+  <header class="bg-[#002B66] text-white border-b-2 border-[#F5A623] sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <div class="flex items-center gap-3">
+          <a href="/admin" class="flex items-center gap-2.5 sm:gap-3">
+            <img src="/static/images/logo.png" alt="Colegio San Buenaventura" class="h-9 w-auto bg-white/95 p-1 rounded-lg shadow-sm">
+            <div>
+              <span class="font-bold font-serif-title text-xs sm:text-sm tracking-wide text-white block">Secretaría & Almacén</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border"
+                    :class="roleInfo.badge_color || 'bg-slate-100 text-slate-800'"
+                    x-text="roleInfo.badge || userRole"></span>
+            </div>
+          </a>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Botón Escáner QR de Entrega -->
+          <button @click="openQrScannerModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-xs transition cursor-pointer" title="Escanear código QR de la familia para entrega inmediata o verificación">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+            <span>Escanear QR</span>
+          </button>
+
+          <!-- Botón Lote Etiquetas -->
+          <a href="/admin/etiquetas/lote" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-100 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition" title="Imprimir etiquetas de bolsa en lote para todos los pedidos preparados">
+            🏷️ <span class="hidden sm:inline">Etiquetas</span> Lote
+          </a>
+
+          <!-- Botones Exportar Excel (Resumen Facturas y Detalle Contable por Líneas) -->
+          <div class="inline-flex items-center rounded-lg overflow-hidden shadow-xs border border-amber-500/40">
+            <a href="/api/admin/export-csv?mode=resumen" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-slate-950 bg-[#F5A623] hover:bg-amber-400 transition" title="Excel de Facturación: 1 fila por pedido con NIF, Titular, Dirección, Base, IVA y Total">
+              <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Excel Facturas</span>
+            </a>
+            <a href="/api/admin/export-csv?mode=lineas" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-amber-950 bg-amber-200 hover:bg-amber-300 border-l border-amber-500/40 transition" title="Excel Contable Detallado: 1 fila por cada prenda vendida con código y desglose de IVA">
+              <span>📑 Líneas</span>
+            </a>
+          </div>
+
+          <!-- Botón Gestión de Claves (Solo Maestro) -->
+          <button x-show="userRole === 'master'" @click="openPasswordModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-amber-100 hover:text-white bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 rounded-lg transition cursor-pointer" title="Gestionar claves de acceso a los 3 perfiles">
+            🔑 <span class="hidden lg:inline">Claves</span>
+          </button>
+
+          <a href="/" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-100 hover:text-white hover:bg-white/10 rounded-lg transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            <span class="hidden md:inline">Ver</span> Tienda
+          </a>
+
+          <!-- Botón Salir -->
+          <a href="/admin/logout" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-rose-200 hover:text-white hover:bg-rose-900/50 rounded-lg transition" title="Cerrar Sesión de Secretaría">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            <span class="hidden md:inline">Salir</span>
+          </a>
+
+          <button @click="fetchOrders(); fetchStats()" class="p-2 text-blue-200 hover:text-white hover:bg-white/10 rounded-lg transition" title="Refrescar">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= CUERPO PRINCIPAL ================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+
+    <!-- KPI / STATS BAR -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Pedidos</p>
+        <p class="text-2xl font-black text-slate-900 mt-1" x-text="stats.total_orders"></p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-amber-200 bg-amber-50/30 shadow-2xs">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Pendientes</p>
+        <p class="text-2xl font-black text-amber-900 mt-1" x-text="stats.pending"></p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-blue-200 bg-blue-50/30 shadow-2xs">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-700">En Preparación</p>
+        <p class="text-2xl font-black text-blue-900 mt-1" x-text="stats.preparing"></p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 shadow-2xs">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Listos para Recoger</p>
+        <p class="text-2xl font-black text-emerald-800 mt-1" x-text="stats.ready"></p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Entregados</p>
+        <p class="text-2xl font-black text-slate-700 mt-1" x-text="stats.delivered"></p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Importe Reservado</p>
+        <p class="text-xl font-black text-blue-950 mt-1.5" x-text="formatMoney(stats.total_revenue)"></p>
+      </div>
+    </div>
+
+    <!-- TABS DE NAVEGACIÓN -->
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-1">
+      <button @click="currentTab = 'orders'"
+              :class="currentTab === 'orders' ? 'border-b-2 border-blue-900 text-blue-900 font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'"
+              class="px-4 py-2.5 text-sm transition cursor-pointer flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Gestión de Pedidos y Fichas
+      </button>
+
+      <button @click="currentTab = 'catalog'; fetchCatalog()"
+              :class="currentTab === 'catalog' ? 'border-b-2 border-[#002B66] text-[#002B66] font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'"
+              class="px-4 py-2.5 text-sm transition cursor-pointer flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        Catálogo, Precios y Tallas
+      </button>
+
+      <button @click="currentTab = 'summary'; fetchStockSummary()"
+              :class="currentTab === 'summary' ? 'border-b-2 border-[#002B66] text-[#002B66] font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'"
+              class="px-4 py-2.5 text-sm transition cursor-pointer flex items-center gap-2">
+        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Resumen Proveedor / Picking
+      </button>
+
+      <button @click="currentTab = 'returns'; fetchReturns()"
+              :class="currentTab === 'returns' ? 'border-b-2 border-amber-600 text-amber-700 font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'"
+              class="px-4 py-2.5 text-sm transition cursor-pointer flex items-center gap-2">
+        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <span>Cambios y Devoluciones</span>
+        <span x-show="stats.pending_returns > 0" class="bg-amber-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black" x-text="stats.pending_returns"></span>
+      </button>
+    </div>
+
+    <!-- ================= TAB 1: GESTIÓN DE PEDIDOS ================= -->
+    <div x-show="currentTab === 'orders'" class="space-y-4">
+      
+      <!-- Barra de Filtros -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Filtrar por Estado:</span>
+          <template x-for="st in ['Todos', 'Pendiente', 'En preparación', 'Listo para recoger', 'Entregado', 'Cancelado']" :key="st">
+            <button @click="filterStatus = st; fetchOrders()"
+                    :class="filterStatus === st ? 'bg-blue-900 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                    class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer"
+                    x-text="st">
+            </button>
+          </template>
+
+          <button @click="fetchOrders(); fetchStats()"
+                  :disabled="loadingOrders"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 transition flex items-center gap-1.5 shadow-2xs cursor-pointer ml-auto sm:ml-2"
+                  title="Recargar pedidos en tiempo real">
+            <svg class="w-3.5 h-3.5 text-blue-900" :class="loadingOrders ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span x-text="loadingOrders ? 'Recargando...' : 'Actualizar'"></span>
+          </button>
+        </div>
+
+        <div class="relative w-full md:w-80">
+          <input type="text" x-model="searchFilter" @input="debounceSearch()" placeholder="Buscar alumno, email, curso, localizador..."
+                 class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-800">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+      </div>
+
+      <!-- Listado de Pedidos -->
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+        
+        <div x-show="loadingOrders" class="p-12 text-center text-slate-400 text-sm">
+          Cargando pedidos...
+        </div>
+
+        <div x-show="!loadingOrders && orders.length === 0" class="p-12 text-center text-slate-400 text-sm">
+          No hay pedidos con los filtros aplicados.
+        </div>
+
+        <div x-show="!loadingOrders && orders.length > 0" class="divide-y divide-slate-100">
+          <template x-for="order in orders" :key="order.id">
+            <div class="p-5 hover:bg-slate-50/70 transition">
+              
+              <!-- Cabecera del pedido -->
+              <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <!-- Info alumno, localizador y datos de facturación -->
+                <div class="space-y-1.5">
+                  <div class="flex flex-wrap items-center gap-2.5">
+                    <span class="font-mono font-black text-xs text-white bg-[#002B66] px-2.5 py-1 rounded-md" x-text="order.invoice_number || ('FAC-2026-000' + order.id)"></span>
+                    <span class="font-mono font-bold text-xs text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200" x-text="'Ref: ' + order.locator"></span>
+                    <h3 class="text-base font-bold text-slate-900" x-text="order.student_name"></h3>
+                    <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-semibold" x-text="order.student_course"></span>
+                  </div>
+
+                  <!-- Línea de Facturación Clara -->
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/80 text-slate-600">
+                    <span><strong class="text-slate-800">Titular Factura:</strong> <span class="font-semibold text-slate-900" x-text="order.billing_name || order.parent_name"></span></span>
+                    <span>•</span>
+                    <span><strong class="text-slate-800">NIF/DNI:</strong> <span class="font-mono font-bold text-blue-900" x-text="order.parent_nif || 'Pendiente'"></span></span>
+                    <template x-if="order.billing_address">
+                      <span>• <strong class="text-slate-800">Dir:</strong> <span x-text="order.billing_address + ' (' + (order.billing_postal_code || '') + ' ' + (order.billing_city || 'Madrid') + ')'"></span></span>
+                    </template>
+                    <span>•</span>
+                    <span><strong class="text-slate-800">Tel:</strong> <span x-text="order.parent_phone"></span></span>
+                    <span>•</span>
+                    <span><a :href="'mailto:' + order.parent_email" class="hover:underline text-blue-700 font-semibold" x-text="order.parent_email"></a></span>
+                    <button @click="copyOrderBilling(order)"
+                            class="ml-auto inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold rounded text-[10px] border border-amber-300 transition cursor-pointer"
+                            title="Copiar todos los datos fiscales de este pedido para pegar en tu app de facturación">
+                      <span x-text="copiedOrderId === order.id ? '✅ Copiado' : '📋 Copiar Datos Fiscales'"></span>
+                    </button>
+                  </div>
+
+                  <template x-if="order.notes">
+                    <div class="text-xs text-amber-800 bg-amber-50/80 px-2.5 py-1 rounded-md border border-amber-200 inline-block">
+                      <strong>Nota de la familia:</strong> <span x-text="order.notes"></span>
+                    </div>
+                  </template>
+                </div>
+
+                <!-- Estado, Importe Desglosado y Acciones -->
+                <div class="flex flex-wrap items-center gap-2.5 lg:justify-end">
+                  <!-- Importe con Base + IVA -->
+                  <div class="text-right mr-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+                    <p class="text-[10px] uppercase font-bold text-slate-400">
+                      Base: <span class="font-mono text-slate-600" x-text="formatMoney(order.total_amount / 1.21)"></span> + IVA
+                    </p>
+                    <p class="text-lg font-black text-slate-900 leading-tight" x-text="formatMoney(order.total_amount)"></p>
+                  </div>
+
+                  <!-- Selector rápido de estado ("Marcar") -->
+                  <div class="relative" x-show="userRole !== 'viewer'">
+                    <select :value="order.status"
+                            @change="changeOrderStatus(order.id, $event.target.value)"
+                            :class="getStatusBadgeClass(order.status)"
+                            class="text-xs font-bold px-3 py-2 rounded-xl border focus:outline-none cursor-pointer">
+                      <option value="Pendiente">Pendiente</option>
+                      <option value="En preparación">En preparación</option>
+                      <option value="Listo para recoger">Listo para recoger (Envía mail)</option>
+                      <option value="Entregado">Entregado</option>
+                      <option value="Cancelado" :disabled="userRole === 'operator'" x-text="userRole === 'operator' ? 'Cancelado (Solo Maestro)' : 'Cancelado'"></option>
+                    </select>
+                  </div>
+                  <!-- Modo Visor: Etiqueta de estado de solo lectura -->
+                  <div x-show="userRole === 'viewer'">
+                    <span :class="getStatusBadgeClass(order.status)" class="text-xs font-bold px-3 py-2 rounded-xl border inline-block" x-text="order.status"></span>
+                  </div>
+
+                  <!-- Botón Emisor de Factura Oficial -->
+                  <a :href="'/factura/' + order.locator" target="_blank"
+                     class="px-3.5 py-2 text-xs font-bold text-white bg-[#002B66] hover:bg-[#001D47] rounded-xl shadow-xs transition flex items-center gap-1.5"
+                     title="Abrir Emisor de Factura Oficial de este pedido">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Emitir Factura
+                  </a>
+
+                  <!-- Botón Avisar por Email a la Familia (Oculto en visor) -->
+                  <button x-show="userRole !== 'viewer'"
+                          @click="openEmailModal(order)"
+                          :class="order.status === 'Listo para recoger' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'"
+                          class="px-3 py-2 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <span>Email</span>
+                  </button>
+
+                  <!-- Botón Etiqueta Bolsa -->
+                  <a :href="'/etiqueta/' + order.locator" target="_blank"
+                     class="px-2.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1"
+                     title="Imprimir etiqueta de empaquetado para la bolsa">
+                    🏷️ Etiqueta
+                  </a>
+
+                  <!-- Desplegar ficha completa del pedido -->
+                  <button @click="toggleOrderExpand(order.id)" class="px-2.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1 cursor-pointer">
+                    <span x-text="expandedOrders[order.id] ? 'Cerrar Ficha' : 'Ver Ficha'"></span>
+                    <svg class="w-4 h-4 transition-transform" :class="expandedOrders[order.id] ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+
+                </div>
+
+              </div>
+
+              <!-- ================= FICHA COMPLETA DEL PEDIDO ================= -->
+              <div x-show="expandedOrders[order.id]" x-cloak class="mt-5 pt-4 border-t border-slate-200 space-y-4 text-xs">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  
+                  <!-- Columna 1: Prendas en el Pedido -->
+                  <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-3 flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                      Prendas Reservadas
+                    </h4>
+                    <div class="space-y-2">
+                      <template x-for="item in order.items" :key="item.id">
+                        <div class="flex justify-between items-center py-2 border-b border-slate-200/60 last:border-0">
+                          <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="font-semibold text-slate-900" x-text="item.product_name"></span>
+                            <span class="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 text-slate-600 text-[10px]" x-text="'Talla ' + item.size"></span>
+                            <span x-show="item.student_name" class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-1.5 py-0.5 rounded border border-indigo-100" x-text="'👦 ' + item.student_name"></span>
+                            
+                            <!-- Botones Gestión Presencial en Portería (Operador y Maestro) -->
+                            <div x-show="userRole !== 'viewer'" class="inline-flex items-center gap-1 ml-1">
+                              <button @click="openInPersonModal(order, item, 'exchange')"
+                                      type="button"
+                                      class="inline-flex items-center gap-0.5 px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-[10px] font-bold cursor-pointer transition"
+                                      title="Cambiar talla de esta prenda en portería">
+                                <span>🔄 Talla</span>
+                              </button>
+                              <button @click="openInPersonModal(order, item, 'return')"
+                                      type="button"
+                                      class="inline-flex items-center gap-0.5 px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded text-[10px] font-bold cursor-pointer transition"
+                                      title="Devolver esta prenda en portería y descontar del pedido">
+                                <span>↩️ Devolver</span>
+                              </button>
+                            </div>
+                          </div>
+                          <div class="text-right whitespace-nowrap ml-2">
+                            <span class="text-slate-500" x-text="item.quantity + ' ud(s).' "></span>
+                            <span class="font-bold text-slate-900 ml-2" x-text="formatMoney(item.subtotal)"></span>
+                          </div>
+                        </div>
+                      </template>
+                      <div class="pt-2 flex justify-between font-bold text-slate-900 border-t border-slate-200 text-sm">
+                        <span>Total:</span>
+                        <span class="text-blue-950" x-text="formatMoney(order.total_amount)"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Columna 2: Historial de Correos y Comunicaciones en la Ficha -->
+                  <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-3 flex items-center justify-between">
+                      <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        Emails Registrados en la Ficha
+                      </span>
+                      <span class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded font-bold" x-text="(order.emails || []).length"></span>
+                    </h4>
+
+                    <template x-if="!order.emails || order.emails.length === 0">
+                      <p class="text-slate-400 italic">No hay correos registrados aún para este pedido.</p>
+                    </template>
+
+                    <div class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                      <template x-for="em in order.emails" :key="em.id">
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs">
+                          <div class="flex items-center justify-between">
+                            <span class="font-semibold text-slate-800 text-[11px] truncate max-w-[180px]" x-text="em.subject"></span>
+                            <span class="text-[9px] bg-slate-100 text-slate-500 px-1 py-0.5 rounded" x-text="em.sent_at"></span>
+                          </div>
+                          <p class="text-slate-500 text-[10px] mt-1">Destinatario: <strong class="text-slate-700" x-text="em.recipient_email"></strong></p>
+                          <button @click="viewEmailModal(em)" class="mt-1 text-[10px] text-blue-700 hover:text-blue-900 font-bold underline cursor-pointer">
+                            Ver texto enviado
+                          </button>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+
+                  <!-- Columna 3: Trazabilidad y Auditoría de Estados -->
+                  <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-3 flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                      Auditoría de Estados en Ficha
+                    </h4>
+                    <div class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                      <template x-for="h in order.history" :key="h.id">
+                        <div class="bg-white p-2 rounded-lg border border-slate-200 text-[11px]">
+                          <div class="flex justify-between">
+                            <span class="font-bold text-slate-900" x-text="h.status"></span>
+                            <span class="text-slate-400 text-[10px]" x-text="h.timestamp"></span>
+                          </div>
+                          <p class="text-slate-600 text-[10px] mt-0.5" x-text="h.comment"></p>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+          </template>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================= TAB 2: CATÁLOGO, PRECIOS Y TALLAS ================= -->
+    <div x-show="currentTab === 'catalog'" class="space-y-4">
+      
+      <!-- Aviso de solo lectura para Operador y Visor -->
+      <div x-show="userRole !== 'master'" class="bg-amber-50 border border-amber-200 text-amber-900 text-xs px-4 py-3 rounded-xl flex items-center gap-2.5">
+        <span class="text-lg">🔒</span>
+        <span><strong>Modo de Consulta del Catálogo:</strong> Tu perfil de acceso tiene permisos de lectura para verificar precios, prendas y tallas oficiales. La edición, creación o retirada de prendas está reservada exclusivamente al <strong>Administrador Maestro</strong>.</span>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Catálogo de Prendas del Colegio San Buenaventura</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Configura las prendas oficiales, añade nuevas cuando tengas la hoja de precios y personaliza tallas.</p>
+        </div>
+
+        <div class="flex items-center gap-2" x-show="userRole === 'master'">
+          <button @click="openImportModal = true" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            Importar / Cargar Hoja Excel
+          </button>
+          
+          <button @click="openNewProductModal = true" class="px-4 py-2 bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Añadir Nueva Prenda
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla de Prendas -->
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-2xs">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold">
+            <tr>
+              <th class="py-3 px-4">Prenda / Modelo</th>
+              <th class="py-3 px-4">Código</th>
+              <th class="py-3 px-4">Categoría</th>
+              <th class="py-3 px-4">Precio Oficial</th>
+              <th class="py-3 px-4">Tallas Disponibles</th>
+              <th class="py-3 px-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <template x-for="prod in catalogProducts" :key="prod.id">
+              <tr class="hover:bg-slate-50">
+                <td class="py-3 px-4 flex items-center gap-3">
+                  <img :src="prod.image_url" class="w-10 h-10 rounded-lg p-1 bg-slate-50 border border-slate-200 object-contain">
+                  <div>
+                    <p class="font-bold text-slate-900" x-text="prod.name"></p>
+                    <p class="text-[11px] text-slate-400" x-text="prod.gender"></p>
+                  </div>
+                </td>
+                <td class="py-3 px-4 font-mono font-semibold text-slate-600" x-text="prod.code || '-'"></td>
+                <td class="py-3 px-4">
+                  <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium" x-text="getCategoryName(prod.category_id)"></span>
+                </td>
+                <td class="py-3 px-4 font-bold text-slate-900 text-sm">
+                  <span x-text="formatMoney(prod.price)"></span>
+                  <template x-if="prod.size_prices && Object.keys(prod.size_prices).length > 1">
+                    <div class="text-[10px] text-slate-500 font-normal mt-0.5">
+                      T.2-10: <span class="font-semibold text-slate-700" x-text="formatMoney(prod.size_prices['T.2'] || prod.price)"></span> | 
+                      T.12-18: <span class="font-semibold text-slate-700" x-text="formatMoney(prod.size_prices['T.12'] || prod.price)"></span> | 
+                      T.20+: <span class="font-semibold text-slate-700" x-text="formatMoney(prod.size_prices['T.20'] || prod.price)"></span>
+                    </div>
+                  </template>
+                </td>
+                <td class="py-3 px-4">
+                  <div class="flex flex-wrap gap-1 max-w-xs">
+                    <template x-for="sz in prod.sizes" :key="sz">
+                      <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[10px]" x-text="sz"></span>
+                    </template>
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-right">
+                  <div x-show="userRole === 'master'">
+                    <button @click="editProduct(prod)" class="text-blue-700 hover:text-blue-900 font-bold px-2 py-1 bg-blue-50 rounded-lg mr-1 cursor-pointer">Editar</button>
+                    <button @click="deleteProduct(prod.id)" class="text-red-600 hover:text-red-800 font-bold px-2 py-1 bg-red-50 rounded-lg cursor-pointer">Desactivar</button>
+                  </div>
+                  <span x-show="userRole !== 'master'" class="text-slate-400 font-medium italic text-[11px]">Solo lectura</span>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- ================= TAB 3: RESUMEN PROVEEDOR / PICKING ================= -->
+    <div x-show="currentTab === 'summary'" class="space-y-4">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Resumen Consolidado de Necesidades (Picking y Proveedor)</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Totaliza las unidades de cada prenda y talla solicitadas en todos los pedidos activos para ordenar al fabricante o preparar el almacén.</p>
+        </div>
+        <button onclick="window.print()" class="px-4 py-2 bg-[#002B66] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-[#001D47] transition flex items-center gap-1.5 cursor-pointer">
+          🖨️ Imprimir Hoja de Picking
+        </button>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-2xs">
+        <div x-show="loadingSummary" class="p-12 text-center text-slate-400 text-sm">
+          Calculando necesidades de almacén...
+        </div>
+
+        <div x-show="!loadingSummary && stockSummary.length === 0" class="p-12 text-center text-slate-400 text-sm">
+          No hay pedidos activos actualmente para generar el resumen.
+        </div>
+
+        <table x-show="!loadingSummary && stockSummary.length > 0" class="w-full text-left text-xs">
+          <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold">
+            <tr>
+              <th class="py-3 px-4">Prenda / Modelo</th>
+              <th class="py-3 px-4 text-center">Talla</th>
+              <th class="py-3 px-4 text-center">Pedidos Afectados</th>
+              <th class="py-3 px-4 text-right">Total Unidades Necesarias</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <template x-for="item in stockSummary" :key="item.product_name + '-' + item.size">
+              <tr class="hover:bg-slate-50">
+                <td class="py-3 px-4 font-bold text-slate-900" x-text="item.product_name"></td>
+                <td class="py-3 px-4 text-center">
+                  <span class="bg-blue-50 font-mono font-bold text-blue-900 px-2 py-0.5 rounded text-xs" x-text="item.size"></span>
+                </td>
+                <td class="py-3 px-4 text-center text-slate-500" x-text="item.total_orders + ' pedido(s)'"></td>
+                <td class="py-3 px-4 text-right">
+                  <span class="text-sm font-black text-[#002B66] bg-amber-50 border border-amber-200 px-3 py-1 rounded-lg" x-text="item.total_qty + ' uds.'"></span>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= TAB 4: CAMBIOS Y DEVOLUCIONES ================= -->
+    <div x-show="currentTab === 'returns'" class="space-y-4">
+      
+      <!-- Barra Superior de Filtros de Cambios -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Filtrar Estado:</span>
+          <template x-for="rst in ['Todos', 'PENDIENTE', 'APROBADO_PREPARANDO', 'LISTO_RECOGIDA', 'COMPLETADO', 'RECHAZADO']" :key="rst">
+            <button @click="filterReturnsStatus = rst"
+                    :class="filterReturnsStatus === rst ? 'bg-amber-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                    class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer"
+                    x-text="rst === 'APROBADO_PREPARANDO' ? 'Preparando' : (rst === 'LISTO_RECOGIDA' ? 'Listos para canje' : (rst === 'COMPLETADO' ? 'Completados' : (rst === 'PENDIENTE' ? 'Pendientes' : rst)))">
+            </button>
+          </template>
+        </div>
+
+        <button @click="fetchReturns()" class="text-xs font-semibold text-slate-600 hover:text-blue-900 flex items-center gap-1 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Actualizar Lista
+        </button>
+      </div>
+
+      <!-- Listado de Solicitudes de Cambio -->
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+        <div x-show="loadingReturns" class="p-12 text-center text-slate-400 text-sm">
+          Cargando solicitudes de cambio y devolución...
+        </div>
+
+        <div x-show="!loadingReturns && filteredReturns.length === 0" class="p-12 text-center text-slate-400 text-sm">
+          No hay solicitudes de cambio o devolución con el filtro seleccionado.
+        </div>
+
+        <div x-show="!loadingReturns && filteredReturns.length > 0" class="divide-y divide-slate-100">
+          <template x-for="ret in filteredReturns" :key="ret.id">
+            <div class="p-5 hover:bg-slate-50/70 transition space-y-4">
+              
+              <!-- Fila Superior -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <span class="font-mono text-base font-black text-amber-950 bg-amber-100 border border-amber-200 px-3 py-1 rounded-xl" x-text="ret.ticket_code"></span>
+                  <div>
+                    <h4 class="font-bold text-slate-900 text-sm" x-text="ret.student_name + ' (' + ret.student_course + ')'"></h4>
+                    <p class="text-xs text-slate-500">
+                      Pedido origen: <a :href="'/factura/' + ret.locator" target="_blank" class="font-mono font-bold text-blue-800 underline" x-text="ret.locator"></a>
+                      • Familia: <span x-text="ret.parent_name"></span> (<span x-text="ret.parent_phone"></span> • <span x-text="ret.parent_email"></span>)
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Badge Estado -->
+                <div>
+                  <span class="px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
+                        :class="ret.status === 'LISTO_RECOGIDA' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                                (ret.status === 'COMPLETADO' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                                (ret.status === 'APROBADO_PREPARANDO' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                                (ret.status === 'RECHAZADO' ? 'bg-red-100 text-red-800 border border-red-300' : 'bg-slate-200 text-slate-800')))"
+                        x-text="ret.status === 'LISTO_RECOGIDA' ? '✓ Listo en Secretaría' :
+                                (ret.status === 'COMPLETADO' ? '✓ Canje Completado' :
+                                (ret.status === 'APROBADO_PREPARANDO' ? 'Preparando en almacén' :
+                                (ret.status === 'RECHAZADO' ? 'Rechazado' : 'Pendiente de revisar')))">
+                  </span>
+                </div>
+              </div>
+
+              <!-- Detalle de prendas solicitadas -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                
+                <div class="bg-amber-50/50 p-3.5 rounded-xl border border-amber-200/70 space-y-2">
+                  <h5 class="font-bold text-amber-950 uppercase tracking-wider text-[11px]">Prendas a Canjear o Devolver:</h5>
+                  <div class="space-y-1.5">
+                    <template x-for="it in ret.items" :key="it.item_id">
+                      <div class="flex items-center justify-between p-2 bg-white rounded-lg border border-amber-200/50">
+                        <div>
+                          <strong class="text-slate-900" x-text="it.product_name"></strong>
+                          <span class="ml-1 text-slate-500 font-mono" x-text="'(Talla original: ' + it.current_size + ')'"></span>
+                        </div>
+                        <div>
+                          <span x-show="it.action === 'cambiar'" class="bg-blue-50 text-blue-900 border border-blue-200 font-bold px-2 py-0.5 rounded text-[11px]"
+                                x-text="'Nueva Talla: ' + it.new_size"></span>
+                          <span x-show="it.action === 'devolver'" class="bg-red-50 text-red-700 border border-red-200 font-bold px-2 py-0.5 rounded text-[11px]">
+                            Devolución (<span x-text="formatMoney(it.unit_price)"></span>)
+                          </span>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+                  <h5 class="font-bold text-slate-700 uppercase tracking-wider text-[11px]">Motivo y Notas de la Familia:</h5>
+                  <p class="text-slate-800"><strong>Motivo:</strong> <span x-text="ret.reason || 'Sin especificar'"></span></p>
+                  <p x-show="ret.family_notes" class="text-slate-600"><strong>Observaciones:</strong> <span x-text="ret.family_notes"></span></p>
+                  <p class="text-[11px] text-slate-400">Solicitado el: <span x-text="ret.created_at"></span></p>
+                  
+                  <div class="pt-1">
+                    <label class="block font-bold text-slate-600 text-[10px] uppercase">Nota interna de secretaría:</label>
+                    <input type="text" x-model="ret.admin_notes" :disabled="userRole === 'viewer'"
+                           placeholder="Ej: Prenda entregada con etiqueta. Cobrada diferencia."
+                           class="w-full mt-1 p-2 bg-white border border-slate-300 rounded-lg text-xs disabled:bg-slate-100 disabled:text-slate-400">
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Botones de Acción de Secretaría -->
+              <div class="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <span x-show="userRole === 'viewer'" class="text-xs text-slate-400 italic">
+                  Modo consulta: no se pueden modificar solicitudes de cambio.
+                </span>
+
+                <template x-if="userRole !== 'viewer'">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button x-show="ret.status === 'PENDIENTE'" @click="updateReturnStatus(ret.id, 'APROBADO_PREPARANDO', ret.admin_notes)"
+                            class="px-3.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition cursor-pointer">
+                      Preparar en Almacén
+                    </button>
+
+                    <button x-show="ret.status !== 'LISTO_RECOGIDA' && ret.status !== 'COMPLETADO'"
+                            @click="updateReturnStatus(ret.id, 'LISTO_RECOGIDA', ret.admin_notes)"
+                            class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                      <span>✓ Marcar Listo (Avisar a Familia por Email)</span>
+                    </button>
+
+                    <button x-show="ret.status !== 'COMPLETADO'"
+                            @click="updateReturnStatus(ret.id, 'COMPLETADO', ret.admin_notes)"
+                            class="px-4 py-1.5 bg-blue-900 hover:bg-blue-950 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
+                      Confirmar Canje Realizado
+                    </button>
+
+                    <button x-show="ret.status !== 'RECHAZADO' && ret.status !== 'COMPLETADO'"
+                            @click="updateReturnStatus(ret.id, 'RECHAZADO', ret.admin_notes)"
+                            class="px-3 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-700 rounded-xl text-xs font-semibold transition cursor-pointer">
+                      Rechazar
+                    </button>
+                  </div>
+                </template>
+              </div>
+
+            </div>
+          </template>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================= MODAL ENVIAR EMAIL A LA FAMILIA ================= -->
+  <div x-show="openEmailSendModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openEmailSendModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-bold text-sm">✉️</div>
+            <h3 class="text-lg font-bold text-slate-900">Enviar Correo a la Familia</h3>
+          </div>
+          <button @click="openEmailSendModal = false" class="text-slate-400 hover:text-slate-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <template x-if="selectedOrderForEmail">
+          <div class="space-y-4 text-xs">
+            <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-blue-950">
+              <p><strong>Destinatario:</strong> <span x-text="selectedOrderForEmail.parent_name + ' (' + selectedOrderForEmail.parent_email + ')'"></span></p>
+              <p><strong>Alumno:</strong> <span x-text="selectedOrderForEmail.student_name + ' - ' + selectedOrderForEmail.student_course"></span></p>
+              <p><strong>Localizador:</strong> <span class="font-mono font-bold" x-text="selectedOrderForEmail.locator"></span></p>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px]">Tipo de Comunicación por Email:</label>
+              
+              <!-- Opción 1: Listo para recoger -->
+              <button @click="sendEmailType('ready')" :disabled="sendingEmail"
+                      class="w-full text-left p-3 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 transition flex items-center justify-between cursor-pointer">
+                <div>
+                  <span class="font-bold text-emerald-950 block">✓ Aviso: "Uniforme Listo para Recoger"</span>
+                  <span class="text-emerald-800 text-[11px]">Informa de que el pedido está empaquetado, horarios de secretaría y enlace a la factura.</span>
+                </div>
+                <span class="text-emerald-800 font-bold ml-2">Enviar</span>
+              </button>
+
+              <!-- Opción 2: Reenviar confirmación -->
+              <button @click="sendEmailType('confirmation')" :disabled="sendingEmail"
+                      class="w-full text-left p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between cursor-pointer">
+                <div>
+                  <span class="font-bold text-slate-800 block">Reenviar Confirmación de Reserva</span>
+                  <span class="text-slate-500 text-[11px]">Vuelve a remitir los detalles del pedido y localizador inicial.</span>
+                </div>
+                <span class="text-slate-700 font-bold ml-2">Reenviar</span>
+              </button>
+            </div>
+
+            <p class="text-[11px] text-slate-400 italic text-center">
+              Cada correo enviado se almacena automáticamente en la ficha del pedido con su fecha y hora.
+            </p>
+          </div>
+        </template>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL VER CONTENIDO DE EMAIL ENVIADO ================= -->
+  <div x-show="openEmailViewModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openEmailViewModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900" x-text="inspectingEmail?.subject"></h3>
+            <p class="text-xs text-slate-500 mt-0.5">Enviado a: <strong x-text="inspectingEmail?.recipient_email"></strong> el <span x-text="inspectingEmail?.sent_at"></span></p>
+          </div>
+          <button @click="openEmailViewModal = false" class="text-slate-400 hover:text-slate-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 max-h-80 overflow-y-auto">
+          <pre class="text-xs text-slate-800 whitespace-pre-wrap font-sans leading-relaxed" x-text="inspectingEmail?.body_text"></pre>
+        </div>
+
+        <div class="mt-4 text-right">
+          <button @click="openEmailViewModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 font-bold text-xs rounded-xl cursor-pointer">
+            Cerrar Ficha de Correo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL EDITAR / AÑADIR PRENDA ================= -->
+  <div x-show="openNewProductModal || editingProduct" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="closeProductModal()"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
+        <h3 class="text-lg font-bold text-slate-900 mb-4" x-text="editingProduct ? 'Editar Prenda del Catálogo' : 'Añadir Nueva Prenda'"></h3>
+
+        <form @submit.prevent="saveProduct" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nombre de la Prenda *</label>
+            <input type="text" x-model="productForm.name" required placeholder="Ej: Polo Oficial Manga Corta" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Categoría *</label>
+              <select x-model="productForm.category_id" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                <template x-for="cat in catalogCategories" :key="cat.id">
+                  <option :value="cat.id" x-text="cat.name"></option>
+                </template>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Precio Oficial (€) *</label>
+              <input type="number" step="0.01" x-model="productForm.price" required placeholder="18.50" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Código / Referencia</label>
+              <input type="text" x-model="productForm.code" placeholder="POL-01" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Tipo / Género</label>
+              <select x-model="productForm.gender" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                <option value="Unisex">Unisex</option>
+                <option value="Niño">Niño</option>
+                <option value="Niña">Niña</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tallas disponibles (separadas por comas) *</label>
+            <input type="text" x-model="productForm.sizes_str" placeholder="T.4, T.6, T.8, T.10, T.12" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+            <span class="text-[10px] text-slate-400">Ejemplo: T.4, T.6, T.8, S, M, L</span>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Descripción</label>
+            <textarea x-model="productForm.description" rows="2" placeholder="Composición, detalles..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Ilustración / Imagen (Ruta o URL)</label>
+            <select x-model="productForm.image_url" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg mb-1">
+              <option value="/static/images/uniforms/polo-mcorta.svg">Polo Manga Corta CSB (Celeste)</option>
+              <option value="/static/images/uniforms/polo-mlarga.svg">Polo Manga Larga CSB (Celeste)</option>
+              <option value="/static/images/uniforms/jersey.svg">Jersey Pico CSB (Azul Petróleo)</option>
+              <option value="/static/images/uniforms/falda.svg">Falda Tablas CSB (Gris con Cuadros Azules)</option>
+              <option value="/static/images/uniforms/pantalon-vestir-largo.svg">Pantalón Vestir Largo CSB (Gris Chino)</option>
+              <option value="/static/images/uniforms/pantalon-vestir-corto.svg">Pantalón Vestir Corto CSB (Bermuda Gris)</option>
+              <option value="/static/images/uniforms/chandal-completo.svg">Chándal Completo CSB (Bicolor Marino/Royal + Franja)</option>
+              <option value="/static/images/uniforms/sudadera-chandal.svg">Sudadera/Chaqueta Chándal CSB</option>
+              <option value="/static/images/uniforms/pantalon-chandal.svg">Pantalón Chándal CSB (Marino con Franja Royal/Blanca)</option>
+              <option value="/static/images/uniforms/camiseta-deporte.svg">Camiseta Deporte CSB (Blanca Asimétrica con Franjas)</option>
+              <option value="/static/images/uniforms/pantalon-corto-deporte.svg">Pantalón Corto Deporte CSB (Bermuda Royal con 2 Franjas)</option>
+              <option value="/static/images/uniforms/chandal-infantil.svg">Chándal Infantil CSB (Azul con Coderas y Rodilleras Amarillas)</option>
+              <option value="/static/images/uniforms/sudadera-chandal-infantil.svg">Sudadera Infantil CSB (Azul con Coderas)</option>
+              <option value="/static/images/uniforms/pantalon-chandal-infantil.svg">Pantalón Chándal Infantil CSB (Marino con Rodilleras)</option>
+              <option value="/static/images/uniforms/babi.svg">Babi CSB (Vichy Marino con Cuello/Bolsillos Bicolor Rojo y Amarillo)</option>
+              <option value="/static/images/uniforms/leotardo.svg">Leotardo Colegial CSB (Marino)</option>
+              <option value="/static/images/uniforms/calcetin-largo.svg">Calcetín Largo / Media CSB (Marino)</option>
+              <option value="/static/images/uniforms/calcetin-corto.svg">Calcetín Corto Tobillero CSB (Marino)</option>
+            </select>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-3">
+            <button type="button" @click="closeProductModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold cursor-pointer">Cancelar</button>
+            <button type="submit" class="px-5 py-2 bg-blue-900 hover:bg-blue-950 text-white rounded-xl font-bold cursor-pointer">Guardar Prenda</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL IMPORTAR HOJA / EXCEL ================= -->
+  <div x-show="openImportModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openImportModal = false"></div>
+
+      <div class="relative bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Importador de Catálogo y Precios</h3>
+        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+          Cuando me proporciones tu hoja o listado con todas las categorías, precios y tallas oficiales, podremos volcarlo aquí directamente en formato JSON o importarlo automáticamente.
+        </p>
+
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs mb-4">
+          <p class="font-bold text-slate-700 mb-1">Estructura preparada para la hoja:</p>
+          <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg overflow-x-auto text-[11px]">[
+  {
+    "category_id": 2,
+    "name": "Polo Manga Larga",
+    "code": "POL-ML",
+    "price": 17.50,
+    "sizes": ["T.6", "T.8", "T.10", "T.12"],
+    "gender": "Unisex"
+  }
+]</pre>
+        </div>
+
+        <textarea x-model="importJsonText" rows="5" placeholder="Pega aquí el contenido JSON o los datos de la hoja..."
+                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono"></textarea>
+
+        <div class="flex items-center justify-between pt-4">
+          <label class="flex items-center gap-2 text-xs text-slate-600">
+            <input type="checkbox" x-model="replaceCatalogCheckbox" class="rounded">
+            Reemplazar catálogo existente
+          </label>
+
+          <div class="flex gap-2">
+            <button @click="openImportModal = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold text-xs cursor-pointer">Cerrar</button>
+            <button @click="submitImport()" class="px-5 py-2 bg-blue-900 hover:bg-blue-950 text-white rounded-xl font-bold text-xs cursor-pointer">Procesar Importación</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL ESCANEO QR Y ENTREGA RÁPIDA ================= -->
+  <div x-show="openScannerModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200" @click.away="closeQrScannerModal()">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">📷</span>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Escaner QR / Entrega Rápida</h3>
+            <p class="text-xs text-slate-500">Apunta la cámara al código QR de la familia o introduce el localizador</p>
+          </div>
+        </div>
+        <button @click="closeQrScannerModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Visor de la Cámara -->
+      <div class="relative bg-slate-950 rounded-xl overflow-hidden shadow-inner flex flex-col items-center justify-center min-h-[220px]">
+        <div id="qr-reader" class="w-full"></div>
+        <div x-show="scanCameraLoading" class="absolute inset-0 flex items-center justify-center bg-slate-900/80 text-white text-xs gap-2">
+          <svg class="animate-spin h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+          Iniciando cámara...
+        </div>
+      </div>
+
+      <!-- Buscador manual de respaldo -->
+      <div class="space-y-1">
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">O escribe el localizador manualmente:</label>
+        <div class="flex gap-2">
+          <input type="text" x-model="manualScanQuery" @keydown.enter.prevent="processScannedCode(manualScanQuery)"
+                 placeholder="Ej: SBV-2026-XXXX..."
+                 class="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-800">
+          <button @click="processScannedCode(manualScanQuery)" class="px-4 py-2 bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold rounded-xl transition cursor-pointer">
+            Buscar
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensaje de Error -->
+      <div x-show="scanErrorMsg" class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-2">
+        <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span x-text="scanErrorMsg"></span>
+      </div>
+
+      <!-- Mensaje de Éxito de Entrega -->
+      <div x-show="scanSuccessMsg" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
+        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span x-text="scanSuccessMsg"></span>
+      </div>
+
+      <!-- Tarjeta del Pedido Encontrado -->
+      <template x-if="scannedOrder">
+        <div class="bg-blue-50/70 border-2 border-blue-200 rounded-xl p-4 space-y-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="font-mono font-bold text-xs bg-blue-900 text-white px-2 py-0.5 rounded" x-text="scannedOrder.locator"></span>
+              <h4 class="text-base font-bold text-slate-900 mt-1" x-text="scannedOrder.student_name"></h4>
+              <p class="text-xs text-slate-500" x-text="scannedOrder.student_course + ' • Tutor: ' + scannedOrder.parent_name"></p>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold border"
+                  :class="getStatusBadgeClass(scannedOrder.status)"
+                  x-text="scannedOrder.status"></span>
+          </div>
+
+          <!-- Lista de Prendas a entregar -->
+          <div class="bg-white rounded-lg p-3 border border-blue-100 space-y-1.5 max-h-40 overflow-y-auto text-xs">
+            <template x-for="item in scannedOrder.items" :key="item.id">
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0">
+                <div class="flex flex-wrap items-center gap-1">
+                  <span class="font-medium text-slate-800" x-text="item.product_name"></span>
+                  <span class="text-[11px] font-mono bg-slate-100 px-1 py-0.2 rounded" x-text="'T.' + item.size"></span>
+                  <span x-show="item.student_name" class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-1 rounded" x-text="'👦 ' + item.student_name"></span>
+                </div>
+                <div class="flex items-center gap-1.5 ml-2">
+                  <span class="font-bold text-slate-700 mr-1" x-text="item.quantity + ' ud(s)'"></span>
+                  <template x-if="userRole !== 'viewer'">
+                    <div class="inline-flex items-center gap-1">
+                      <button @click="openInPersonModal(scannedOrder, item, 'exchange')" type="button" class="px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded border border-blue-200 text-[10px] font-bold hover:bg-blue-100 cursor-pointer" title="Cambiar talla en portería">🔄 Talla</button>
+                      <button @click="openInPersonModal(scannedOrder, item, 'return')" type="button" class="px-1.5 py-0.5 bg-amber-50 text-amber-800 rounded border border-amber-300 text-[10px] font-bold hover:bg-amber-100 cursor-pointer" title="Devolver prenda en portería">↩️ Devolver</button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Botones de Acción Inmediata -->
+          <div class="flex items-center gap-2 pt-1">
+            <template x-if="userRole !== 'viewer'">
+              <div class="flex-1 flex items-center gap-2">
+                <button x-show="scannedOrder.status !== 'Entregado'"
+                        @click="deliverScannedOrder()"
+                        :disabled="deliveringOrder"
+                        class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span x-text="deliveringOrder ? 'Registrando entrega...' : '✅ Marcar como ENTREGADO'"></span>
+                </button>
+
+                <span x-show="scannedOrder.status === 'Entregado'" class="flex-1 py-2.5 bg-slate-200 text-slate-600 font-bold rounded-xl text-xs text-center">
+                  ✓ Pedido ya entregado
+                </span>
+              </div>
+            </template>
+
+            <template x-if="userRole === 'viewer'">
+              <div class="flex-1 py-2.5 bg-purple-50 border border-purple-200 text-purple-900 font-bold rounded-xl text-xs text-center flex items-center justify-center gap-1.5">
+                <span>👁️</span> Modo Consulta: Pedido Verificado
+              </div>
+            </template>
+
+            <a :href="'/etiqueta/' + scannedOrder.locator" target="_blank"
+               class="px-3 py-2.5 bg-white border border-slate-300 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-50 transition" title="Imprimir etiqueta">
+              🏷️ Etiqueta
+            </a>
+          </div>
+        </div>
+      </template>
+
+      <div class="flex justify-end pt-2">
+        <button @click="closeQrScannerModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold text-xs cursor-pointer">
+          Cerrar Escáner
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL GESTIÓN PRESENCIAL EN PORTERÍA (CAMBIOS Y DEVOLUCIONES) ================= -->
+  <div x-show="openInPersonModalState" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200" @click.away="openInPersonModalState = false">
+      
+      <!-- Cabecera del modal -->
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center text-xl font-bold">
+            🏢
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Gestión Presencial en Portería / Secretaría</h3>
+            <p class="text-xs text-slate-500">Modificación directa del pedido tras recibir la prenda en mano</p>
+          </div>
+        </div>
+        <button @click="openInPersonModalState = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <template x-if="inPersonItem">
+        <div class="space-y-4 text-xs">
+          
+          <!-- Resumen de la prenda actual -->
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+            <div class="flex justify-between items-center text-slate-500 text-[11px]">
+              <span>Pedido: <strong class="font-mono text-blue-900" x-text="inPersonOrder?.locator"></strong></span>
+              <span>Factura: <strong class="font-mono text-slate-800" x-text="inPersonOrder?.invoice_number || 'FAC-2026'"></strong></span>
+            </div>
+            <p class="text-sm font-bold text-slate-900" x-text="inPersonItem.product_name"></p>
+            <div class="flex flex-wrap items-center gap-2 text-slate-700">
+              <span class="bg-white px-2 py-0.5 rounded border border-slate-200 font-mono font-semibold" x-text="'Talla actual: ' + inPersonItem.size"></span>
+              <span class="bg-white px-2 py-0.5 rounded border border-slate-200" x-text="'Cantidad en pedido: ' + inPersonItem.quantity + ' ud(s)'"></span>
+              <span class="bg-blue-50 text-blue-900 font-bold px-2 py-0.5 rounded border border-blue-200" x-text="'P. Unit: ' + formatMoney(inPersonItem.unit_price)"></span>
+            </div>
+          </div>
+
+          <!-- Selector de Acción: Cambio de Talla vs Devolución -->
+          <div>
+            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">Trámite a realizar con la familia:</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" @click="inPersonAction = 'exchange'"
+                      :class="inPersonAction === 'exchange' ? 'bg-[#002B66] text-white border-[#002B66] shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
+                      class="p-2.5 rounded-xl border text-left font-bold transition cursor-pointer flex items-center gap-2">
+                <span class="text-lg">🔄</span>
+                <div>
+                  <div class="text-xs">Cambiar Talla</div>
+                  <div class="text-[10px] font-normal opacity-80">Entrega de nueva talla en el acto</div>
+                </div>
+              </button>
+
+              <button type="button" @click="inPersonAction = 'return'"
+                      :class="inPersonAction === 'return' ? 'bg-amber-600 text-white border-amber-600 shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
+                      class="p-2.5 rounded-xl border text-left font-bold transition cursor-pointer flex items-center gap-2">
+                <span class="text-lg">↩️</span>
+                <div>
+                  <div class="text-xs">Devolver Prenda</div>
+                  <div class="text-[10px] font-normal opacity-80">Descontar del pedido y no facturar</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bloque para CAMBIO DE TALLA -->
+          <div x-show="inPersonAction === 'exchange'" class="space-y-3 bg-blue-50/50 p-3.5 rounded-xl border border-blue-100">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="font-bold text-blue-950">Nueva talla entregada a la familia *</label>
+                <span class="text-[10px] text-blue-800 font-semibold">Tallas Oficiales</span>
+              </div>
+              <input type="text" x-model="inPersonNewSize" placeholder="Ej: T.6, T.8, T.10, S, M, L..."
+                     class="w-full p-2.5 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-900 font-bold text-xs text-blue-950">
+              
+              <div class="flex flex-wrap gap-1 mt-2">
+                <template x-for="sz in ['T.2', 'T.4', 'T.6', 'T.8', 'T.10', 'T.12', 'T.14', 'T.16', 'T.18', 'T.20', 'T.22', 'T.24', 'S', 'M', 'L', 'XL']" :key="sz">
+                  <button type="button" @click="inPersonNewSize = sz"
+                          :class="inPersonNewSize === sz ? 'bg-blue-900 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-blue-100'"
+                          class="px-2 py-1 rounded text-[11px] font-mono cursor-pointer transition"
+                          x-text="sz"></button>
+                </template>
+              </div>
+            </div>
+
+            <div x-show="inPersonItem.quantity > 1">
+              <label class="block font-bold text-slate-700 mb-1">Unidades a cambiar (de <span x-text="inPersonItem.quantity"></span> disponibles):</label>
+              <input type="number" min="1" :max="inPersonItem.quantity" x-model="inPersonReturnQty"
+                     class="w-24 p-2 bg-white border border-slate-300 rounded-lg font-bold text-center">
+            </div>
+          </div>
+
+          <!-- Bloque para DEVOLUCIÓN DE PRENDA -->
+          <div x-show="inPersonAction === 'return'" class="space-y-3 bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
+            <div class="p-2.5 bg-white rounded-lg border border-amber-200 text-amber-950 text-[11px] space-y-1">
+              <p class="font-bold">⚠️ Consecuencia económica de la devolución:</p>
+              <p>
+                Al confirmar, esta prenda se descuenta del pedido. El importe total se reduce automáticamente en 
+                <strong class="text-amber-900" x-text="formatMoney(inPersonItem.unit_price * (inPersonReturnQty || 1))"></strong>, 
+                garantizando que la aplicación de facturación del colegio no cobre esta prenda a la familia.
+              </p>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-800 mb-1">Unidades devueltas en mano en portería *</label>
+              <div class="flex items-center gap-2">
+                <input type="number" min="1" :max="inPersonItem.quantity" x-model="inPersonReturnQty"
+                       class="w-24 p-2 bg-white border border-slate-300 rounded-lg font-bold text-center text-sm">
+                <span class="text-slate-500">de un total de <strong x-text="inPersonItem.quantity"></strong> uds en el pedido.</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-800 mb-1">Motivo de la Devolución *</label>
+              <select x-model="inPersonReason" class="w-full p-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-800">
+                <option value="Prenda reservada para prueba en casa y devuelta en portería">Prenda reservada para prueba en casa y devuelta en portería</option>
+                <option value="Talla no adecuada / ya dispone de uniformidad suficiente">Talla no adecuada / ya dispone de uniformidad suficiente</option>
+                <option value="Baja de alumno o cambio de etapa escolar">Baja de alumno o cambio de etapa escolar</option>
+                <option value="Prenda con tara o desperfecto de fábrica">Prenda con tara o desperfecto de fábrica</option>
+                <option value="Otro motivo justificado en secretaría">Otro motivo justificado en secretaría</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Comentario / Observación interna -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Observaciones de portería / conserjería:</label>
+            <input type="text" x-model="inPersonStaffNotes" placeholder="Ej: Prenda recibida con etiqueta intacta por portería."
+                   class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-900 text-xs">
+          </div>
+
+        </div>
+      </template>
+
+      <!-- Botones de Acción del Modal -->
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+        <button type="button" @click="openInPersonModalState = false" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs cursor-pointer">
+          Cancelar
+        </button>
+        
+        <button type="button" @click="submitInPersonAction()" :disabled="submittingInPerson"
+                :class="inPersonAction === 'return' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-900 hover:bg-blue-950'"
+                class="px-5 py-2.5 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer">
+          <span x-text="submittingInPerson ? 'Modificando pedido...' : (inPersonAction === 'return' ? '✓ Confirmar Devolución y Descontar' : '✓ Confirmar Cambio de Talla')"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL GESTIÓN DE CLAVES (SOLO MAESTRO) ================= -->
+  <div x-show="openPassModalState" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200" @click.away="openPassModalState = false">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🔑</span>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Gestión de Claves de Acceso</h3>
+            <p class="text-xs text-slate-500">Configuración exclusiva para el Administrador Maestro</p>
+          </div>
+        </div>
+        <button @click="openPassModalState = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
+          👑 <strong>Perfil Maestro:</strong> Puedes consultar y actualizar las claves de los tres accesos. Los cambios surten efecto de inmediato.
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">👑 Clave Acceso Maestro (Control Absoluto)</label>
+          <input type="text" x-model="passwordsForm.master" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs">
+          <span class="text-[10px] text-slate-400">Edición completa de pedidos, catálogo, precios, cancelaciones y contraseñas.</span>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">🔄 Clave Gestión de Cambios & Almacén (Operador)</label>
+          <input type="text" x-model="passwordsForm.operator" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs">
+          <span class="text-[10px] text-slate-400">Consulta de pedidos, canje de tallas y devoluciones. Sin permiso para modificar importes, cancelar o editar catálogo.</span>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">👁️ Clave Consulta y Visión (Portería / Recepción)</label>
+          <input type="text" x-model="passwordsForm.viewer" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs">
+          <span class="text-[10px] text-slate-400">Solo lectura. Confirmación de si existe el pedido y su estado mediante QR o localizador.</span>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button type="button" @click="openPassModalState = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold text-xs cursor-pointer">
+          Cancelar
+        </button>
+        <button type="button" @click="saveAdminPasswords()" :disabled="savingPasswords"
+                class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer">
+          <span x-text="savingPasswords ? 'Guardando...' : 'Guardar Claves'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGICA ADMINISTRACION -->
+  <script>
+    function adminApp(initialRole = null, initialRoleInfo = null) {
+      const activeRole = initialRole || window.INITIAL_ROLE || 'viewer';
+      const activeRoleInfo = initialRoleInfo || window.INITIAL_ROLE_INFO || {};
+      return {
+        userRole: activeRole,
+        roleInfo: activeRoleInfo,
+        currentTab: 'orders',
+        orders: [],
+        stats: { total_orders: 0, total_revenue: 0, pending: 0, preparing: 0, ready: 0, delivered: 0, cancelled: 0 },
+        filterStatus: 'Todos',
+        searchFilter: '',
+        loadingOrders: true,
+        expandedOrders: {},
+
+        // Gestión presencial en portería / secretaría (Cambios y Devoluciones)
+        openInPersonModalState: false,
+        inPersonOrder: null,
+        inPersonItem: null,
+        inPersonAction: 'exchange', // 'exchange' o 'return'
+        inPersonNewSize: '',
+        inPersonReturnQty: 1,
+        inPersonReason: 'Prenda reservada para prueba en casa y devuelta en portería',
+        inPersonStaffNotes: '',
+        submittingInPerson: false,
+
+        openInPersonModal(order, item, action = 'exchange') {
+          this.inPersonOrder = order;
+          this.inPersonItem = item;
+          this.inPersonAction = action;
+          this.inPersonNewSize = item.size || '';
+          this.inPersonReturnQty = item.quantity || 1;
+          this.inPersonReason = action === 'return' 
+            ? 'Prenda reservada para prueba en casa y devuelta en portería'
+            : 'Probado en el centro, cambio de talla necesario';
+          this.inPersonStaffNotes = '';
+          this.openInPersonModalState = true;
+        },
+
+        // Compatibilidad con llamadas previas
+        openExchangeModal(order, item) {
+          this.openInPersonModal(order, item, 'exchange');
+        },
+
+        async submitInPersonAction() {
+          if (!this.inPersonOrder || !this.inPersonItem) return;
+
+          if (this.inPersonAction === 'exchange' && !this.inPersonNewSize.trim()) {
+            alert("Por favor, selecciona o escribe la nueva talla entregada.");
+            return;
+          }
+
+          if (this.inPersonAction === 'return') {
+            const qty = Number(this.inPersonReturnQty || 0);
+            if (qty <= 0 || qty > this.inPersonItem.quantity) {
+              alert(`Indica una cantidad válida a devolver (entre 1 y ${this.inPersonItem.quantity}).`);
+              return;
+            }
+          }
+
+          this.submittingInPerson = true;
+          try {
+            const res = await fetch(`/api/admin/orders/${this.inPersonOrder.id}/item-action`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: this.inPersonAction,
+                item_id: this.inPersonItem.id,
+                new_size: this.inPersonNewSize.trim(),
+                quantity: this.inPersonReturnQty,
+                reason: this.inPersonReason.trim(),
+                notes: this.inPersonStaffNotes.trim()
+              })
+            });
+            const data = await res.json();
+            if (res.ok) {
+              alert(data.message || "Pedido actualizado con éxito.");
+              this.openInPersonModalState = false;
+              await this.fetchOrders();
+              await this.fetchStats();
+              // Si estaba en el escáner, actualizar la orden escaneada
+              if (this.scannedOrder && this.scannedOrder.id === this.inPersonOrder.id) {
+                this.processScannedCode(this.scannedOrder.locator);
+              }
+            } else {
+              alert("Error: " + (data.error || "No se pudo procesar la solicitud."));
+            }
+          } catch (e) {
+            alert("Error conectando con el servidor: " + e.message);
+          } finally {
+            this.submittingInPerson = false;
+          }
+        },
+
+        // Gestión de contraseñas (Solo Maestro)
+        openPassModalState: false,
+        passwordsForm: { master: '', operator: '', viewer: '' },
+        savingPasswords: false,
+
+        async openPasswordModal() {
+          try {
+            const res = await fetch('/api/admin/passwords');
+            if (res.ok) {
+              const data = await res.json();
+              this.passwordsForm = {
+                master: data.master || '',
+                operator: data.operator || '',
+                viewer: data.viewer || ''
+              };
+              this.openPassModalState = true;
+            } else {
+              const err = await res.json();
+              alert("Error: " + (err.error || "No tienes permisos de Administrador Maestro."));
+            }
+          } catch (e) {
+            alert("Error obteniendo contraseñas: " + e.message);
+          }
+        },
+
+        async saveAdminPasswords() {
+          this.savingPasswords = true;
+          try {
+            const res = await fetch('/api/admin/passwords', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.passwordsForm)
+            });
+            const data = await res.json();
+            if (res.ok) {
+              alert(data.message || "Contraseñas actualizadas con éxito.");
+              this.openPassModalState = false;
+            } else {
+              alert("Error: " + (data.error || "No se pudieron guardar las contraseñas."));
+            }
+          } catch (e) {
+            alert("Error guardando contraseñas: " + e.message);
+          } finally {
+            this.savingPasswords = false;
+          }
+        },
+
+        // Escáner QR de Entrega y Conserjería
+        openScannerModal: false,
+        scannedOrder: null,
+        manualScanQuery: '',
+        scanErrorMsg: '',
+        scanSuccessMsg: '',
+        scanCameraLoading: false,
+        deliveringOrder: false,
+        html5QrCodeInstance: null,
+
+        // Modales de Email
+        openEmailSendModal: false,
+        selectedOrderForEmail: null,
+        sendingEmail: false,
+        openEmailViewModal: false,
+        inspectingEmail: null,
+
+        // Resumen Picking
+        stockSummary: [],
+        loadingSummary: false,
+
+        // Devoluciones y Cambios de Talla
+        returnsList: [],
+        filterReturnsStatus: 'Todos',
+        loadingReturns: false,
+
+        // Catálogo
+        catalogProducts: [],
+        catalogCategories: [],
+        openNewProductModal: false,
+        editingProduct: null,
+        productForm: {
+          name: '',
+          category_id: 1,
+          price: '',
+          code: '',
+          gender: 'Unisex',
+          sizes_str: '',
+          description: '',
+          image_url: '/static/images/uniforms/polo-mcorta.svg'
+        },
+
+        // Importador
+        openImportModal: false,
+        importJsonText: '',
+        replaceCatalogCheckbox: false,
+
+        get filteredReturns() {
+          if (this.filterReturnsStatus === 'Todos') return this.returnsList;
+          return this.returnsList.filter(r => r.status === this.filterReturnsStatus);
+        },
+
+        initAdmin() {
+          this.fetchOrders();
+          this.fetchStats();
+          this.fetchReturns();
+          this.fetchCatalog();
+
+          // Auto-refrescar lista cuando el usuario regresa a la pestaña del navegador
+          window.addEventListener('focus', () => {
+            if (this.currentTab === 'orders' && !this.loadingOrders) {
+              this.fetchOrders();
+              this.fetchStats();
+            }
+          });
+
+          // Polling automático cada 20 segundos para ver nuevos pedidos entrantes
+          setInterval(() => {
+            if (this.currentTab === 'orders' && !this.loadingOrders && !document.hidden) {
+              this.fetchOrders();
+              this.fetchStats();
+            }
+          }, 20000);
+
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('scanner') === '1') {
+            this.openQrScannerModal();
+          }
+        },
+
+        async fetchStats() {
+          try {
+            const res = await fetch('/api/admin/stats');
+            this.stats = await res.json();
+          } catch (e) {
+            console.error("Error cargando estadísticas", e);
+          }
+        },
+
+        async fetchOrders() {
+          this.loadingOrders = true;
+          try {
+            const params = new URLSearchParams();
+            if (this.filterStatus && this.filterStatus !== 'Todos') {
+              params.append('status', this.filterStatus);
+            }
+            if (this.searchFilter) {
+              params.append('search', this.searchFilter);
+            }
+            const res = await fetch('/api/admin/orders?' + params.toString());
+            const data = await res.json();
+            this.orders = data.orders || [];
+          } catch (e) {
+            console.error("Error cargando pedidos", e);
+          } finally {
+            this.loadingOrders = false;
+          }
+        },
+
+        debounceTimer: null,
+        debounceSearch() {
+          clearTimeout(this.debounceTimer);
+          this.debounceTimer = setTimeout(() => {
+            this.fetchOrders();
+          }, 350);
+        },
+
+        async changeOrderStatus(orderId, newStatus) {
+          try {
+            const res = await fetch(`/api/admin/orders/${orderId}/status`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: newStatus, send_email: true })
+            });
+            if (res.ok) {
+              this.fetchOrders();
+              this.fetchStats();
+            }
+          } catch (e) {
+            console.error("Error actualizando estado", e);
+          }
+        },
+
+        toggleOrderExpand(id) {
+          this.expandedOrders[id] = !this.expandedOrders[id];
+        },
+
+        getStatusBadgeClass(st) {
+          switch (st) {
+            case 'Listo para recoger':
+              return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+            case 'Entregado':
+              return 'bg-blue-100 text-blue-800 border-blue-300';
+            case 'En preparación':
+              return 'bg-amber-100 text-amber-800 border-amber-300';
+            case 'Cancelado':
+              return 'bg-red-100 text-red-800 border-red-300';
+            default:
+              return 'bg-slate-200 text-slate-700 border-slate-300';
+          }
+        },
+
+        openEmailModal(order) {
+          this.selectedOrderForEmail = order;
+          this.openEmailSendModal = true;
+        },
+
+        async sendEmailType(type) {
+          if (!this.selectedOrderForEmail) return;
+          this.sendingEmail = true;
+
+          try {
+            const res = await fetch(`/api/admin/orders/${this.selectedOrderForEmail.id}/send-email`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: type })
+            });
+            const data = await res.json();
+            if (res.ok) {
+              alert(data.message);
+              this.openEmailSendModal = false;
+              this.fetchOrders();
+            } else {
+              alert("Error: " + data.error);
+            }
+          } catch (e) {
+            alert("Error enviando email: " + e.message);
+          } finally {
+            this.sendingEmail = false;
+          }
+        },
+
+        viewEmailModal(emailItem) {
+          this.inspectingEmail = emailItem;
+          this.openEmailViewModal = true;
+        },
+
+        // Gestión de Devoluciones y Cambios de Talla
+        async fetchReturns() {
+          this.loadingReturns = true;
+          try {
+            const res = await fetch('/api/admin/returns');
+            const data = await res.json();
+            this.returnsList = data.returns || [];
+          } catch (e) {
+            console.error("Error cargando solicitudes de cambio", e);
+          } finally {
+            this.loadingReturns = false;
+          }
+        },
+
+        async updateReturnStatus(returnId, newStatus, adminNotes) {
+          try {
+            const res = await fetch(`/api/admin/returns/${returnId}/status`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: newStatus, admin_notes: adminNotes || '' })
+            });
+            const data = await res.json();
+            if (res.ok) {
+              this.fetchReturns();
+              this.fetchStats();
+              this.fetchOrders();
+            } else {
+              alert("Error: " + (data.error || "No se pudo actualizar el estado"));
+            }
+          } catch (e) {
+            console.error("Error actualizando cambio/devolución", e);
+          }
+        },
+
+        // Gestión Catálogo
+        async fetchCatalog() {
+          try {
+            const res = await fetch('/api/catalog');
+            const data = await res.json();
+            this.catalogCategories = data.categories || [];
+            this.catalogProducts = data.products || [];
+          } catch (e) {
+            console.error("Error cargando catálogo", e);
+          }
+        },
+
+        async fetchStockSummary() {
+          this.loadingSummary = true;
+          try {
+            const res = await fetch('/api/admin/stock-summary');
+            const data = await res.json();
+            this.stockSummary = data.summary || [];
+          } catch (e) {
+            console.error("Error cargando resumen de stock", e);
+          } finally {
+            this.loadingSummary = false;
+          }
+        },
+
+        getCategoryName(catId) {
+          const c = this.catalogCategories.find(cat => cat.id === catId);
+          return c ? c.name : 'General';
+        },
+
+        editProduct(prod) {
+          this.editingProduct = prod;
+          this.productForm = {
+            name: prod.name,
+            category_id: prod.category_id,
+            price: prod.price,
+            code: prod.code || '',
+            gender: prod.gender || 'Unisex',
+            sizes_str: (prod.sizes || []).join(', '),
+            description: prod.description || '',
+            image_url: prod.image_url || '/static/images/uniforms/polo-mcorta.svg'
+          };
+          this.openNewProductModal = true;
+        },
+
+        closeProductModal() {
+          this.openNewProductModal = false;
+          this.editingProduct = null;
+        },
+
+        async saveProduct() {
+          const sizes = this.productForm.sizes_str.split(',').map(s => s.trim()).filter(Boolean);
+          const payload = {
+            name: this.productForm.name,
+            category_id: parseInt(this.productForm.category_id),
+            price: parseFloat(this.productForm.price),
+            code: this.productForm.code,
+            gender: this.productForm.gender,
+            sizes: sizes,
+            description: this.productForm.description,
+            image_url: this.productForm.image_url
+          };
+
+          try {
+            let res;
+            if (this.editingProduct) {
+              res = await fetch(`/api/admin/catalog/${this.editingProduct.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+            } else {
+              res = await fetch('/api/admin/catalog', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+            }
+            if (res.ok) {
+              this.closeProductModal();
+              this.fetchCatalog();
+            }
+          } catch (e) {
+            console.error("Error guardando prenda", e);
+          }
+        },
+
+        async deleteProduct(id) {
+          if (!confirm("¿Deseas retirar esta prenda del catálogo?")) return;
+          try {
+            const res = await fetch(`/api/admin/catalog/${id}`, { method: 'DELETE' });
+            if (res.ok) this.fetchCatalog();
+          } catch (e) {
+            console.error("Error desactivando prenda", e);
+          }
+        },
+
+        async submitImport() {
+          if (!this.importJsonText.trim()) return;
+          try {
+            const parsed = JSON.parse(this.importJsonText);
+            const res = await fetch('/api/admin/import-catalog', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                products: Array.isArray(parsed) ? parsed : (parsed.products || []),
+                replace_all: this.replaceCatalogCheckbox
+              })
+            });
+            const data = await res.json();
+            if (res.ok) {
+              alert(`¡Importación completada! Se han añadido/actualizado ${data.inserted_count} prendas.`);
+              this.openImportModal = false;
+              this.importJsonText = '';
+              this.fetchCatalog();
+            } else {
+              alert("Error: " + data.error);
+            }
+          } catch (e) {
+            alert("El formato JSON introducido no es válido: " + e.message);
+          }
+        },
+
+        // ================= METODOS ESCANEO QR Y ENTREGA =================
+        async openQrScannerModal() {
+          this.openScannerModal = true;
+          this.scannedOrder = null;
+          this.manualScanQuery = '';
+          this.scanErrorMsg = '';
+          this.scanSuccessMsg = '';
+          this.scanCameraLoading = true;
+
+          this.$nextTick(() => {
+            setTimeout(() => {
+              this.startQrCamera();
+            }, 300);
+          });
+        },
+
+        async startQrCamera() {
+          try {
+            if (typeof Html5Qrcode === 'undefined') {
+              this.scanCameraLoading = false;
+              this.scanErrorMsg = "El módulo de escaneo de cámara no está disponible. Puedes introducir el localizador manualmente.";
+              return;
+            }
+
+            if (!this.html5QrCodeInstance) {
+              this.html5QrCodeInstance = new Html5Qrcode("qr-reader");
+            }
+
+            const qrConfig = { fps: 10, qrbox: { width: 220, height: 220 } };
+            
+            await this.html5QrCodeInstance.start(
+              { facingMode: "environment" },
+              qrConfig,
+              (decodedText) => {
+                this.onQrCodeSuccess(decodedText);
+              },
+              (errorMessage) => {
+                // Errores continuos de fotograma vacío
+              }
+            );
+            this.scanCameraLoading = false;
+          } catch (err) {
+            console.warn("No se pudo iniciar la cámara web:", err);
+            this.scanCameraLoading = false;
+            this.scanErrorMsg = "Cámara no disponible o permiso no concedido. Puedes buscar escribiendo el localizador abajo.";
+          }
+        },
+
+        async closeQrScannerModal() {
+          if (this.html5QrCodeInstance && this.html5QrCodeInstance.isScanning) {
+            try {
+              await this.html5QrCodeInstance.stop();
+            } catch (e) {
+              console.error("Error deteniendo cámara", e);
+            }
+          }
+          this.openScannerModal = false;
+          this.scannedOrder = null;
+          this.scanErrorMsg = '';
+          this.scanSuccessMsg = '';
+        },
+
+        onQrCodeSuccess(decodedText) {
+          if (this.scannedOrder && (this.scannedOrder.locator === decodedText || this.scannedOrder.qr_code === decodedText)) return;
+          this.processScannedCode(decodedText);
+        },
+
+        async processScannedCode(rawCode) {
+          if (!rawCode || !rawCode.trim()) return;
+          this.scanErrorMsg = '';
+          this.scanSuccessMsg = '';
+          try {
+            const res = await fetch(`/api/admin/orders/scan?code=${encodeURIComponent(rawCode.trim())}`);
+            const data = await res.json();
+            if (res.ok && data.order) {
+              this.scannedOrder = data.order;
+              // Reproducir bip auditivo breve usando Web Audio API
+              try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+              } catch(e) {}
+            } else {
+              this.scanErrorMsg = data.error || "No se encontró ningún pedido con ese código o localizador.";
+            }
+          } catch (err) {
+            console.error("Error buscando pedido escaneado", err);
+            this.scanErrorMsg = "Error conectando con el servidor.";
+          }
+        },
+
+        async deliverScannedOrder() {
+          if (!this.scannedOrder) return;
+          this.deliveringOrder = true;
+          this.scanErrorMsg = '';
+          this.scanSuccessMsg = '';
+          try {
+            const res = await fetch(`/api/admin/orders/${this.scannedOrder.id}/deliver`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (res.ok && data.order) {
+              this.scannedOrder = data.order;
+              this.scanSuccessMsg = `¡Pedido ${data.order.locator} entregado con éxito a ${data.order.student_name}!`;
+              this.fetchOrders();
+              this.fetchStats();
+              // Sonido de confirmación (doble tono alegre)
+              try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
+              } catch(e) {}
+            } else {
+              this.scanErrorMsg = data.error || "No se pudo marcar como entregado.";
+            }
+          } catch (err) {
+            console.error("Error entregando pedido", err);
+            this.scanErrorMsg = "Error en la petición de entrega.";
+          } finally {
+            this.deliveringOrder = false;
+          }
+        },
+
+        copiedOrderId: null,
+        copyOrderBilling(order) {
+          const base = (Number(order.total_amount || 0) / 1.21).toFixed(2).replace('.', ',');
+          const vat = (Number(order.total_amount || 0) - (Number(order.total_amount || 0) / 1.21)).toFixed(2).replace('.', ',');
+          const total = Number(order.total_amount || 0).toFixed(2).replace('.', ',');
+          const itemsStr = (order.items || []).map(i => `${i.product_name} (T.${i.size}) x${i.quantity}`).join(' | ');
+          const text = [
+            `FACTURA: ${order.invoice_number || ('FAC-2026-000' + order.id)} | PEDIDO: ${order.locator}`,
+            `TITULAR: ${order.billing_name || order.parent_name}`,
+            `DNI/NIF: ${order.parent_nif || 'PENDIENTE'}`,
+            `DIRECCIÓN: ${order.billing_address || '-'} (${order.billing_postal_code || ''} ${order.billing_city || 'Madrid'})`,
+            `ALUMNO: ${order.student_name} (${order.student_course})`,
+            `CONCEPTO: ${itemsStr}`,
+            `BASE IMPONIBLE: ${base} € | IVA (21%): ${vat} € | TOTAL: ${total} €`
+          ].join('\n');
+          navigator.clipboard.writeText(text);
+          this.copiedOrderId = order.id;
+          setTimeout(() => { this.copiedOrderId = null; }, 2200);
+        },
+
+        formatMoney(val) {
+          return Number(val || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+        }
+
+      };
+    }
+  </script>
+
+</body>
+</html>

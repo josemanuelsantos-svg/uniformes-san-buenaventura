@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EDF2F7"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg-grad)" rx="20"/>
+  
+  <!-- Pantalón Chándal Infantil CSB -->
+  <g filter="url(#card-shadow)">
+    <!-- Waistband with elastic gathering -->
+    <rect x="64" y="40" width="72" height="14" fill="#16283D" stroke="#0D1B2A" stroke-width="1" rx="3"/>
+    <line x1="64" y1="47" x2="136" y2="47" stroke="#233B58" stroke-width="1" stroke-dasharray="3 3"/>
+    <!-- Dark Navy Pants Body -->
+    <path d="M64 54 L56 166 L90 166 L100 88 L110 166 L144 166 L136 54 Z" fill="#0D1B2A" stroke="#07101A" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- Parches en cada pierna: uno amarillo y otro azul celeste -->
+    <!-- Pierna derecha: Parche Azul Celeste -->
+    <circle cx="76" cy="118" r="13" fill="#8EBEEC" stroke="#0C4A9E" stroke-width="1.3"/>
+    <!-- Pierna izquierda: Parche Amarillo -->
+    <circle cx="124" cy="118" r="13" fill="#F5A623" stroke="#D97706" stroke-width="1.3"/>
+    <!-- Ankle Cuffs -->
+    <rect x="55" y="162" width="36" height="6" fill="#07101A" rx="1"/>
+    <rect x="109" y="162" width="36" height="6" fill="#07101A" rx="1"/>
+  </g>
+
+</svg>

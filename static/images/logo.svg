@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="400" height="100">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B365D" />
+      <stop offset="100%" stop-color="#0F2042" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5C07B" />
+      <stop offset="100%" stop-color="#C59B27" />
+    </linearGradient>
+  </defs>
+
+  <!-- Escudo Heráldico -->
+  <g transform="translate(15, 10)">
+    <!-- Base del Escudo -->
+    <path d="M40 0 C65 0 80 15 80 40 C80 65 50 82 40 88 C30 82 0 65 0 40 C0 15 15 0 40 0 Z" fill="url(#shieldGrad)" stroke="url(#goldGrad)" stroke-width="3.5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
+    <path d="M40 6 C60 6 74 18 74 40 C74 61 48 76 40 81 C32 76 6 61 6 40 C6 18 20 6 40 6 Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="1.5" />
+    
+    <!-- Libro Abierto y Cruz -->
+    <path d="M26 38 C32 35 37 36 40 38 C43 36 48 35 54 38 L54 55 C48 52 43 53 40 55 C37 53 32 52 26 55 Z" fill="#FFFFFF" opacity="0.95" />
+    <path d="M40 38 L40 55" stroke="#1B365D" stroke-width="1.5" />
+    <!-- Cruz Dorada Superior -->
+    <path d="M37 20 H43 V25 H48 V29 H43 V36 H37 V29 H32 V25 H37 Z" fill="url(#goldGrad)" />
+    <!-- Estrella franciscana de luz -->
+    <circle cx="40" cy="65" r="2.5" fill="url(#goldGrad)" />
+  </g>
+
+  <!-- Textos institucionales -->
+  <g transform="translate(110, 36)">
+    <text font-family="'Cinzel', 'Times New Roman', serif" font-size="20" font-weight="700" fill="#1B365D" letter-spacing="1">COLEGIO</text>
+    <text font-family="'Cinzel', 'Times New Roman', serif" font-size="23" font-weight="800" fill="#991B1B" letter-spacing="1.5" y="24">SAN BUENAVENTURA</text>
+    <text font-family="'Inter', sans-serif" font-size="10.5" font-weight="600" fill="#6B7280" letter-spacing="2.5" y="44">RESERVA OFICIAL DE UNIFORMES</text>
+  </g>
+</svg>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EDF2F7"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg-grad)" rx="20"/>
+  
+  <!-- Pantalón de Chándal CSB -->
+  <g filter="url(#card-shadow)">
+    <!-- Waistband with drawstrings -->
+    <rect x="64" y="38" width="72" height="12" fill="#16283D" stroke="#0D1B2A" stroke-width="1" rx="3"/>
+    <line x1="97" y1="47" x2="95" y2="57" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="103" y1="47" x2="105" y2="57" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Main Pants Body -->
+    <path d="M64 50 L56 166 L90 166 L100 84 L110 166 L144 166 L136 50 Z" fill="#0D1B2A" stroke="#07101A" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- Royal Blue & White Lateral Panels on both outer legs -->
+    <!-- Left outer panel -->
+    <path d="M64 50 L56 166 L64 166 L71 50 Z" fill="#1B5EBF"/>
+    <rect x="59" y="102" width="9" height="12" fill="#FFFFFF"/>
+    <!-- Right outer panel -->
+    <path d="M136 50 L144 166 L136 166 L129 50 Z" fill="#1B5EBF"/>
+    <rect x="132" y="102" width="9" height="12" fill="#FFFFFF"/>
+    <!-- Ankle Cuffs -->
+    <rect x="55" y="162" width="36" height="6" fill="#07101A" rx="1"/>
+    <rect x="109" y="162" width="36" height="6" fill="#07101A" rx="1"/>
+  </g>
+
+</svg>

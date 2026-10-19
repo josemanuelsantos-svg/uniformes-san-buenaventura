@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Factura {{ order.invoice_number or order.locator }} - Colegio San Buenaventura</title>
+  <!-- Favicon Oficial Colegio San Buenaventura -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <meta name="theme-color" content="#002B66">
+  <script src="/static/js/tailwind.js"></script>
+  <script defer src="/static/js/alpine.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .font-serif-title {
+      font-family: 'Cinzel', serif;
+    }
+    [x-cloak] { display: none !important; }
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-sheet {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+      @page {
+        margin: 1.2cm;
+        size: A4 portrait;
+      }
+    }
+  </style>
+</head>
+<body class="py-6 sm:py-10 px-4 sm:px-6" x-data="invoiceIssuer()">
+
+  {% set vat_rate = settings.get('vat_rate', '21')|float %}
+  {% set subtotal_base = order.total_amount / (1 + vat_rate / 100) %}
+  {% set total_vat = order.total_amount - subtotal_base %}
+
+  <!-- ================= BARRA SUPERIOR DEL EMISOR DE FACTURAS (NO SE IMPRIME) ================= -->
+  <div class="max-w-4xl mx-auto mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-wrap items-center justify-between gap-3 no-print">
+    <div class="flex items-center gap-2.5">
+      <a href="/?locator={{ order.locator }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        Tienda
+      </a>
+      <a href="/admin" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-2 rounded-xl transition">
+        Panel Secretaría
+      </a>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Botón Copiar Datos Fiscales para otra App -->
+      <button @click="copyBillingForExternalApp()"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition cursor-pointer">
+        <span x-text="copied ? '✅ ¡Datos Copiados!' : '📋 Copiar Datos para App Facturación'"></span>
+      </button>
+
+      <!-- Botón Editar / Completar Datos Fiscales en vivo -->
+      <button @click="editingBilling = !editingBilling"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition cursor-pointer">
+        <span>✏️</span>
+        <span x-text="editingBilling ? 'Cerrar Editor Fiscal' : 'Editar Datos Fiscales'"></span>
+      </button>
+
+      <!-- Botón Imprimir / Emitir PDF -->
+      <button onclick="window.print()"
+              class="inline-flex items-center gap-2 bg-[#002B66] hover:bg-[#001D47] text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-md transition cursor-pointer">
+        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        Emitir / Imprimir Factura PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= PANEL RÁPIDO DE EDICIÓN DE DATOS FISCALES (NO SE IMPRIME) ================= -->
+  <div x-show="editingBilling" x-cloak class="max-w-4xl mx-auto mb-6 bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-5 shadow-md no-print">
+    <div class="flex items-center justify-between mb-3 pb-2 border-b border-amber-200">
+      <div>
+        <h3 class="text-sm font-bold text-amber-950">✏️ Editor Rápido de Datos de Facturación</h3>
+        <p class="text-xs text-amber-800">Modifica o completa el NIF, razón social o dirección fiscal antes de emitir la factura o volcarla a tu aplicación contable.</p>
+      </div>
+      <span x-show="saveSuccess" class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300">
+        ✓ Guardado en base de datos
+      </span>
+    </div>
+
+    <form @submit.prevent="saveBillingData()" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+      <div class="sm:col-span-2">
+        <label class="block font-bold text-slate-700 mb-1">Nombre / Razón Social (Titular Factura) *</label>
+        <input type="text" x-model="billingForm.billing_name" required class="w-full p-2 bg-white border border-slate-300 rounded-lg font-semibold">
+      </div>
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">DNI / NIF / CIF *</label>
+        <input type="text" x-model="billingForm.parent_nif" placeholder="Ej: 12345678Z" class="w-full p-2 bg-white border border-slate-300 rounded-lg font-mono font-bold uppercase">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block font-bold text-slate-700 mb-1">Dirección Fiscal (Calle, Nº, Piso)</label>
+        <input type="text" x-model="billingForm.billing_address" placeholder="Ej: C/ Mayor 14, 3º B" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Código Postal</label>
+          <input type="text" x-model="billingForm.billing_postal_code" placeholder="28011" class="w-full p-2 bg-white border border-slate-300 rounded-lg font-mono">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Localidad</label>
+          <input type="text" x-model="billingForm.billing_city" placeholder="Madrid" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
+        </div>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block font-bold text-slate-700 mb-1">Modalidad de Facturación / Cargo</label>
+        <select x-model="billingForm.payment_method" class="w-full p-2 bg-white border border-slate-300 rounded-lg font-medium">
+          <option value="Facturación por App del Colegio (Recibo Escolar)">Facturación por App del Colegio (Recibo Escolar)</option>
+          <option value="Pago en Secretaría del Centro">Pago en Secretaría del Centro</option>
+          <option value="Transferencia / Domiciliación Bancaria">Transferencia / Domiciliación Bancaria</option>
+        </select>
+      </div>
+      <div class="flex items-end justify-end gap-2">
+        <button type="submit" :disabled="saving" class="w-full py-2 bg-[#002B66] hover:bg-[#001D47] text-white font-bold rounded-lg shadow transition cursor-pointer">
+          <span x-text="saving ? 'Guardando...' : '💾 Guardar y Actualizar Factura'"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ================= HOJA OFICIAL DE FACTURACIÓN A4 ================= -->
+  <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-8 sm:p-12 print-sheet">
+    
+    <!-- Cabecera Institucional y Nº de Factura -->
+    <div class="flex flex-col sm:flex-row justify-between items-start border-b-2 border-[#002B66] pb-6 gap-6">
+      <div class="flex items-start gap-4">
+        <img src="/static/images/logo.png" alt="Colegio San Buenaventura" class="h-16 w-auto object-contain">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-[#002B66] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Emisor Oficial</span>
+          <h1 class="text-lg sm:text-xl font-bold font-serif-title text-slate-900 mt-1">{{ settings.get('school_name', 'Colegio San Buenaventura') }}</h1>
+          <p class="text-xs font-bold text-slate-700">{{ settings.get('school_entity', 'Franciscanos Conventuales') }} • CIF: {{ settings.get('school_cif', 'R2800624F') }}</p>
+          <p class="text-xs text-slate-500 mt-0.5">{{ settings.get('school_address', 'C/ El Greco, 16') }} — {{ settings.get('school_postal_code', '28011') }} {{ settings.get('school_city', 'Madrid') }}</p>
+          <p class="text-xs text-slate-500">Tel: {{ settings.get('school_phone', '91 526 71 61') }} • {{ settings.get('school_email', 'administracion@sanbuenaventura.org') }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end bg-slate-50 sm:bg-transparent p-4 sm:p-0 rounded-xl border border-slate-200 sm:border-0">
+        <div class="sm:text-right">
+          <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-[#002B66] text-white">
+            DOCUMENTO DE FACTURACIÓN
+          </span>
+          <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1 font-mono tracking-tight">
+            {{ order.invoice_number or ('FAC-2026-' ~ '%04d'|format(order.id)) }}
+          </p>
+          <p class="text-xs text-slate-600 font-mono">Ref. Pedido: <strong>{{ order.locator }}</strong></p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Fecha emisión: <strong>{{ order.created_at[:10] }}</strong></p>
+          <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase
+            {% if order.status == 'Listo para recoger' %} bg-emerald-100 text-emerald-800
+            {% elif order.status == 'Entregado' %} bg-blue-100 text-blue-800
+            {% elif order.status == 'Cancelado' %} bg-red-100 text-red-800
+            {% else %} bg-amber-100 text-amber-800 {% endif %}">
+            Estado: {{ order.status }}
+          </span>
+        </div>
+        {% if qr_code %}
+        <div class="shrink-0 bg-white p-1.5 rounded-xl border border-slate-200 shadow-2xs">
+          <img src="{{ qr_code }}" alt="QR {{ order.locator }}" class="w-16 h-16 object-contain">
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Bloques Fiscales: Datos de Facturación del Cliente + Datos del Alumno -->
+    <div class="grid grid-cols-1 sm:grid-cols-12 gap-5 my-6 text-xs">
+      
+      <!-- Bloque 1: Datos Fiscales del Cliente (Para App de Facturación) -->
+      <div class="sm:col-span-7 bg-slate-50 p-5 rounded-xl border-2 border-slate-200 space-y-2">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+          <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-[#002B66]">Datos Fiscales de Facturación (Cliente / Titular)</h3>
+          <span class="text-[10px] font-mono text-slate-400">Receptor</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+          <div class="sm:col-span-2">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Titular / Razón Social</span>
+            <p class="text-sm font-extrabold text-slate-900" x-text="billingForm.billing_name || '{{ order.parent_name }}'"></p>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">DNI / NIF / CIF</span>
+            <p class="text-sm font-mono font-black text-[#002B66] bg-white px-2 py-0.5 rounded border border-slate-200 inline-block"
+               x-text="billingForm.parent_nif || 'PENDIENTE NIF'"></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+          <div class="sm:col-span-2">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Dirección Fiscal</span>
+            <p class="font-medium text-slate-800" x-text="billingForm.billing_address || 'Domicilio registrado en ficha escolar'"></p>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">CP y Localidad</span>
+            <p class="font-medium text-slate-800">
+              <span class="font-mono" x-text="billingForm.billing_postal_code"></span>
+              <span x-text="billingForm.billing_city || 'Madrid'"></span>
+            </p>
+          </div>
+        </div>
+
+        <div class="pt-1.5 border-t border-slate-200/80 flex flex-wrap justify-between gap-2 text-[11px] text-slate-600">
+          <span><strong>Teléfono:</strong> {{ order.parent_phone }}</span>
+          <span><strong>Email:</strong> {{ order.parent_email }}</span>
+        </div>
+      </div>
+
+      <!-- Bloque 2: Datos del Alumno y Modalidad de Cargo -->
+      <div class="sm:col-span-5 bg-blue-50/40 p-5 rounded-xl border border-blue-200 flex flex-col justify-between space-y-3">
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between border-b border-blue-200/70 pb-1.5">
+            <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-blue-950">Alumno/a y Curso Escolar</h3>
+            <span class="text-[10px] font-bold text-blue-700">Curso 2026/2027</span>
+          </div>
+          <p class="text-sm font-extrabold text-slate-900 pt-1">{{ order.student_name }}</p>
+          <p class="text-xs font-semibold text-blue-900">Curso: <span class="bg-white px-2 py-0.5 rounded border border-blue-200">{{ order.student_course }}</span></p>
+          <p class="text-[11px] text-slate-600">Tutor/a de contacto: {{ order.parent_name }}</p>
+        </div>
+
+        <div class="pt-2 border-t border-blue-200/70">
+          <span class="text-[10px] uppercase font-bold text-blue-800 block">Modalidad de Facturación / Cobro:</span>
+          <p class="text-xs font-bold text-slate-900 mt-0.5" x-text="billingForm.payment_method"></p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tabla Contable Desglosada de Líneas de Pedido -->
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-900 text-white uppercase tracking-wider text-[10px] font-bold">
+            <th class="py-2.5 px-3 rounded-tl-lg">Código</th>
+            <th class="py-2.5 px-3">Concepto / Prenda Oficial</th>
+            <th class="py-2.5 px-2">Alumno</th>
+            <th class="py-2.5 px-2 text-center">Talla</th>
+            <th class="py-2.5 px-2 text-center">Uds.</th>
+            <th class="py-2.5 px-2 text-right">P. Unit. Base</th>
+            <th class="py-2.5 px-2 text-right">Base Línea</th>
+            <th class="py-2.5 px-2 text-right">IVA (21%)</th>
+            <th class="py-2.5 px-3 text-right rounded-tr-lg">Total c/IVA</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 border-x border-b border-slate-200">
+          {% for item in items %}
+          {% set line_gross = item.subtotal|float %}
+          {% set line_base = line_gross / (1 + vat_rate / 100) %}
+          {% set line_vat = line_gross - line_base %}
+          {% set unit_base = (item.unit_price|float) / (1 + vat_rate / 100) %}
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-3 font-mono font-bold text-slate-600">{{ item.ref_code or 'UNIF' }}</td>
+            <td class="py-3 px-3 font-bold text-slate-900">{{ item.product_name }}</td>
+            <td class="py-3 px-2 text-slate-600">{{ item.student_name or order.student_name }}</td>
+            <td class="py-3 px-2 text-center">
+              <span class="inline-block bg-slate-100 font-mono text-[11px] font-bold text-slate-800 px-2 py-0.5 rounded border border-slate-200">
+                {{ item.size }}
+              </span>
+            </td>
+            <td class="py-3 px-2 text-center font-bold text-slate-900">{{ item.quantity }}</td>
+            <td class="py-3 px-2 text-right font-mono text-slate-600">{{ "%.2f"|format(unit_base)|replace('.', ',') }} €</td>
+            <td class="py-3 px-2 text-right font-mono text-slate-700">{{ "%.2f"|format(line_base)|replace('.', ',') }} €</td>
+            <td class="py-3 px-2 text-right font-mono text-slate-500">{{ "%.2f"|format(line_vat)|replace('.', ',') }} €</td>
+            <td class="py-3 px-3 text-right font-mono font-extrabold text-slate-900">{{ "%.2f"|format(line_gross)|replace('.', ',') }} €</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Cuadro Fiscal de Impuestos y Totales -->
+    <div class="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start pt-2">
+      
+      <!-- Observaciones y Condiciones -->
+      <div class="sm:col-span-7 space-y-2 text-[11px] text-slate-600">
+        {% if order.notes %}
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-950">
+          <strong>Observaciones del pedido:</strong> {{ order.notes }}
+        </div>
+        {% endif %}
+        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 leading-relaxed">
+          <p class="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Información de Facturación y Recogida:</p>
+          <p>• <strong>Facturación:</strong> Los datos de este documento están estructurados para su facturación a través de la aplicación administrativa del Colegio San Buenaventura.</p>
+          <p>• <strong>Recogida en el Centro:</strong> {{ settings.get('pickup_location', 'Secretaría / Conserjería del Colegio') }} ({{ settings.get('pickup_schedule', 'Lunes a Viernes de 09:00 a 13:30 y de 15:30 a 17:30') }}).</p>
+          <p>• <strong>Cambios de talla:</strong> Plazo de 15 días desde la entrega con prendas etiquetadas sin usar.</p>
+        </div>
+      </div>
+
+      <!-- Resumen Contable (Base Imponible + Cuota IVA + Total) -->
+      <div class="sm:col-span-5 bg-slate-50 rounded-xl border-2 border-slate-200 p-4 space-y-2 text-xs">
+        <div class="flex justify-between text-slate-600">
+          <span class="font-semibold">Base Imponible Total:</span>
+          <span class="font-mono font-bold text-slate-800">{{ "%.2f"|format(subtotal_base)|replace('.', ',') }} €</span>
+        </div>
+        <div class="flex justify-between text-slate-600">
+          <span class="font-semibold">Cuota IVA ({{ vat_rate|int }}%):</span>
+          <span class="font-mono font-bold text-slate-800">{{ "%.2f"|format(total_vat)|replace('.', ',') }} €</span>
+        </div>
+        <div class="flex justify-between text-base font-black text-slate-900 pt-2.5 border-t-2 border-slate-300">
+          <span>TOTAL FACTURA:</span>
+          <span class="font-mono text-lg text-[#002B66]">{{ "%.2f"|format(order.total_amount)|replace('.', ',') }} €</span>
+        </div>
+        <p class="text-[10px] text-right text-slate-400">Importes expresados en Euros (€) con IVA desglosado</p>
+      </div>
+
+    </div>
+
+    <!-- Pie Institucional -->
+    <div class="mt-8 text-center text-[11px] text-slate-400 border-t border-slate-200 pt-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <span>{{ settings.get('school_name', 'Colegio San Buenaventura') }} • CIF {{ settings.get('school_cif', 'R2800624F') }}</span>
+      <span>Documento oficial de reserva y facturación • Localizador {{ order.locator }}</span>
+    </div>
+
+  </div>
+
+  <script>
+    function invoiceIssuer() {
+      return {
+        editingBilling: false,
+        saving: false,
+        saveSuccess: false,
+        copied: false,
+        billingForm: {
+          billing_name: {{ (order.billing_name or order.parent_name) | tojson }},
+          parent_nif: {{ (order.parent_nif or '') | tojson }},
+          billing_address: {{ (order.billing_address or '') | tojson }},
+          billing_postal_code: {{ (order.billing_postal_code or '') | tojson }},
+          billing_city: {{ (order.billing_city or 'Madrid') | tojson }},
+          payment_method: {{ (order.payment_method or 'Facturación por App del Colegio (Recibo Escolar)') | tojson }}
+        },
+
+        async saveBillingData() {
+          this.saving = true;
+          this.saveSuccess = false;
+          try {
+            const res = await fetch('/api/orders/{{ order.locator }}/billing', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.billingForm)
+            });
+            if (res.ok) {
+              this.saveSuccess = true;
+              setTimeout(() => { this.saveSuccess = false; }, 3000);
+            } else {
+              alert('No se pudieron guardar los datos fiscales.');
+            }
+          } catch (e) {
+            alert('Error de conexión: ' + e.message);
+          } finally {
+            this.saving = false;
+          }
+        },
+
+        copyBillingForExternalApp() {
+          const text = [
+            `FACTURA / PEDIDO: {{ order.invoice_number or order.locator }} (Ref: {{ order.locator }})`,
+            `FECHA: {{ order.created_at[:10] }}`,
+            `TITULAR FACTURACIÓN: ${this.billingForm.billing_name}`,
+            `DNI/NIF/CIF: ${this.billingForm.parent_nif || 'SIN NIF'}`,
+            `DIRECCIÓN FISCAL: ${this.billingForm.billing_address || '-'} (${this.billingForm.billing_postal_code || ''} ${this.billingForm.billing_city || 'Madrid'})`,
+            `ALUMNO: {{ order.student_name }} ({{ order.student_course }})`,
+            `TELÉFONO: {{ order.parent_phone }} | EMAIL: {{ order.parent_email }}`,
+            `MODALIDAD: ${this.billingForm.payment_method}`,
+            `BASE IMPONIBLE: {{ "%.2f"|format(subtotal_base)|replace('.', ',') }} €`,
+            `IVA (21%): {{ "%.2f"|format(total_vat)|replace('.', ',') }} €`,
+            `TOTAL FACTURA: {{ "%.2f"|format(order.total_amount)|replace('.', ',') }} €`
+          ].join('\n');
+          navigator.clipboard.writeText(text);
+          this.copied = true;
+          setTimeout(() => { this.copied = false; }, 2500);
+        }
+      };
+    }
+  </script>
+
+</body>
+</html>

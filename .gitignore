@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+cloudflared
+cloudflared.tgz
+*.png
+*.log
+cookies.txt
+check_js.js
+temp_check.js
+sim_test.js
+test_full_suite.py
+uniformes.db-shm
+uniformes.db-wal
