@@ -1124,6 +1124,8 @@ def admin_manage_smtp():
         smtp_from = (data.get("from_email") or "").strip()
         smtp_from_name = (data.get("from_name") or "Colegio San Buenaventura").strip()
         smtp_ssl = "1" if data.get("use_ssl") else "0"
+        brevo_key = (data.get("brevo_api_key") or "").strip()
+        resend_key = (data.get("resend_api_key") or "").strip()
 
         cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_host', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_host,))
         cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_port', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_port,))
@@ -1131,6 +1133,10 @@ def admin_manage_smtp():
         cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_from', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_from,))
         cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_from_name', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_from_name,))
         cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_ssl', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_ssl,))
+        if brevo_key:
+            cursor.execute("INSERT INTO school_settings (key, value) VALUES ('brevo_api_key', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (brevo_key,))
+        if resend_key:
+            cursor.execute("INSERT INTO school_settings (key, value) VALUES ('resend_api_key', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (resend_key,))
 
         # Solo actualizar contraseña si se proporciona una nueva
         if smtp_pass:
@@ -1138,7 +1144,7 @@ def admin_manage_smtp():
 
         conn.commit()
         conn.close()
-        return jsonify({"success": True, "message": "Configuración SMTP guardada correctamente."})
+        return jsonify({"success": True, "message": "Configuración de correo guardada correctamente."})
 
     # GET
     cfg = get_smtp_config()
@@ -1150,6 +1156,8 @@ def admin_manage_smtp():
         "from_email": cfg["from_email"],
         "from_name": cfg["from_name"],
         "use_ssl": cfg["use_ssl"],
+        "brevo_api_key": cfg.get("brevo_api_key", ""),
+        "resend_api_key": cfg.get("resend_api_key", ""),
         "has_password": bool(cfg["password"]),
         "source": cfg["source"]
     })

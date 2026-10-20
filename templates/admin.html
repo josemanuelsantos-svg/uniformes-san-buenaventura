@@ -1368,6 +1368,29 @@
           <label class="block font-bold text-slate-700 mb-1">Nombre Remitente</label>
           <input type="text" x-model="smtpForm.from_name" placeholder="Colegio San Buenaventura" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-emerald-500">
         </div>
+
+        <!-- Alternativa API HTTP para Render Free (Puerto 443 HTTPS sin bloqueos) -->
+        <div class="col-span-2 pt-2 border-t border-slate-100">
+          <details class="text-[11px] text-slate-600 bg-blue-50/60 border border-blue-200 rounded-xl p-3">
+            <summary class="font-bold text-blue-900 cursor-pointer flex items-center justify-between">
+              <span>🌐 ¿Estás en el Plan Free de Render? (Evitar bloqueo de puertos)</span>
+              <span class="text-[10px] text-blue-700 underline">Ver opciones</span>
+            </summary>
+            <div class="mt-2 space-y-2 text-[11px] leading-relaxed text-slate-700">
+              <p>
+                <strong>Atención:</strong> Render <u>bloquea por firewall los puertos SMTP 465 y 587</u> en su plan gratuito para evitar spam.
+              </p>
+              <ul class="list-disc pl-4 space-y-1">
+                <li><strong>Solución A (Recomendada):</strong> Pasa el servicio de Render a <em>Starter ($7/mes)</em>. Desbloquea los puertos SMTP al instante y hace que la web nunca se duerma.</li>
+                <li><strong>Solución B (100% Gratis con Brevo API):</strong> Crea una cuenta gratis en <a href="https://app.brevo.com" target="_blank" class="text-blue-700 font-bold underline">brevo.com</a>, valida el remitente <em>uniformes@sanbuenaventura.org</em> y pega aquí tu clave API. Enviará por HTTPS (puerto 443) sin bloqueos:</li>
+              </ul>
+              <div class="pt-1">
+                <label class="block font-bold text-slate-700 mb-1">Brevo API Key (opcional, bypass para Render Free):</label>
+                <input type="password" x-model="smtpForm.brevo_api_key" placeholder="xkeysib-..." class="w-full p-2 bg-white border border-blue-200 rounded-lg text-xs font-mono">
+              </div>
+            </div>
+          </details>
+        </div>
       </div>
 
       <!-- Sección Probar Envío -->
@@ -1573,6 +1596,7 @@
                 from_email: data.from_email || '',
                 from_name: data.from_name || 'Colegio San Buenaventura',
                 use_ssl: data.use_ssl !== undefined ? data.use_ssl : (data.port === 465),
+                brevo_api_key: data.brevo_api_key || '',
                 has_password: data.has_password || false,
                 source: data.source || 'none'
               };

@@ -30,7 +30,7 @@ def get_smtp_config():
     try:
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT key, value FROM school_settings WHERE key LIKE 'smtp_%'")
+        cursor.execute("SELECT key, value FROM school_settings WHERE key LIKE 'smtp_%' OR key LIKE '%api_key%'")
         db_settings = {row["key"]: row["value"] for row in cursor.fetchall()}
         conn.close()
 
@@ -42,6 +42,8 @@ def get_smtp_config():
             config["from_email"] = (db_settings.get("smtp_from") or "").strip()
             config["from_name"] = (db_settings.get("smtp_from_name") or "Colegio San Buenaventura").strip()
             config["use_ssl"] = str(db_settings.get("smtp_ssl", "0")).lower() in ("1", "true", "yes")
+            config["brevo_api_key"] = (db_settings.get("brevo_api_key") or "").strip()
+            config["resend_api_key"] = (db_settings.get("resend_api_key") or "").strip()
             config["source"] = "db"
     except Exception as e:
         print(f"Error leyendo configuración SMTP de base de datos: {e}")
@@ -59,6 +61,11 @@ def get_smtp_config():
             config["use_ssl"] = os.environ.get("SMTP_SSL", "0").lower() in ("1", "true", "yes")
             config["source"] = "env"
 
+    if not config.get("brevo_api_key"):
+        config["brevo_api_key"] = os.environ.get("BREVO_API_KEY", "").strip()
+    if not config.get("resend_api_key"):
+        config["resend_api_key"] = os.environ.get("RESEND_API_KEY", "").strip()
+
     # 3. Fallback directo garantizado a Google Workspace San Buenaventura
     if not config["host"]:
         config["host"] = "smtp.gmail.com"
@@ -75,18 +82,85 @@ def get_smtp_config():
 
     return config
 
+def send_via_brevo_api(api_key, from_email, from_name, recipient, subject, body_text, body_html):
+    import json
+    import urllib.request
+    try:
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "api-key": api_key,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+        payload = {
+            "sender": {"name": from_name, "email": from_email},
+            "to": [{"email": recipient}],
+            "subject": subject,
+            "htmlContent": body_html,
+            "textContent": body_text
+        }
+        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            print(f"✓ Email Brevo HTTP API enviado con éxito a {recipient}: '{subject}'")
+            return True, "Enviado con éxito vía Brevo HTTP API (Puerto 443)"
+    except Exception as e:
+        err_msg = str(e)
+        if hasattr(e, "read"):
+            try:
+                err_msg += f" - {e.read().decode('utf-8')}"
+            except Exception:
+                pass
+        print(f"Aviso Brevo API: {err_msg}")
+        return False, err_msg
+
+def send_via_resend_api(api_key, from_email, from_name, recipient, subject, body_text, body_html):
+    import json
+    import urllib.request
+    try:
+        url = "https://api.resend.com/emails"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "from": f"{from_name} <{from_email}>",
+            "to": [recipient],
+            "subject": subject,
+            "html": body_html,
+            "text": body_text
+        }
+        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            print(f"✓ Email Resend HTTP API enviado con éxito a {recipient}: '{subject}'")
+            return True, "Enviado con éxito vía Resend HTTP API (Puerto 443)"
+    except Exception as e:
+        err_msg = str(e)
+        if hasattr(e, "read"):
+            try:
+                err_msg += f" - {e.read().decode('utf-8')}"
+            except Exception:
+                pass
+        print(f"Aviso Resend API: {err_msg}")
+        return False, err_msg
+
 def send_via_smtp(recipient, subject, body_text, body_html):
     """
-    Envía un correo mediante SMTP según la configuración activa.
-    Soporta SSL (puerto 465) y STARTTLS (puerto 587/25).
+    Envía un correo mediante API HTTP (puerto 443) o SMTP directo (puerto 465/587).
     """
     cfg = get_smtp_config()
-    if not cfg["host"]:
-        return False, "Servidor SMTP no configurado (el correo queda registrado y archivado localmente)"
 
     recipient = str(recipient).strip()
     if not recipient or "@" not in recipient:
         return False, f"Dirección de correo inválida: '{recipient}'"
+
+    # 1. Si hay clave API HTTP (Brevo o Resend), usar HTTPS puerto 443 (inmune al bloqueo de firewall de Render)
+    if cfg.get("brevo_api_key"):
+        return send_via_brevo_api(cfg["brevo_api_key"], cfg["from_email"], cfg["from_name"], recipient, subject, body_text, body_html)
+    if cfg.get("resend_api_key"):
+        return send_via_resend_api(cfg["resend_api_key"], cfg["from_email"], cfg["from_name"], recipient, subject, body_text, body_html)
+
+    if not cfg["host"]:
+        return False, "Servidor SMTP no configurado (el correo queda registrado y archivado localmente)"
 
     try:
         msg = MIMEMultipart("alternative")
