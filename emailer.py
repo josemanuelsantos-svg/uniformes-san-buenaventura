@@ -59,8 +59,19 @@ def get_smtp_config():
             config["use_ssl"] = os.environ.get("SMTP_SSL", "0").lower() in ("1", "true", "yes")
             config["source"] = "env"
 
+    # 3. Fallback directo garantizado a Google Workspace San Buenaventura
+    if not config["host"]:
+        config["host"] = "smtp.gmail.com"
+        config["port"] = 465
+        config["user"] = "uniformes@sanbuenaventura.org"
+        config["password"] = "ateessoohsmkwctd"
+        config["from_email"] = "uniformes@sanbuenaventura.org"
+        config["from_name"] = "Colegio San Buenaventura"
+        config["use_ssl"] = True
+        config["source"] = "default"
+
     if not config["from_email"]:
-        config["from_email"] = config["user"] or "uniformes@colegiosanbuenaventura.es"
+        config["from_email"] = config["user"] or "uniformes@sanbuenaventura.org"
 
     return config
 
@@ -329,7 +340,7 @@ Colegio San Buenaventura
 
             <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px; text-align: center; font-size: 11px; color: #94a3b8;">
                 Colegio San Buenaventura • Calle San Buenaventura, s/n • Madrid<br>
-                uniformes@colegiosanbuenaventura.es
+                uniformes@sanbuenaventura.org
             </div>
         </div>
     </body>
@@ -413,7 +424,7 @@ Colegio San Buenaventura
 
             <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px; text-align: center; font-size: 11px; color: #94a3b8;">
                 Colegio San Buenaventura • Calle San Buenaventura, s/n • Madrid<br>
-                uniformes@colegiosanbuenaventura.es
+                uniformes@sanbuenaventura.org
             </div>
         </div>
     </body>
