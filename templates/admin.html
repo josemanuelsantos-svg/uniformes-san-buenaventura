@@ -79,6 +79,11 @@
             🔑 <span class="hidden lg:inline">Claves</span>
           </button>
 
+          <!-- Botón Configuración de Correo SMTP (Solo Maestro) -->
+          <button x-show="userRole === 'master'" @click="openSmtpModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-emerald-100 hover:text-white bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 rounded-lg transition cursor-pointer" title="Configurar Servidor de Envío de Correos (SMTP)">
+            ✉️ <span class="hidden lg:inline">Correo SMTP</span>
+          </button>
+
           <a href="/" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-100 hover:text-white hover:bg-white/10 rounded-lg transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             <span class="hidden md:inline">Ver</span> Tienda
@@ -384,6 +389,16 @@
                         </div>
                       </template>
                     </div>
+
+                    <!-- Botones de Reenvío de Notificación -->
+                    <div class="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between text-[10px]">
+                      <button type="button" @click="resendOrderEmail(order, 'confirmation')" class="font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 cursor-pointer" title="Reenviar correo de confirmación de reserva">
+                        ✉️ Reenviar Confirmación
+                      </button>
+                      <button type="button" @click="resendOrderEmail(order, 'ready')" class="font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer" title="Reenviar correo de pedido listo para recogida">
+                        📦 Reenviar "Listo"
+                      </button>
+                    </div>
                   </div>
 
                   <!-- Columna 3: Trazabilidad y Auditoría de Estados -->
@@ -402,6 +417,16 @@
                           <p class="text-slate-600 text-[10px] mt-0.5" x-text="h.comment"></p>
                         </div>
                       </template>
+                    </div>
+
+                    <!-- Botones de Reenvío de Notificación -->
+                    <div class="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between text-[10px]">
+                      <button type="button" @click="resendOrderEmail(order, 'confirmation')" class="font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 cursor-pointer" title="Reenviar correo de confirmación de reserva">
+                        ✉️ Reenviar Confirmación
+                      </button>
+                      <button type="button" @click="resendOrderEmail(order, 'ready')" class="font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer" title="Reenviar correo de pedido listo para recogida">
+                        📦 Reenviar "Listo"
+                      </button>
                     </div>
                   </div>
 
@@ -1250,6 +1275,130 @@
     </div>
   </div>
 
+  <!-- MODAL CONFIGURACIÓN CORREO SMTP (Solo Maestro) -->
+  <div x-show="openSmtpModalState" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 border border-slate-200" @click.away="openSmtpModalState = false">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+            ✉️
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-800 text-sm">Configuración de Envío de Correo (SMTP)</h3>
+            <p class="text-[11px] text-slate-500">Envío automático de confirmación a cada familia al completar su reserva</p>
+          </div>
+        </div>
+        <button @click="openSmtpModalState = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Alerta informativa -->
+      <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 text-xs space-y-1">
+        <div class="font-bold flex items-center gap-1.5">
+          <span>⚡ Estado del servicio de salida:</span>
+          <span x-show="smtpForm.host" class="text-emerald-700 font-bold">Servidor vinculado (<span x-text="smtpForm.host"></span>)</span>
+          <span x-show="!smtpForm.host" class="text-amber-700 font-bold">Sin servidor (los pedidos se guardan pero falta configurar el servidor de salida)</span>
+        </div>
+        <p class="text-[11px] text-emerald-800 leading-relaxed">
+          Para que los emails lleguen a los buzones de las familias (Gmail, Outlook, etc.), debes vincular un correo de salida del colegio o una cuenta de Google Workspace / Gmail.
+        </p>
+      </div>
+
+      <!-- Botones de Preconfiguración Rápida (Presets) -->
+      <div>
+        <label class="block font-bold text-slate-700 text-xs mb-1.5">Configuración rápida (Plantillas habituales):</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" @click="applySmtpPreset('gmail')" class="p-2 text-left border rounded-xl hover:border-emerald-500 hover:bg-emerald-50/50 transition cursor-pointer text-xs" :class="smtpForm.host === 'smtp.gmail.com' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-slate-50'">
+            <div class="font-bold text-slate-800 flex items-center gap-1">🔴 Gmail / Google</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">smtp.gmail.com (SSL 465)</div>
+          </button>
+          <button type="button" @click="applySmtpPreset('office365')" class="p-2 text-left border rounded-xl hover:border-emerald-500 hover:bg-emerald-50/50 transition cursor-pointer text-xs" :class="smtpForm.host === 'smtp.office365.com' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-slate-50'">
+            <div class="font-bold text-slate-800 flex items-center gap-1">🔵 Office 365</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">smtp.office365.com (587)</div>
+          </button>
+          <button type="button" @click="applySmtpPreset('hostinger')" class="p-2 text-left border rounded-xl hover:border-emerald-500 hover:bg-emerald-50/50 transition cursor-pointer text-xs" :class="smtpForm.host === 'smtp.hostinger.com' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-slate-50'">
+            <div class="font-bold text-slate-800 flex items-center gap-1">🌐 Webmail / Hosting</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Puerto 465 SSL</div>
+          </button>
+        </div>
+        <p x-show="smtpForm.host === 'smtp.gmail.com'" class="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-2 leading-relaxed">
+          💡 <strong>Nota para Gmail / Google Workspace:</strong> Debes usar una <em>"Contraseña de aplicación"</em> (16 letras), generada en tu cuenta de Google &gt; Seguridad &gt; Verificación en dos pasos &gt; Contraseñas de aplicaciones.
+        </p>
+      </div>
+
+      <!-- Formulario de Campos SMTP -->
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block font-bold text-slate-700 mb-1">Servidor SMTP (Host)</label>
+          <input type="text" x-model="smtpForm.host" placeholder="smtp.gmail.com" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs focus:bg-white focus:border-emerald-500">
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block font-bold text-slate-700 mb-1">Puerto</label>
+          <div class="flex items-center gap-2">
+            <input type="number" x-model.number="smtpForm.port" placeholder="465" class="w-24 p-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs focus:bg-white focus:border-emerald-500">
+            <label class="inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" x-model="smtpForm.use_ssl" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>SSL Directo (465)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block font-bold text-slate-700 mb-1">Usuario / Email Remitente</label>
+          <input type="text" x-model="smtpForm.user" placeholder="ejemplo@colegiosanbuenaventura.es" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-emerald-500">
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block font-bold text-slate-700 mb-1">
+            Contraseña SMTP / App Password
+            <span x-show="smtpForm.has_password" class="text-emerald-600 font-semibold text-[10px]">(Ya configurada ✓)</span>
+          </label>
+          <input type="password" x-model="smtpForm.password" placeholder="••••••••••••••••" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-emerald-500">
+          <span class="text-[10px] text-slate-400">Deja vacío para mantener la contraseña guardada.</span>
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block font-bold text-slate-700 mb-1">Email Mostrado (From)</label>
+          <input type="text" x-model="smtpForm.from_email" placeholder="uniformes@colegiosanbuenaventura.es" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-emerald-500">
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="block font-bold text-slate-700 mb-1">Nombre Remitente</label>
+          <input type="text" x-model="smtpForm.from_name" placeholder="Colegio San Buenaventura" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-emerald-500">
+        </div>
+      </div>
+
+      <!-- Sección Probar Envío -->
+      <div class="pt-3 border-t border-slate-100 bg-slate-50/70 p-3 rounded-xl border">
+        <label class="block font-bold text-slate-700 text-xs mb-1">🚀 Probar Envío Inmediato de Correo</label>
+        <div class="flex items-center gap-2">
+          <input type="email" x-model="smtpTestEmail" placeholder="introduce tu correo personal para recibir la prueba" class="flex-1 p-2 bg-white border border-slate-200 rounded-xl text-xs focus:border-emerald-500">
+          <button type="button" @click="testSmtpConnection()" :disabled="testingSmtp || !smtpTestEmail" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50">
+            <span x-text="testingSmtp ? 'Enviando...' : 'Enviar Prueba'"></span>
+          </button>
+        </div>
+        <template x-if="smtpTestResult">
+          <div class="mt-2 p-2.5 rounded-lg text-xs" :class="smtpTestResult.success ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 'bg-rose-100 text-rose-900 border border-rose-200'">
+            <span x-text="smtpTestResult.message"></span>
+          </div>
+        </template>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button type="button" @click="openSmtpModalState = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold text-xs cursor-pointer">
+          Cerrar
+        </button>
+        <button type="button" @click="saveSmtpConfig()" :disabled="savingSmtp"
+                class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer">
+          <span x-text="savingSmtp ? 'Guardando...' : 'Guardar Servidor SMTP'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- SCRIPT LOGICA ADMINISTRACION -->
   <script>
     function adminApp(initialRole = null, initialRoleInfo = null) {
@@ -1389,6 +1538,153 @@
             alert("Error guardando contraseñas: " + e.message);
           } finally {
             this.savingPasswords = false;
+          }
+        },
+
+        // Configuración de Correo SMTP (Solo Maestro)
+        openSmtpModalState: false,
+        smtpForm: {
+          host: '',
+          port: 465,
+          user: '',
+          password: '',
+          from_email: '',
+          from_name: 'Colegio San Buenaventura',
+          use_ssl: true,
+          has_password: false,
+          source: 'none'
+        },
+        smtpTestEmail: '',
+        testingSmtp: false,
+        smtpTestResult: null,
+        savingSmtp: false,
+
+        async openSmtpModal() {
+          this.smtpTestResult = null;
+          try {
+            const res = await fetch('/api/admin/smtp');
+            if (res.ok) {
+              const data = await res.json();
+              this.smtpForm = {
+                host: data.host || '',
+                port: data.port || 465,
+                user: data.user || '',
+                password: '',
+                from_email: data.from_email || '',
+                from_name: data.from_name || 'Colegio San Buenaventura',
+                use_ssl: data.use_ssl !== undefined ? data.use_ssl : (data.port === 465),
+                has_password: data.has_password || false,
+                source: data.source || 'none'
+              };
+              if (!this.smtpTestEmail && data.from_email) {
+                this.smtpTestEmail = data.from_email;
+              }
+              this.openSmtpModalState = true;
+            } else {
+              const err = await res.json();
+              alert("Error: " + (err.error || "No tienes permisos de Administrador Maestro."));
+            }
+          } catch (e) {
+            alert("Error consultando SMTP: " + e.message);
+          }
+        },
+
+        applySmtpPreset(preset) {
+          if (preset === 'gmail') {
+            this.smtpForm.host = 'smtp.gmail.com';
+            this.smtpForm.port = 465;
+            this.smtpForm.use_ssl = true;
+          } else if (preset === 'office365') {
+            this.smtpForm.host = 'smtp.office365.com';
+            this.smtpForm.port = 587;
+            this.smtpForm.use_ssl = false;
+          } else if (preset === 'hostinger') {
+            this.smtpForm.host = 'smtp.hostinger.com';
+            this.smtpForm.port = 465;
+            this.smtpForm.use_ssl = true;
+          }
+        },
+
+        async saveSmtpConfig() {
+          this.savingSmtp = true;
+          try {
+            const res = await fetch('/api/admin/smtp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.smtpForm)
+            });
+            const data = await res.json();
+            if (res.ok) {
+              alert(data.message || "Configuración SMTP guardada con éxito.");
+              this.smtpForm.has_password = this.smtpForm.has_password || Boolean(this.smtpForm.password);
+              this.smtpForm.password = '';
+            } else {
+              alert("Error: " + (data.error || "No se pudo guardar la configuración SMTP."));
+            }
+          } catch (e) {
+            alert("Error guardando SMTP: " + e.message);
+          } finally {
+            this.savingSmtp = false;
+          }
+        },
+
+        async testSmtpConnection() {
+          if (!this.smtpTestEmail) return;
+          this.testingSmtp = true;
+          this.smtpTestResult = null;
+          try {
+            // Guardar configuración actual primero
+            await fetch('/api/admin/smtp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.smtpForm)
+            });
+
+            const res = await fetch('/api/admin/smtp/test', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ test_email: this.smtpTestEmail })
+            });
+            const data = await res.json();
+            if (res.ok) {
+              this.smtpTestResult = {
+                success: true,
+                message: "✓ " + (data.message || "¡Correo de prueba enviado con éxito! Revisa tu bandeja de entrada.")
+              };
+            } else {
+              this.smtpTestResult = {
+                success: false,
+                message: "❌ Error: " + (data.error || "Fallo en la conexión SMTP.")
+              };
+            }
+          } catch (e) {
+            this.smtpTestResult = {
+              success: false,
+              message: "❌ Error de conexión: " + e.message
+            };
+          } finally {
+            this.testingSmtp = false;
+          }
+        },
+
+        async resendOrderEmail(order, type = 'confirmation') {
+          const typeName = type === 'confirmation' ? 'confirmación de reserva' : 'pedido listo para recogida';
+          if (!confirm(`¿Deseas enviar el correo de ${typeName} a la dirección ${order.parent_email}?`)) return;
+          try {
+            const res = await fetch(`/api/admin/orders/${order.id}/send-email`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: type })
+            });
+            const data = await res.json();
+            if (res.ok) {
+              alert(data.message || "Correo enviado con éxito.");
+              this.fetchOrders();
+            } else {
+              alert("Error: " + (data.error || "No se pudo enviar el correo."));
+            }
+          } catch (e) {
+            alert("Error enviando correo: " + e.message);
           }
         },
 

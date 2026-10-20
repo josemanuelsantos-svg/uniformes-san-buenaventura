@@ -8,6 +8,153 @@ from database import get_db
 EMAILS_DIR = os.path.join(os.path.dirname(__file__), "sent_emails")
 os.makedirs(EMAILS_DIR, exist_ok=True)
 
+def get_smtp_config():
+    """
+    Obtiene la configuración SMTP unificada.
+    Prioridad:
+    1. Base de datos (school_settings) si está configurado en el panel de administración.
+    2. Variables de entorno (SMTP_HOST, SMTP_PORT, etc.).
+    """
+    config = {
+        "host": "",
+        "port": 587,
+        "user": "",
+        "password": "",
+        "from_email": "",
+        "from_name": "Colegio San Buenaventura",
+        "use_ssl": False,
+        "source": "none"
+    }
+
+    # 1. Intentar desde school_settings
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT key, value FROM school_settings WHERE key LIKE 'smtp_%'")
+        db_settings = {row["key"]: row["value"] for row in cursor.fetchall()}
+        conn.close()
+
+        if db_settings.get("smtp_host"):
+            config["host"] = (db_settings.get("smtp_host") or "").strip()
+            config["port"] = int(db_settings.get("smtp_port") or 587)
+            config["user"] = (db_settings.get("smtp_user") or "").strip()
+            config["password"] = (db_settings.get("smtp_pass") or "").strip()
+            config["from_email"] = (db_settings.get("smtp_from") or "").strip()
+            config["from_name"] = (db_settings.get("smtp_from_name") or "Colegio San Buenaventura").strip()
+            config["use_ssl"] = str(db_settings.get("smtp_ssl", "0")).lower() in ("1", "true", "yes")
+            config["source"] = "db"
+    except Exception as e:
+        print(f"Error leyendo configuración SMTP de base de datos: {e}")
+
+    # 2. Si no hay host en DB, recurrir a variables de entorno
+    if not config["host"]:
+        env_host = os.environ.get("SMTP_HOST", "").strip()
+        if env_host:
+            config["host"] = env_host
+            config["port"] = int(os.environ.get("SMTP_PORT", 587))
+            config["user"] = os.environ.get("SMTP_USER", "").strip()
+            config["password"] = os.environ.get("SMTP_PASS", "").strip()
+            config["from_email"] = os.environ.get("SMTP_FROM", "").strip()
+            config["from_name"] = os.environ.get("SMTP_FROM_NAME", "Colegio San Buenaventura").strip()
+            config["use_ssl"] = os.environ.get("SMTP_SSL", "0").lower() in ("1", "true", "yes")
+            config["source"] = "env"
+
+    if not config["from_email"]:
+        config["from_email"] = config["user"] or "uniformes@colegiosanbuenaventura.es"
+
+    return config
+
+def send_via_smtp(recipient, subject, body_text, body_html):
+    """
+    Envía un correo mediante SMTP según la configuración activa.
+    Soporta SSL (puerto 465) y STARTTLS (puerto 587/25).
+    """
+    cfg = get_smtp_config()
+    if not cfg["host"]:
+        return False, "Servidor SMTP no configurado (el correo queda registrado y archivado localmente)"
+
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = f"{cfg['from_name']} <{cfg['from_email']}>"
+        msg["To"] = recipient
+        msg.attach(MIMEText(body_text, "plain", "utf-8"))
+        msg.attach(MIMEText(body_html, "html", "utf-8"))
+
+        if cfg["use_ssl"] or cfg["port"] == 465:
+            server = smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=15)
+        else:
+            server = smtplib.SMTP(cfg["host"], cfg["port"], timeout=15)
+            server.ehlo()
+            try:
+                server.starttls()
+                server.ehlo()
+            except Exception as tls_err:
+                print(f"Aviso STARTTLS: {tls_err}")
+
+        if cfg["user"] and cfg["password"]:
+            server.login(cfg["user"], cfg["password"])
+
+        server.sendmail(cfg["from_email"], [recipient], msg.as_string())
+        server.quit()
+        print(f"✓ Email SMTP enviado con éxito a {recipient}: '{subject}'")
+        return True, "Enviado con éxito vía servidor SMTP"
+    except Exception as e:
+        err_msg = str(e)
+        print(f"Aviso SMTP: no se pudo enviar por red externa ({err_msg}). Queda archivado en la ficha.")
+        return False, err_msg
+
+def send_test_email(recipient):
+    """
+    Envía un correo de prueba de diagnóstico para verificar credenciales SMTP.
+    """
+    cfg = get_smtp_config()
+    if not cfg["host"]:
+        return False, "No hay ningún servidor SMTP configurado. Introduce el Host SMTP primero."
+
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    subject = "Prueba de Configuración de Correo - Colegio San Buenaventura"
+    body_txt = (
+        f"Paz y Bien.\n\n"
+        f"Este es un correo de prueba enviado desde el sistema de uniformes escolares del Colegio San Buenaventura.\n\n"
+        f"Servidor SMTP: {cfg['host']}:{cfg['port']}\n"
+        f"Remitente: {cfg['from_email']}\n"
+        f"Destinatario: {recipient}\n"
+        f"Fecha y hora: {now_str}\n\n"
+        f"Si has recibido este mensaje, los correos automáticos a las familias funcionarán correctamente."
+    )
+    body_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px;">
+        <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <div style="background: linear-gradient(135deg, #002B66 0%, #005CB9 100%); padding: 24px 20px; text-align: center; border-bottom: 4px solid #F5A623;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 800;">COLEGIO SAN BUENAVENTURA</h1>
+                <p style="color: #FEEBC8; margin: 6px 0 0 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">TEST DE CONECTIVIDAD SMTP</p>
+            </div>
+            <div style="padding: 24px; color: #334155;">
+                <h2 style="color: #059669; font-size: 18px; margin-top: 0;">✓ ¡Conexión SMTP Exitosa!</h2>
+                <p style="font-size: 14px; line-height: 1.5; color: #475569;">
+                    El servidor de correo electrónico está perfectamente vinculado al sistema de reservas de uniformes. A partir de ahora, cada familia recibirá automáticamente la confirmación y su localizador en cuanto complete un pedido.
+                </p>
+                <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; font-size: 13px; margin: 20px 0;">
+                    <div><strong>Servidor SMTP:</strong> <code>{cfg['host']}:{cfg['port']}</code></div>
+                    <div style="margin-top: 6px;"><strong>Remitente configurado:</strong> <code>{cfg['from_email']}</code></div>
+                    <div style="margin-top: 6px;"><strong>Destinatario de prueba:</strong> <code>{recipient}</code></div>
+                    <div style="margin-top: 6px;"><strong>Fecha del test:</strong> {now_str}</div>
+                </div>
+            </div>
+            <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px; text-align: center; font-size: 11px; color: #94a3b8;">
+                Colegio San Buenaventura • Calle El Greco, 16 • 28027 Madrid
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    return send_via_smtp(recipient, subject, body_txt, body_html)
+
 def record_and_dispatch_email(order_id, recipient, subject, body_text, body_html, email_type):
     """
     Registra el email en la ficha del pedido (tabla order_emails e historial),
@@ -20,14 +167,15 @@ def record_and_dispatch_email(order_id, recipient, subject, body_text, body_html
     # 1. Guardar en tabla order_emails para la ficha
     cursor.execute("""
         INSERT INTO order_emails (order_id, recipient_email, subject, body_text, email_type, sent_at, status)
-        VALUES (?, ?, ?, ?, ?, ?, 'ENVIADO')
+        VALUES (?, ?, ?, ?, ?, ?, 'PENDIENTE')
     """, (order_id, recipient, subject, body_text, email_type, now_str))
+    email_record_id = cursor.lastrowid
 
     # 2. Dejar constancia en el historial de la ficha
     cursor.execute("""
         INSERT INTO order_history (order_id, status, comment, timestamp)
         VALUES (?, (SELECT status FROM orders WHERE id = ?), ?, ?)
-    """, (order_id, order_id, f"Email enviado a la familia ({recipient}): '{subject}'", now_str))
+    """, (order_id, order_id, f"Email generado para la familia ({recipient}): '{subject}'", now_str))
 
     # Actualizar orders con último canal y fecha
     cursor.execute("""
@@ -46,34 +194,26 @@ def record_and_dispatch_email(order_id, recipient, subject, body_text, body_html
     except Exception as e:
         print(f"Error archivando copia del email: {e}")
 
-    # 4. Intento de envío SMTP si el colegio tiene configurado servidor
-    smtp_host = os.environ.get("SMTP_HOST")
-    if smtp_host:
-        try:
-            smtp_port = int(os.environ.get("SMTP_PORT", 587))
-            smtp_user = os.environ.get("SMTP_USER")
-            smtp_pass = os.environ.get("SMTP_PASS")
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = f"Colegio San Buenaventura <{smtp_user or 'uniformes@colegiosanbuenaventura.es'}>"
-            msg["To"] = recipient
-            msg.attach(MIMEText(body_text, "plain", "utf-8"))
-            msg.attach(MIMEText(body_html, "html", "utf-8"))
+    # 4. Intento de envío SMTP
+    smtp_success, smtp_msg = send_via_smtp(recipient, subject, body_text, body_html)
 
-            server = smtplib.SMTP(smtp_host, smtp_port, timeout=10)
-            server.starttls()
-            if smtp_user and smtp_pass:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(msg["From"], [recipient], msg.as_string())
-            server.quit()
-        except Exception as e:
-            print(f"Aviso SMTP: no se pudo enviar por red externa ({e}). El email queda registrado en la ficha.")
+    # 5. Actualizar estado definitivo en base de datos
+    status_label = "ENVIADO_SMTP" if smtp_success else f"LOCAL ({smtp_msg[:45]})"
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE order_emails SET status = ? WHERE id = ?", (status_label, email_record_id))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error actualizando estado email: {e}")
 
     return {
-        "status": "ENVIADO",
+        "status": status_label,
         "recipient": recipient,
         "subject": subject,
         "sent_at": now_str,
+        "smtp_success": smtp_success,
         "archive_file": safe_filename
     }
 

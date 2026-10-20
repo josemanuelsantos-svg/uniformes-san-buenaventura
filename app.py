@@ -11,7 +11,8 @@ from database import get_db, init_db, backup_order_to_disk
 import seed_data
 from emailer import (
     send_order_confirmation_email, send_order_ready_email, record_and_dispatch_email,
-    send_return_request_received_email, send_return_ready_email
+    send_return_request_received_email, send_return_ready_email,
+    get_smtp_config, send_test_email
 )
 
 app = Flask(__name__)
@@ -794,8 +795,16 @@ def create_order():
         # 1. Backup redundante e inmediato en disco (append-only JSONL persistente)
         backup_order_to_disk(order_record, processed_items)
 
-        # 2. Envío automático de correo a la familia y registro en su ficha
-        send_order_confirmation_email(order_record, processed_items, request.host_url)
+        # 2. Envío automático de correo a la familia y registro en su ficha (en segundo plano para respuesta instantánea)
+        import threading
+        order_copy = dict(order_record)
+        items_copy = [dict(it) for it in processed_items]
+        host_url = request.host_url
+        threading.Thread(
+            target=send_order_confirmation_email,
+            args=(order_copy, items_copy, host_url),
+            daemon=True
+        ).start()
 
     except Exception as e:
         conn.rollback()
@@ -1092,6 +1101,71 @@ def admin_manage_passwords():
         "operator": pwds["operator"],
         "viewer": pwds["viewer"]
     })
+
+@app.route("/api/admin/smtp", methods=["GET", "POST"])
+def admin_manage_smtp():
+    role = get_admin_role()
+    if role != "master":
+        return jsonify({"error": "Solo el Administrador Maestro puede configurar el servidor de correo"}), 403
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        smtp_host = (data.get("host") or "").strip()
+        smtp_port = str(data.get("port") or "587").strip()
+        smtp_user = (data.get("user") or "").strip()
+        smtp_pass = (data.get("password") or "").strip()
+        smtp_from = (data.get("from_email") or "").strip()
+        smtp_from_name = (data.get("from_name") or "Colegio San Buenaventura").strip()
+        smtp_ssl = "1" if data.get("use_ssl") else "0"
+
+        cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_host', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_host,))
+        cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_port', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_port,))
+        cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_user', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_user,))
+        cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_from', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_from,))
+        cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_from_name', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_from_name,))
+        cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_ssl', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_ssl,))
+
+        # Solo actualizar contraseña si se proporciona una nueva
+        if smtp_pass:
+            cursor.execute("INSERT INTO school_settings (key, value) VALUES ('smtp_pass', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (smtp_pass,))
+
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "message": "Configuración SMTP guardada correctamente."})
+
+    # GET
+    cfg = get_smtp_config()
+    conn.close()
+    return jsonify({
+        "host": cfg["host"],
+        "port": cfg["port"],
+        "user": cfg["user"],
+        "from_email": cfg["from_email"],
+        "from_name": cfg["from_name"],
+        "use_ssl": cfg["use_ssl"],
+        "has_password": bool(cfg["password"]),
+        "source": cfg["source"]
+    })
+
+@app.route("/api/admin/smtp/test", methods=["POST"])
+def admin_test_smtp():
+    role = get_admin_role()
+    if role != "master":
+        return jsonify({"error": "Solo el Administrador Maestro puede realizar pruebas de correo"}), 403
+
+    data = request.get_json(silent=True) or {}
+    test_email = (data.get("test_email") or "").strip()
+    if not test_email or "@" not in test_email:
+        return jsonify({"error": "Debes especificar una dirección de correo válida para la prueba."}), 400
+
+    success, message = send_test_email(test_email)
+    if success:
+        return jsonify({"success": True, "message": message})
+    else:
+        return jsonify({"success": False, "error": message}), 400
 
 @app.route("/api/admin/orders", methods=["GET"])
 def admin_get_orders():
