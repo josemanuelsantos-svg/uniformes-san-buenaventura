@@ -69,6 +69,7 @@ def seed():
 
     full_sizes = ["T.2", "T.3", "T.4", "T.5", "T.6", "T.8", "T.10", "T.12", "T.14", "T.16", "T.18", "T.20", "T.22", "T.24", "T.26", "T.28"]
     inf_sizes = ["T.2", "T.3", "T.4", "T.5", "T.6"]
+    primaria_secundaria_sizes = ["T.8", "T.10", "T.12", "T.14", "T.16", "T.18", "T.20", "T.22", "T.24", "T.26", "T.28"]
 
     products_spec = [
         # ================= 1. UNIFORME INFANTIL (Orden 1 al 10) =================
@@ -210,7 +211,7 @@ def seed():
             "category_id": cat_map["uniforme-primaria-secundaria"],
             "name": "Jersey uniforme - CSB",
             "code": "JER-CSB",
-            "desc": "Jersey oficial de punto azul petróleo con cuello en pico, remates en canalé y escudo bordado CSB.",
+            "desc": "Jersey oficial de punto fino azul colegial con cuello en pico, remates en canalé y escudo bordado CSB.",
             "base_price": 34.00,
             "tier_data": make_tiered_sizes(34.00, 37.00, 40.00, full_sizes),
             "image": "/static/images/uniforms/jersey.svg",
@@ -291,7 +292,7 @@ def seed():
             "code": "CAM-DEP-CSB",
             "desc": "Camiseta técnica oficial de deporte blanca con manga royal, franjas diagonales y escudo CSB para Primaria y Secundaria.",
             "base_price": 17.00,
-            "tier_data": make_tiered_sizes(17.00, 18.00, 19.00, full_sizes),
+            "tier_data": make_tiered_sizes(17.00, 18.00, 19.00, primaria_secundaria_sizes),
             "image": "/static/images/uniforms/camiseta-deporte.svg",
             "gender": "Unisex",
             "order": 29
