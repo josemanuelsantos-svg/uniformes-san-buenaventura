@@ -139,7 +139,7 @@ function uniformApp() {
       billing_address: '',
       billing_postal_code: '28011',
       billing_city: 'Madrid',
-      payment_method: 'Facturación por App del Colegio (Recibo Escolar)',
+      payment_method: 'Recibo Escolar (cargo domiciliado en cuenta del colegio)',
       notes: '',
       rgpd_accepted: true
     },
@@ -246,6 +246,13 @@ function uniformApp() {
         (p.description && p.description.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
         (p.code && p.code.toLowerCase().includes(this.searchQuery.toLowerCase()));
       return matchCategory && matchSearch;
+    },
+
+    scrollToCatalog() {
+      const el = document.getElementById('catalogo');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     },
 
     get visibleProductsCount() {

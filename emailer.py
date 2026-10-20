@@ -344,13 +344,15 @@ Le confirmamos que hemos recibido correctamente su solicitud de reserva de unifo
 
 LOCALIZADOR DE RESERVA: {locator}
 FECHA: {order['created_at']}
+FORMA DE COBRO: Recibo Escolar (cargo domiciliado en cuenta habitual del colegio)
+PUNTO DE RECOGIDA: Portería del Colegio (C/ El Greco, 16)
 
 PRENDAS RESERVADAS:
 {items_text}
 TOTAL ESTIMADO: {total}
 
 ESTADO ACTUAL: PENDIENTE DE PREPARACIÓN
-En cuanto el personal de secretaría prepare su paquete, le enviaremos un nuevo correo indicándole que ya puede pasar a recogerlo.
+En cuanto el personal de portería y almacén prepare su paquete, le enviaremos un nuevo correo indicándole que ya puede pasar a recogerlo por portería.
 
 Puede consultar su pedido y descargar su factura proforma oficial en cualquier momento en el siguiente enlace:
 {invoice_url}
@@ -359,7 +361,7 @@ Para consultar el estado en la web:
 {tracking_url}
 
 Atentamente,
-Secretaría y Almacén de Uniformes
+Portería y Almacén de Uniformes
 Colegio San Buenaventura
 """
 
@@ -412,13 +414,14 @@ Colegio San Buenaventura
                 </div>
 
                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #1e3a8a; line-height: 1.5;">
-                    <strong>ℹ️ Próximos pasos:</strong><br>
-                    Su pedido se encuentra en estado <em>Pendiente de preparación</em>. Tan pronto como esté empaquetado en secretaría, le enviaremos un correo avisándole para que pase a recogerlo.
+                    <strong>ℹ️ Información importante de cobro y recogida:</strong><br>
+                    • <strong>Forma de cobro:</strong> El importe se cargará directamente por <strong>Recibo Escolar</strong> en su cuenta bancaria habitual del colegio (no requiere pago online ni presencial).<br>
+                    • <strong>Punto de recogida:</strong> <strong>Portería del Colegio</strong> (C/ El Greco, 16) una vez reciba el aviso de pedido preparado.
                 </div>
             </div>
 
             <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px; text-align: center; font-size: 11px; color: #94a3b8;">
-                Colegio San Buenaventura • Calle San Buenaventura, s/n • Madrid<br>
+                Colegio San Buenaventura • Calle El Greco, 16 • Madrid<br>
                 uniformes@sanbuenaventura.org
             </div>
         </div>
@@ -450,15 +453,15 @@ Le informamos desde el Colegio San Buenaventura de que su reserva de uniformes c
 DATOS DE RECOGIDA:
 - Alumno/a: {student} ({course})
 - Localizador: {locator}
-- Punto de recogida: Conserjería / Secretaría del Colegio
-- Horario de atención: Lunes a Viernes de 09:00 a 13:30 y de 15:30 a 17:30
-- Importe de la reserva: {total}
+- Punto de recogida: Portería del Colegio (C/ El Greco, 16)
+- Horario de portería: Lunes a Viernes de 08:00 a 18:30
+- Importe de la reserva: {total} (se carga directamente por Recibo Escolar)
 
-Por favor, indique su código localizador ({locator}) o presente la factura proforma en secretaría. Puede verla o descargarla aquí:
+Por favor, indique su código localizador ({locator}) en portería para retirar las prendas. Puede consultar o descargar su factura oficial aquí:
 {invoice_url}
 
 Atentamente,
-Secretaría y Conserjería
+Portería y Almacén de Uniformes
 Colegio San Buenaventura
 """
 
@@ -484,9 +487,9 @@ Colegio San Buenaventura
                     <div style="font-size: 24px; font-weight: 900; color: #065f46; font-family: monospace; margin: 4px 0 10px 0;">{locator}</div>
                     
                     <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #064e3b; line-height: 1.6;">
-                        <li><strong>Lugar:</strong> Conserjería / Secretaría del Colegio San Buenaventura</li>
-                        <li><strong>Horario:</strong> Lunes a Viernes de 09:00 a 13:30 y de 15:30 a 17:30</li>
-                        <li><strong>Importe total:</strong> {total}</li>
+                        <li><strong>Punto de recogida:</strong> Portería del Colegio San Buenaventura (C/ El Greco, 16)</li>
+                        <li><strong>Horario:</strong> Lunes a Viernes de 08:00 a 18:30</li>
+                        <li><strong>Cobro:</strong> {total} (cargado directamente por Recibo Escolar)</li>
                     </ul>
                 </div>
 
@@ -543,15 +546,15 @@ PRENDAS INDICADAS:
 MOTIVO / NOTAS: {return_record.get('reason', 'N/D')}
 
 ¿CUÁL ES EL SIGUIENTE PASO?
-1. Secretaría / Almacén verificará la disponibilidad de las nuevas tallas y preparará las prendas de cambio.
-2. Le enviaremos un nuevo correo en cuanto las nuevas tallas estén preparadas en secretaría.
+1. Portería / Almacén verificará la disponibilidad de las nuevas tallas y preparará las prendas de cambio.
+2. Le enviaremos un nuevo correo en cuanto las nuevas tallas estén preparadas en portería.
 3. Al acudir a realizar el cambio, recuerde traer las prendas anteriores con su etiqueta original intacta, sin lavar y sin marcar con nombre.
 
 Puede consultar el estado de su solicitud en cualquier momento en:
 {tracking_url}
 
 Atentamente,
-Secretaría y Almacén de Uniformes
+Portería y Almacén de Uniformes
 Colegio San Buenaventura
 """
 
@@ -578,7 +581,7 @@ Colegio San Buenaventura
                 </div>
 
                 <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 14px; margin: 18px 0;">
-                    <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #92400e;">⚠️ IMPORTANTE PARA EL CANJE EN SECRETARÍA:</p>
+                    <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #92400e;">⚠️ IMPORTANTE PARA EL CANJE EN PORTERÍA:</p>
                     <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #78350f; line-height: 1.5;">
                         <li>Las prendas devueltas deben conservar su <strong>etiqueta de fábrica original intacta</strong>.</li>
                         <li>Las prendas no deben haber sido lavadas, estrenadas ni marcadas con el nombre del alumno.</li>
@@ -587,7 +590,7 @@ Colegio San Buenaventura
                 </div>
 
                 <p style="font-size: 13px; color: #475569; line-height: 1.5;">
-                    En cuanto nuestro personal prepare las nuevas tallas en el almacén del colegio, recibirá una nueva notificación para pasar a realizar el canje en conserjería/secretaría.
+                    En cuanto nuestro personal prepare las nuevas tallas en el almacén del colegio, recibirá una nueva notificación para pasar a realizar el canje en portería.
                 </p>
             </div>
 
@@ -615,16 +618,16 @@ def send_return_ready_email(order, return_record, base_url="http://localhost:505
 
 Estimada familia de {student} ({parent}):
 
-Le informamos de que las nuevas prendas de su solicitud de cambio ({ticket}) ya se encuentran preparadas en Secretaría / Conserjería.
+Le informamos de que las nuevas prendas de su solicitud de cambio ({ticket}) ya se encuentran preparadas en Portería del Colegio.
 
-Ya puede pasar a recogerlas en horario habitual de secretaría (Lunes a Viernes de 09:00 a 13:30 y de 15:30 a 17:30).
+Ya puede pasar a recogerlas en horario habitual de portería (Lunes a Viernes de 08:00 a 18:30).
 
 RECUERDE LLEVAR:
 - El código de cambio: {ticket}
 - Las prendas a sustituir o devolver con su etiqueta original y sin marcar.
 
 Atentamente,
-Secretaría y Almacén de Uniformes
+Portería y Almacén de Uniformes
 Colegio San Buenaventura
 """
 
@@ -642,20 +645,20 @@ Colegio San Buenaventura
             <div style="padding: 24px;">
                 <p style="font-size: 15px; margin-top: 0;"><strong>Paz y Bien.</strong></p>
                 <p style="font-size: 14px; line-height: 1.5; color: #475569;">
-                    Estimada familia de <strong>{student}</strong>: las prendas de sustitución correspondientes a su solicitud <strong>{ticket}</strong> ya han sido preparadas y están disponibles en secretaría.
+                    Estimada familia de <strong>{student}</strong>: las prendas de sustitución correspondientes a su solicitud <strong>{ticket}</strong> ya han sido preparadas y están disponibles en portería.
                 </p>
 
                 <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px; margin: 18px 0;">
                     <div style="font-size: 11px; text-transform: uppercase; color: #047857; font-weight: bold;">Presente este código en ventanilla:</div>
                     <div style="font-size: 22px; font-weight: 900; color: #065f46; font-family: monospace; margin: 4px 0 8px 0;">{ticket}</div>
                     <div style="font-size: 13px; color: #064e3b;">
-                        <strong>Punto de recogida:</strong> Secretaría / Conserjería del Colegio (c/ El Greco, 16)<br>
-                        <strong>Horario:</strong> Lunes a Viernes de 09:00 a 13:30 y de 15:30 a 17:30
+                        <strong>Punto de recogida:</strong> Portería del Colegio (c/ El Greco, 16)<br>
+                        <strong>Horario:</strong> Lunes a Viernes de 08:00 a 18:30
                     </div>
                 </div>
 
                 <p style="font-size: 13px; color: #dc2626; font-weight: bold; line-height: 1.5;">
-                    ⚠️ Es imprescindible entregar las prendas anteriores en secretaría con su etiqueta original intacta para poder retirar las nuevas.
+                    ⚠️ Es imprescindible entregar las prendas anteriores en portería con su etiqueta original intacta para poder retirar las nuevas.
                 </p>
             </div>
 

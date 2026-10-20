@@ -15,3 +15,4 @@ sim_test.js
 test_full_suite.py
 uniformes.db-shm
 uniformes.db-wal
+sent_emails/

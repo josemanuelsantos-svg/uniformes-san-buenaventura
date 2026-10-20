@@ -128,9 +128,9 @@
       <div class="sm:col-span-2">
         <label class="block font-bold text-slate-700 mb-1">Modalidad de Facturación / Cargo</label>
         <select x-model="billingForm.payment_method" class="w-full p-2 bg-white border border-slate-300 rounded-lg font-medium">
+          <option value="Recibo Escolar (cargo domiciliado en cuenta del colegio)">Recibo Escolar (cargo domiciliado en cuenta del colegio)</option>
           <option value="Facturación por App del Colegio (Recibo Escolar)">Facturación por App del Colegio (Recibo Escolar)</option>
-          <option value="Pago en Secretaría del Centro">Pago en Secretaría del Centro</option>
-          <option value="Transferencia / Domiciliación Bancaria">Transferencia / Domiciliación Bancaria</option>
+          <option value="Pago en Portería del Centro">Pago en Portería del Centro</option>
         </select>
       </div>
       <div class="flex items-end justify-end gap-2">
@@ -298,10 +298,10 @@
         </div>
         {% endif %}
         <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 leading-relaxed">
-          <p class="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Información de Facturación y Recogida:</p>
-          <p>• <strong>Facturación:</strong> Los datos de este documento están estructurados para su facturación a través de la aplicación administrativa del Colegio San Buenaventura.</p>
-          <p>• <strong>Recogida en el Centro:</strong> {{ settings.get('pickup_location', 'Secretaría / Conserjería del Colegio') }} ({{ settings.get('pickup_schedule', 'Lunes a Viernes de 09:00 a 13:30 y de 15:30 a 17:30') }}).</p>
-          <p>• <strong>Cambios de talla:</strong> Plazo de 15 días desde la entrega con prendas etiquetadas sin usar.</p>
+          <p class="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Información de Cobro y Recogida:</p>
+          <p>• <strong>Forma de Cobro:</strong> Cargo directo mediante <strong>Recibo Escolar</strong> en la cuenta habitual del colegio.</p>
+          <p>• <strong>Punto de Recogida:</strong> {{ settings.get('pickup_location', 'Portería del Colegio (C/ El Greco, 16)') }} ({{ settings.get('pickup_schedule', 'Lunes a Viernes de 08:00 a 18:30') }}).</p>
+          <p>• <strong>Cambios de talla o devoluciones:</strong> Plazo de 15 días tras la retirada en portería con prendas y etiquetas originales.</p>
         </div>
       </div>
 

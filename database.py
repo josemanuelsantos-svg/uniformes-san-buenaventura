@@ -172,6 +172,9 @@ def init_db():
         ("smtp_from_name", "Colegio San Buenaventura"),
         ("smtp_ssl", "1"),
         ("brevo_api_key", brevo_default),
+        ("pickup_location", "Portería del Colegio (C/ El Greco, 16)"),
+        ("pickup_schedule", "Lunes a Viernes de 08:00 a 18:30"),
+        ("default_payment_method", "Recibo Escolar (cargo domiciliado en cuenta habitual del colegio)"),
     ]
     for sk, sv in default_smtp:
         cursor.execute("INSERT INTO school_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (sk, sv))

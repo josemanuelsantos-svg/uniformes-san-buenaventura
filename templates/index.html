@@ -101,7 +101,7 @@
     <span class="text-white/30">•</span>
     <span>LOOKBOOK OFICIAL COLEGIO SAN BUENAVENTURA</span>
     <span class="text-white/30 hidden sm:inline">•</span>
-    <span class="hidden sm:inline text-slate-400">ENCARGO ONLINE & RECOGIDA EN SECRETARÍA</span>
+    <span class="hidden sm:inline text-slate-400">ENCARGO ONLINE & RECOGIDA EN PORTERÍA</span>
   </div>
 
   <!-- ================= HERO BANNER ESTILO ZARA LOOKBOOK ================= -->
@@ -126,7 +126,7 @@
           </h1>
 
           <p class="text-sm sm:text-base text-blue-100/90 leading-relaxed font-light">
-            Catálogo y reserva oficial de uniformidad del Colegio San Buenaventura para el curso 2026/2027. Prendas homologadas para todas las etapas educativas con reserva online y recogida directa en secretaría.
+            Catálogo y reserva oficial de uniformidad del Colegio San Buenaventura para el curso 2026/2027. Prendas homologadas para todas las etapas educativas con reserva online y recogida directa en portería. Cobro mediante recibo escolar.
           </p>
 
           <!-- Selector de las 3 Secciones Rotatorias en Cabecera -->
@@ -474,7 +474,7 @@
         <div class="flex items-center gap-3 bg-white/5 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
           <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-white shrink-0">3</div>
           <div>
-            <p class="font-bold text-white">Recogida rápida en Secretaría</p>
+            <p class="font-bold text-white">Recogida rápida en Portería</p>
             <p class="text-slate-400 text-xs">Te avisamos por correo cuando tu paquete esté listo.</p>
           </div>
         </div>
@@ -483,17 +483,17 @@
     </div>
   </section>
 
-  <!-- ================= SECCIÓN NOVEDAD: PACKS POR ETAPA ESCOLAR ================= -->
-  <section id="packs-escolares" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 mb-8 relative z-20">
+  <!-- ================= GUÍA OFICIAL DE UNIFORMIDAD POR ETAPAS ================= -->
+  <section id="guia-etapas" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 mb-8 relative z-20">
     <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/80">
       
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5 mb-6">
         <div>
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 mb-1.5 shadow-2xs">
-            ✨ Novedad • Equipación en 1 Clic
+            📋 Guía Oficial de Uniformidad • Sin líos ni lotes obligatorios
           </span>
-          <h2 class="text-xl sm:text-2xl font-black font-serif-title text-[#002B66]">Packs Completos por Etapa Escolar</h2>
-          <p class="text-xs sm:text-sm text-slate-500 mt-1">Ahorra tiempo seleccionando el conjunto oficial recomendado para cada curso con tallaje coordinado.</p>
+          <h2 class="text-xl sm:text-2xl font-black font-serif-title text-[#002B66]">¿Qué prendas necesita tu hijo/a según su etapa?</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">Consulta las prendas reglamentarias para su curso. Puedes elegirlas libremente en el catálogo inferior sin estar atado a lotes cerrados.</p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -504,54 +504,232 @@
         </div>
       </div>
 
-      <!-- Grid de Packs -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <template x-for="pk in schoolPacks" :key="pk.id">
-          <div class="bg-slate-50/70 rounded-2xl p-5 border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between group">
-            
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border" :class="pk.badgeColor" x-text="pk.badge"></span>
-                <span class="text-xs font-mono font-bold text-slate-400" x-text="pk.items.length + ' prendas'"></span>
-              </div>
-
-              <h3 class="font-bold text-slate-900 text-base group-hover:text-[#002B66] transition" x-text="pk.name"></h3>
-              <p class="text-xs text-slate-500 mt-1 leading-relaxed" x-text="pk.description"></p>
-
-              <!-- Lista de prendas que incluye -->
-              <div class="mt-4 pt-3 border-t border-slate-200/80 space-y-1.5 text-xs">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Incluye en el lote:</p>
-                <template x-for="(it, i) in pk.items" :key="i">
-                  <div class="flex items-center justify-between text-slate-700 text-xs">
-                    <span class="truncate mr-2 font-medium" x-text="'• ' + it.productName"></span>
-                    <span class="font-bold font-mono text-[11px] bg-white px-1.5 py-0.2 rounded border border-slate-200 text-slate-600" x-text="'x' + it.qty"></span>
-                  </div>
-                </template>
-              </div>
+      <!-- Tarjetas de Etapas Educativas -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Etapa 1: EDUCACIÓN INFANTIL -->
+        <div class="bg-gradient-to-b from-emerald-50/60 to-white rounded-2xl p-6 border-2 border-emerald-200 hover:border-emerald-400 transition-all shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
+                🧸 Educación Infantil (3 a 5 años)
+              </span>
+              <span class="text-[11px] font-bold text-emerald-700">1º, 2º y 3º Infantil</span>
             </div>
+            <h3 class="font-extrabold text-slate-900 text-lg mb-2">Prendas de Infantil</h3>
+            <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+              Equipación cómoda adaptada a la autonomía de los más pequeños.
+            </p>
 
-            <div class="mt-5 pt-3 border-t border-slate-200">
-              <div class="flex items-baseline justify-between mb-3">
-                <span class="text-[11px] text-slate-500 font-medium">Estimado oficial:</span>
-                <span class="text-lg font-black text-blue-950" x-text="formatMoney(calculatePackTotal(pk))"></span>
-              </div>
-
-              <button @click="openConfigurePackModal(pk)"
-                      class="w-full py-2.5 px-3 bg-[#002B66] hover:bg-[#001D47] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
-                <span>Elegir Tallas y Añadir</span>
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </button>
-            </div>
-
+            <ul class="space-y-2.5 text-xs text-slate-700">
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                <span class="text-base">👕</span>
+                <div>
+                  <strong class="text-slate-900 block">Babi Escolar Oficial (Obligatorio)</strong>
+                  <span class="text-[11px] text-amber-800 font-semibold">⚠️ Exclusivo cuadro vichy PEQUEÑO oficial CSB. Evite imitaciones del exterior con cuadros grandes.</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                <span class="text-base">🏃</span>
+                <div>
+                  <strong class="text-slate-900 block">Chándal Infantil (Sudadera y Pantalón)</strong>
+                  <span class="text-[11px] text-slate-500">Se suministra por piezas sueltas (sudadera azul con coderas y pantalón con rodilleras de colores).</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                <span class="text-base">⚽</span>
+                <div>
+                  <strong class="text-emerald-900 block">Camiseta de deporte CSB (¡Obligatoria!)</strong>
+                  <span class="text-[11px] text-slate-500">En Educación Infantil también llevan la camiseta técnica oficial de deporte.</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                <span class="text-base">🩳</span>
+                <div>
+                  <strong class="text-slate-900 block">Pantalón corto de deporte</strong>
+                  <span class="text-[11px] text-slate-500">Bermuda azul royal para psicomotricidad y meses de calor.</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                <span class="text-base">🧦</span>
+                <div>
+                  <strong class="text-slate-900 block">Calcetines o leotardos azul marino</strong>
+                  <span class="text-[11px] text-slate-500">Algodón oficial transpirable.</span>
+                </div>
+              </li>
+            </ul>
           </div>
-        </template>
+
+          <div class="mt-6 pt-4 border-t border-emerald-100">
+            <button @click="selectedCategory = 1; scrollToCatalog()"
+                    class="w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+              <span>🔍 Ver Prendas de Infantil en Catálogo</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Etapa 2: EDUCACIÓN PRIMARIA -->
+        <div class="bg-gradient-to-b from-blue-50/60 to-white rounded-2xl p-6 border-2 border-blue-200 hover:border-blue-400 transition-all shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-300">
+                🎒 Educación Primaria (6 a 12 años)
+              </span>
+              <span class="text-[11px] font-bold text-blue-700">1º a 6º Primaria</span>
+            </div>
+            <h3 class="font-extrabold text-slate-900 text-lg mb-2">Prendas de Primaria</h3>
+            <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+              Combinación de uniforme institucional de diario y equipación deportiva.
+            </p>
+
+            <ul class="space-y-2.5 text-xs text-slate-700">
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                <span class="text-base">👗</span>
+                <div>
+                  <strong class="text-slate-900 block">Falda CSB (niñas) / Pantalón gris (niños)</strong>
+                  <span class="text-[11px] text-slate-500">Falda de tablas con tirantes o pantalón marengo (largo o bermuda).</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                <span class="text-base">👕</span>
+                <div>
+                  <strong class="text-slate-900 block">Polo oficial celeste (Manga Corta)</strong>
+                  <span class="text-[11px] text-slate-500">Prenda principal de diario. (Manga larga solo en restos de tallas sueltas).</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                <span class="text-base">🧥</span>
+                <div>
+                  <strong class="text-slate-900 block">Jersey oficial de punto con cuello de pico</strong>
+                  <span class="text-[11px] text-slate-500">Azul marino con ribetes dorados y escudo bordado.</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                <span class="text-base">🏃</span>
+                <div>
+                  <strong class="text-slate-900 block">Chándal Primaria (Sudadera y Pantalón)</strong>
+                  <span class="text-[11px] text-slate-500">Se suministra por separado. Conjuntos completos solo en tallas sueltas hasta agotar stock.</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                <span class="text-base">⚽</span>
+                <div>
+                  <strong class="text-slate-900 block">Camiseta técnica y pantalón corto deportivo</strong>
+                  <span class="text-[11px] text-slate-500">Equipación reglamentaria de educación física.</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-blue-100">
+            <button @click="selectedCategory = 'all'; searchQuery = ''; scrollToCatalog()"
+                    class="w-full py-2.5 px-4 bg-[#002B66] hover:bg-[#001D47] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+              <span>🔍 Ver Catálogo de Primaria</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Etapa 3: SECUNDARIA / ESO -->
+        <div class="bg-gradient-to-b from-indigo-50/60 to-white rounded-2xl p-6 border-2 border-indigo-200 hover:border-indigo-400 transition-all shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300">
+                📚 Secundaria (12 a 16 años)
+              </span>
+              <span class="text-[11px] font-bold text-indigo-700">1º a 4º de ESO</span>
+            </div>
+            <h3 class="font-extrabold text-slate-900 text-lg mb-2">Prendas de Secundaria / ESO</h3>
+            <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+              Tallaje juvenil completo para los cursos de Educación Secundaria Obligatoria.
+            </p>
+
+            <ul class="space-y-2.5 text-xs text-slate-700">
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-indigo-100 shadow-2xs">
+                <span class="text-base">👗</span>
+                <div>
+                  <strong class="text-slate-900 block">Falda oficial (chicas) / Pantalón largo (chicos)</strong>
+                  <span class="text-[11px] text-slate-500">Tallaje juvenil hasta talla 28.</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-indigo-100 shadow-2xs">
+                <span class="text-base">👕</span>
+                <div>
+                  <strong class="text-slate-900 block">Polo oficial celeste de manga corta</strong>
+                  <span class="text-[11px] text-slate-500">Tejido piqué transpirable con escudo CSB.</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-indigo-100 shadow-2xs">
+                <span class="text-base">🧥</span>
+                <div>
+                  <strong class="text-slate-900 block">Jersey oficial de punto azul marino</strong>
+                  <span class="text-[11px] text-slate-500">Cuello pico reforzado.</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-indigo-100 shadow-2xs">
+                <span class="text-base">🏃</span>
+                <div>
+                  <strong class="text-slate-900 block">Sudadera y Pantalón de chándal CSB</strong>
+                  <span class="text-[11px] text-slate-500">Prendas deportivas sueltas para educación física.</span>
+                </div>
+              </li>
+              <li class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-indigo-100 shadow-2xs">
+                <span class="text-base">⚽</span>
+                <div>
+                  <strong class="text-slate-900 block">Camiseta técnica y bermuda deportiva</strong>
+                  <span class="text-[11px] text-slate-500">Equipación oficial de deporte.</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-indigo-100">
+            <button @click="selectedCategory = 'all'; searchQuery = ''; scrollToCatalog()"
+                    class="w-full py-2.5 px-4 bg-indigo-900 hover:bg-indigo-950 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+              <span>🔍 Ver Catálogo de Secundaria</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ================= AVISO DESTACADO DE PORTERÍA, COBRO Y PRENDAS ================= -->
+      <div class="mt-8 p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-amber-50/70 to-blue-50/60 border-2 border-amber-300/80 text-amber-950">
+        <div class="font-black text-amber-950 text-sm mb-3 flex items-center gap-2">
+          <span class="text-base">📌</span>
+          <span>INFORMACIÓN OFICIAL SOBRE RECOGIDA, FORMA DE PAGO Y SUMINISTRO:</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs leading-relaxed text-slate-800">
+          <div class="bg-white/90 p-3.5 rounded-xl border border-amber-200 shadow-2xs">
+            <strong class="text-amber-950 block mb-1 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <span>🚪</span> 1. Recogida en Portería
+            </strong>
+            Los paquetes preparados se retiran exclusivamente en la <strong>Portería del Colegio</strong> (C/ El Greco, 16). La familia recibirá un correo en cuanto el paquete esté empaquetado para pasar a recogerlo.
+          </div>
+          <div class="bg-white/90 p-3.5 rounded-xl border border-amber-200 shadow-2xs">
+            <strong class="text-amber-950 block mb-1 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <span>🏦</span> 2. Cobro por Recibo Escolar
+            </strong>
+            <strong>No hay que realizar ningún pago online ni presencial</strong>. El importe total de la reserva se cargará directamente por <strong>Recibo Escolar</strong> en su cuenta bancaria habitual del centro.
+          </div>
+          <div class="bg-white/90 p-3.5 rounded-xl border border-amber-200 shadow-2xs">
+            <strong class="text-amber-950 block mb-1 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <span>👕</span> 3. Babi, Chándal y Polos
+            </strong>
+            • <strong>Babi Oficial:</strong> Cuadro pequeño reglamentario CSB (evite cuadros grandes de tiendas externas).<br>
+            • <strong>Chándal:</strong> Ahora se pide por piezas separadas (sudadera y pantalón).<br>
+            • <strong>Polo M/Larga:</strong> Prenda a extinguir en restos de tallas sueltas.
+          </div>
+        </div>
       </div>
 
     </div>
   </section>
 
   <!-- ================= CATÁLOGO Y CONTENIDO PRINCIPAL ================= -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+  <main id="catalogo" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
     
     <!-- Filtros de Categoría y Búsqueda -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -998,11 +1176,15 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div>
-                <label class="block font-semibold text-slate-800 mb-1">Modalidad de Facturación *</label>
-                <select x-model="orderForm.payment_method" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-semibold text-slate-800 focus:ring-2 focus:ring-blue-800">
-                  <option value="Recibo Escolar / App Facturación">Recibo Escolar / App Facturación del Colegio</option>
-                  <option value="Pago en Secretaría al Recoger">Abono en Secretaría al retirar el pedido</option>
-                </select>
+                <label class="block font-semibold text-slate-800 mb-1">Forma de Pago Oficial *</label>
+                <div class="p-2.5 bg-amber-50/80 border border-amber-300 rounded-lg text-xs text-amber-950 font-semibold flex items-center gap-2">
+                  <span class="text-base shrink-0">🏦</span>
+                  <div>
+                    <span class="block text-slate-900 font-bold">Recibo Escolar (Directo en cuenta)</span>
+                    <span class="text-[11px] text-slate-600 font-normal">Se cargará en el recibo mensual del centro. No se abona nada al retirar en portería.</span>
+                  </div>
+                </div>
+                <input type="hidden" x-model="orderForm.payment_method">
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Observaciones (Opcional)</label>
@@ -1093,13 +1275,13 @@
           </div>
         </div>
 
-        <!-- Tarjeta QR de Recogida Rápida en Secretaría -->
+        <!-- Tarjeta QR de Recogida Rápida en Portería -->
         <template x-if="confirmedOrder?.qr_code">
           <div class="my-4 p-4 rounded-2xl bg-amber-50/70 border border-amber-200 flex flex-col items-center">
             <img :src="confirmedOrder.qr_code" alt="Código QR de Entrega" class="w-32 h-32 rounded-xl bg-white p-2 border border-amber-300 shadow-sm">
             <span class="text-xs font-bold text-slate-800 mt-2">📱 Código QR de Recogida Rápida</span>
             <p class="text-[11px] text-slate-500 mt-0.5 max-w-xs leading-relaxed">
-              Muestra este código en secretaría para retirar tu pedido rápidamente.
+              Muestra este código en portería para retirar tu paquete rápidamente cuando esté preparado.
             </p>
           </div>
         </template>
@@ -1265,11 +1447,11 @@
                   <span class="uppercase tracking-wider text-[11px]">Cambios de Talla y Devoluciones Presenciales</span>
                 </div>
                 <p class="text-[11px] text-amber-900/90 leading-relaxed">
-                  Para cambiar una talla o devolver una prenda (por ejemplo, prendas pedidas para prueba en casa), <strong>debe traer la prenda directamente a portería / secretaría del colegio</strong> e indicar la prenda por la que necesita cambiarla o devolverla.
+                  Para cambiar una talla o devolver una prenda (por ejemplo, prendas pedidas para prueba en casa), <strong>debe traer la prenda directamente a portería del colegio</strong> e indicar la prenda por la que necesita cambiarla o devolverla.
                 </p>
                 <div class="text-[11px] text-amber-950 font-semibold bg-white p-2.5 rounded-lg border border-amber-300/70 flex items-start gap-2 shadow-2xs">
                   <span class="text-emerald-700 font-bold text-base leading-none">✓</span>
-                  <span>El personal de portería / conserjería <strong>modificará su pedido en el sistema al instante</strong>, descontando la prenda devuelta (para que no se facture en la app del colegio) o canjeando la nueva talla.</span>
+                  <span>El personal de portería / centro <strong>modificará su pedido en el sistema al instante</strong>, descontando la prenda devuelta (para que no se facture en el recibo escolar) o canjeando la nueva talla.</span>
                 </div>
               </div>
             </div>
@@ -1288,7 +1470,7 @@
                           :class="ret.status === 'LISTO_RECOGIDA' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
                                   (ret.status === 'COMPLETADO' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
                                   (ret.status === 'RECHAZADO' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800 border border-amber-300'))"
-                          x-text="ret.status === 'LISTO_RECOGIDA' ? '✓ ¡Listo para canjear en secretaría!' :
+                          x-text="ret.status === 'LISTO_RECOGIDA' ? '✓ ¡Listo para canjear en portería!' :
                                   (ret.status === 'COMPLETADO' ? 'Canje completado' :
                                   (ret.status === 'APROBADO_PREPARANDO' ? 'Preparando tallas en almacén' :
                                   (ret.status === 'RECHAZADO' ? 'Rechazado' : 'Pendiente de tramitación')))">
@@ -1303,7 +1485,7 @@
                     </template>
                   </div>
                   <div x-show="ret.admin_notes" class="text-[10px] text-amber-900 bg-white/80 p-1.5 rounded border border-amber-200/50">
-                    <strong>Aviso de Secretaría:</strong> <span x-text="ret.admin_notes"></span>
+                    <strong>Aviso de Portería / Centro:</strong> <span x-text="ret.admin_notes"></span>
                   </div>
                 </div>
               </template>
@@ -1660,7 +1842,7 @@
             <ul class="space-y-1.5 pl-1">
               <li class="flex items-start gap-2">
                 <span class="text-emerald-600 font-bold">✓</span>
-                <span><strong>Plazo:</strong> Dispone de <strong>15 días naturales</strong> desde la retirada del paquete en secretaría.</span>
+                <span><strong>Plazo:</strong> Dispone de <strong>15 días naturales</strong> desde la retirada del paquete en portería.</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-emerald-600 font-bold">✓</span>
@@ -1672,7 +1854,7 @@
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-emerald-600 font-bold">✓</span>
-                <span><strong>Punto de canje y modificación:</strong> Directamente en la <strong>portería / conserjería / secretaría del colegio</strong>. El personal del centro modificará el pedido en el sistema al instante tras recibir la prenda.</span>
+                <span><strong>Punto de canje y modificación:</strong> Directamente en la <strong>portería del colegio</strong>. El personal del centro modificará el pedido en el sistema al instante tras recibir la prenda.</span>
               </li>
             </ul>
           </div>
@@ -1698,7 +1880,7 @@
             <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl font-black">🏢</span>
             <div>
               <h3 class="text-lg font-bold font-serif-title text-[#002B66]">Devoluciones y Cambios de Talla</h3>
-              <p class="text-[11px] text-slate-500">Gestión presencial en portería / secretaría</p>
+              <p class="text-[11px] text-slate-500">Gestión presencial en portería del colegio</p>
             </div>
           </div>
           <button @click="openExchangeModal = false" class="text-slate-400 hover:text-slate-600 p-1">
@@ -1711,7 +1893,7 @@
             <span>ℹ️</span> Procedimiento Oficial:
           </p>
           <p class="leading-relaxed">
-            Las devoluciones y cambios de uniformidad se gestionan <strong>de manera presencial directamente en el colegio</strong>.
+            Las devoluciones y cambios de uniformidad se gestionan <strong>de manera presencial directamente en la portería del colegio</strong>.
           </p>
         </div>
 
@@ -1721,7 +1903,7 @@
             <div>
               <strong class="text-slate-900 block mb-0.5">Traiga la prenda al centro escolar</strong>
               <p class="text-slate-600 text-[11px] leading-relaxed">
-                Acuda a <strong>portería, conserjería o secretaría</strong> con la prenda en su bolsa original y conservando su etiqueta intacta (sin marcar con nombre ni lavar).
+                Acuda a <strong>la portería del colegio</strong> con la prenda en su bolsa original y conservando su etiqueta intacta (sin marcar con nombre ni lavar).
               </p>
             </div>
           </div>
@@ -1741,7 +1923,7 @@
             <div>
               <strong class="text-emerald-950 block mb-0.5">Modificación instantánea del pedido</strong>
               <p class="text-emerald-900 text-[11px] leading-relaxed">
-                El personal de portería / secretaría <strong>modificará su pedido en la aplicación en el mismo momento</strong>:
+                El personal de portería <strong>modificará su pedido en la aplicación en el mismo momento</strong>:
               </p>
               <ul class="mt-1 space-y-1 text-[11px] text-emerald-900/90 list-disc list-inside">
                 <li><strong>En devoluciones:</strong> Se descontará la prenda del pedido y no se facturará en el recibo escolar.</li>
