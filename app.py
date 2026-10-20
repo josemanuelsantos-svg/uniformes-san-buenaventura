@@ -1592,6 +1592,71 @@ def admin_send_email_to_family(order_id):
         "details": result
     })
 
+@app.route("/api/admin/orders/<int:order_id>", methods=["DELETE"])
+def admin_delete_order(order_id):
+    """Elimina permanentemente un pedido y todos sus registros asociados"""
+    role = get_admin_role()
+    if role == "viewer":
+        return jsonify({"error": "No tiene permisos para eliminar pedidos (Modo Solo Consulta)."}), 403
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, locator, student_name FROM orders WHERE id = ?", (order_id,))
+    order = cursor.fetchone()
+    if not order:
+        conn.close()
+        return jsonify({"error": "Pedido no encontrado."}), 404
+
+    order_locator = order["locator"]
+    cursor.execute("DELETE FROM order_items WHERE order_id = ?", (order_id,))
+    cursor.execute("DELETE FROM order_history WHERE order_id = ?", (order_id,))
+    cursor.execute("DELETE FROM order_emails WHERE order_id = ?", (order_id,))
+    cursor.execute("DELETE FROM order_returns WHERE order_id = ?", (order_id,))
+    cursor.execute("DELETE FROM orders WHERE id = ?", (order_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "message": f"Pedido {order_locator} eliminado correctamente.",
+        "order_id": order_id
+    })
+
+@app.route("/api/admin/orders/bulk-delete", methods=["POST"])
+def admin_bulk_delete_orders():
+    """Elimina en lote una lista de pedidos seleccionados y sus dependencias"""
+    role = get_admin_role()
+    if role == "viewer":
+        return jsonify({"error": "No tiene permisos para eliminar pedidos (Modo Solo Consulta)."}), 403
+
+    data = request.get_json() or {}
+    order_ids = data.get("order_ids", [])
+    if not order_ids or not isinstance(order_ids, list):
+        return jsonify({"error": "Debe especificar una lista de pedidos a eliminar."}), 400
+
+    clean_ids = [int(oid) for oid in order_ids if str(oid).isdigit()]
+    if not clean_ids:
+        return jsonify({"error": "No se proporcionaron identificadores válidos."}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+    placeholders = ",".join(["?"] * len(clean_ids))
+
+    cursor.execute(f"DELETE FROM order_items WHERE order_id IN ({placeholders})", clean_ids)
+    cursor.execute(f"DELETE FROM order_history WHERE order_id IN ({placeholders})", clean_ids)
+    cursor.execute(f"DELETE FROM order_emails WHERE order_id IN ({placeholders})", clean_ids)
+    cursor.execute(f"DELETE FROM order_returns WHERE order_id IN ({placeholders})", clean_ids)
+    cursor.execute(f"DELETE FROM orders WHERE id IN ({placeholders})", clean_ids)
+    deleted_count = cursor.rowcount
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "message": f"Se han eliminado {len(clean_ids)} pedido(s) correctamente del sistema.",
+        "deleted_count": len(clean_ids)
+    })
+
 @app.route("/api/admin/stats", methods=["GET"])
 def admin_stats():
     conn = get_db()

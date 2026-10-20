@@ -189,12 +189,47 @@
             <svg class="w-3.5 h-3.5 text-blue-900" :class="loadingOrders ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             <span x-text="loadingOrders ? 'Recargando...' : 'Actualizar'"></span>
           </button>
+
+          <!-- Toggle Selección Múltiple (Oculto en modo visor) -->
+          <label x-show="userRole !== 'viewer' && orders.length > 0"
+                 class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 transition select-none">
+            <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll($event.target.checked)"
+                   class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500 cursor-pointer">
+            <span>Seleccionar todos</span>
+          </label>
         </div>
 
         <div class="relative w-full md:w-80">
           <input type="text" x-model="searchFilter" @input="debounceSearch()" placeholder="Buscar alumno, email, curso, localizador..."
                  class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-800">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+      </div>
+
+      <!-- Barra Flotante de Acciones en Lote (Aparece al seleccionar pedidos) -->
+      <div x-show="selectedOrderIds.length > 0" x-cloak
+           class="sticky top-16 z-30 bg-slate-900 text-white p-3 sm:p-4 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-3 border border-slate-700 animate-fade-in">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 font-black flex items-center justify-center text-sm" x-text="selectedOrderIds.length"></span>
+          <div>
+            <p class="font-bold text-xs sm:text-sm">
+              <span x-text="selectedOrderIds.length"></span> pedido(s) seleccionado(s)
+            </p>
+            <p class="text-[11px] text-slate-400">Acciones de gestión múltiple</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button @click="promptBulkDelete()"
+                  class="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span>Eliminar Seleccionados (<span x-text="selectedOrderIds.length"></span>)</span>
+          </button>
+          
+          <button @click="selectedOrderIds = []"
+                  class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition cursor-pointer">
+            Deseleccionar
+          </button>
         </div>
       </div>
 
@@ -211,7 +246,8 @@
 
         <div x-show="!loadingOrders && orders.length > 0" class="divide-y divide-slate-100">
           <template x-for="order in orders" :key="order.id">
-            <div class="p-5 hover:bg-slate-50/70 transition">
+            <div class="p-5 hover:bg-slate-50/70 transition"
+                 :class="selectedOrderIds.includes(order.id) ? 'bg-red-50/20' : ''">
               
               <!-- Cabecera del pedido -->
               <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -219,6 +255,13 @@
                 <!-- Info alumno, localizador y datos de facturación -->
                 <div class="space-y-1.5">
                   <div class="flex flex-wrap items-center gap-2.5">
+                    
+                    <!-- Checkbox de selección individual -->
+                    <label x-show="userRole !== 'viewer'" class="inline-flex items-center cursor-pointer mr-0.5" title="Seleccionar pedido">
+                      <input type="checkbox" :value="order.id" x-model="selectedOrderIds"
+                             class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500 cursor-pointer">
+                    </label>
+
                     <span class="font-mono font-black text-xs text-white bg-[#002B66] px-2.5 py-1 rounded-md" x-text="order.invoice_number || ('FAC-2026-000' + order.id)"></span>
                     <span class="font-mono font-bold text-xs text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200" x-text="'Ref: ' + order.locator"></span>
                     <h3 class="text-base font-bold text-slate-900" x-text="order.student_name"></h3>
@@ -307,6 +350,15 @@
                   <button @click="toggleOrderExpand(order.id)" class="px-2.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1 cursor-pointer">
                     <span x-text="expandedOrders[order.id] ? 'Cerrar Ficha' : 'Ver Ficha'"></span>
                     <svg class="w-4 h-4 transition-transform" :class="expandedOrders[order.id] ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+
+                  <!-- Botón Eliminar Pedido Individual (Solo operador/maestro) -->
+                  <button x-show="userRole !== 'viewer'"
+                          @click="promptDeleteSingle(order)"
+                          class="px-2.5 py-2 text-xs font-bold text-red-600 hover:text-white bg-red-50 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl transition flex items-center gap-1 cursor-pointer"
+                          title="Eliminar este pedido permanentemente">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span class="hidden xl:inline">Eliminar</span>
                   </button>
 
                 </div>
@@ -1422,6 +1474,71 @@
     </div>
   </div>
 
+  <!-- ================= MODAL CONFIRMACIÓN DE ELIMINACIÓN DE PEDIDOS ================= -->
+  <div x-show="showDeleteConfirmModal" x-cloak
+       class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="relative bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 z-10 space-y-4 animate-scale-up"
+         @click.away="if (!isDeletingOrders) showDeleteConfirmModal = false">
+      
+      <div class="flex items-start gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-red-100 border border-red-200 text-red-600 flex items-center justify-center text-2xl shrink-0">
+          🗑️
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900">
+            <span x-text="orderToDelete ? 'Eliminar Pedido Definitivamente' : 'Eliminar Pedidos Seleccionados'"></span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Esta acción es irreversible y borrará el pedido, sus prendas asociadas y su historial del sistema.
+          </p>
+        </div>
+      </div>
+
+      <!-- Resumen del/de los pedido(s) que se van a eliminar -->
+      <template x-if="orderToDelete">
+        <div class="p-3 bg-red-50/70 rounded-xl border border-red-200 text-xs space-y-1">
+          <div class="font-bold text-red-950 flex items-center justify-between">
+            <span x-text="orderToDelete.locator"></span>
+            <span class="font-mono" x-text="formatMoney(orderToDelete.total_amount)"></span>
+          </div>
+          <div class="text-slate-700">
+            Alumno: <strong class="text-slate-900" x-text="orderToDelete.student_name"></strong> (<span x-text="orderToDelete.student_course"></span>)
+          </div>
+          <div class="text-[11px] text-slate-500">
+            Titular: <span x-text="orderToDelete.billing_name || orderToDelete.parent_name"></span> • <span x-text="orderToDelete.parent_email"></span>
+          </div>
+        </div>
+      </template>
+
+      <template x-if="!orderToDelete">
+        <div class="p-3 bg-red-50/70 rounded-xl border border-red-200 text-xs space-y-1.5">
+          <div class="font-bold text-red-950 flex items-center justify-between">
+            <span>Total a eliminar:</span>
+            <span class="text-sm font-black text-red-700" x-text="selectedOrderIds.length + ' pedidos'"></span>
+          </div>
+          <p class="text-[11px] text-slate-600">
+            Se eliminarán todos los pedidos marcados con sus respectivas líneas de artículos y registros.
+          </p>
+        </div>
+      </template>
+
+      <!-- Botones de Acción -->
+      <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+        <button type="button" @click="showDeleteConfirmModal = false" :disabled="isDeletingOrders"
+                class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer">
+          Cancelar
+        </button>
+
+        <button type="button" @click="executeDeleteOrders()" :disabled="isDeletingOrders"
+                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+          <svg x-show="isDeletingOrders" class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span x-text="isDeletingOrders ? 'Eliminando...' : 'Sí, Eliminar Definitivamente'"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- SCRIPT LOGICA ADMINISTRACION -->
   <script>
     function adminApp(initialRole = null, initialRoleInfo = null) {
@@ -1432,6 +1549,10 @@
         roleInfo: activeRoleInfo,
         currentTab: 'orders',
         orders: [],
+        selectedOrderIds: [],
+        showDeleteConfirmModal: false,
+        orderToDelete: null,
+        isDeletingOrders: false,
         stats: { total_orders: 0, total_revenue: 0, pending: 0, preparing: 0, ready: 0, delivered: 0, cancelled: 0 },
         filterStatus: 'Todos',
         searchFilter: '',
@@ -1853,6 +1974,73 @@
           } catch (e) {
             console.error("Error actualizando estado", e);
             alert("Error de conexión al actualizar estado: " + e.message);
+          }
+        },
+
+        // --- GESTIÓN DE SELECCIÓN MÚLTIPLE Y ELIMINACIÓN DE PEDIDOS ---
+        toggleSelectAll(checked) {
+          if (checked) {
+            this.selectedOrderIds = this.orders.map(o => o.id);
+          } else {
+            this.selectedOrderIds = [];
+          }
+        },
+
+        get isAllSelected() {
+          return this.orders.length > 0 && this.selectedOrderIds.length === this.orders.length;
+        },
+
+        promptDeleteSingle(order) {
+          this.orderToDelete = order;
+          this.showDeleteConfirmModal = true;
+        },
+
+        promptBulkDelete() {
+          if (this.selectedOrderIds.length === 0) return;
+          this.orderToDelete = null; // null significa borrado múltiple de selectedOrderIds
+          this.showDeleteConfirmModal = true;
+        },
+
+        async executeDeleteOrders() {
+          this.isDeletingOrders = true;
+          try {
+            if (this.orderToDelete) {
+              // Eliminación individual
+              const res = await fetch(`/api/admin/orders/${this.orderToDelete.id}`, {
+                method: 'DELETE'
+              });
+              const data = await res.json();
+              if (res.ok) {
+                this.selectedOrderIds = this.selectedOrderIds.filter(id => id !== this.orderToDelete.id);
+                this.showDeleteConfirmModal = false;
+                this.orderToDelete = null;
+                await this.fetchOrders();
+                await this.fetchStats();
+              } else {
+                alert("Error al eliminar pedido: " + (data.error || "No se pudo eliminar el pedido"));
+              }
+            } else if (this.selectedOrderIds.length > 0) {
+              // Eliminación en lote
+              const res = await fetch('/api/admin/orders/bulk-delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_ids: this.selectedOrderIds })
+              });
+              const data = await res.json();
+              if (res.ok) {
+                this.selectedOrderIds = [];
+                this.showDeleteConfirmModal = false;
+                await this.fetchOrders();
+                await this.fetchStats();
+              } else {
+                alert("Error al eliminar pedidos en lote: " + (data.error || "No se pudieron eliminar los pedidos"));
+              }
+            }
+          } catch (e) {
+            console.error("Error al eliminar pedidos", e);
+            alert("Error de conexión al eliminar pedidos: " + e.message);
+          } finally {
+            this.isDeletingOrders = false;
           }
         },
 

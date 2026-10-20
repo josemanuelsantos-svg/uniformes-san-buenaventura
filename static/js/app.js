@@ -40,6 +40,22 @@ function uniformApp() {
     confirmedOrder: null,
     copiedMessage: false,
 
+    // Guía de Uniformidad por Etapa Escolar (Modo Compacto / Móvil)
+    activeStage: 'infantil',
+    showNoticeDetails: false,
+    selectStage(stage) {
+      this.activeStage = stage;
+    },
+    filterByStage(stage) {
+      if (stage === 'infantil') {
+        this.selectedCategory = 1;
+      } else {
+        this.selectedCategory = 'all';
+      }
+      this.searchQuery = '';
+      this.scrollToCatalog();
+    },
+
     // Packs Escolares
     activePack: null,
     packForm: {
