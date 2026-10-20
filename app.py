@@ -1528,7 +1528,11 @@ def admin_update_order_status(order_id):
     email_result = None
     if new_status == "Listo para recoger" and send_email_now:
         order_dict["status"] = new_status
-        email_result = send_order_ready_email(order_dict, items, request.host_url)
+        try:
+            email_result = send_order_ready_email(order_dict, items, request.host_url)
+            print(f"Resultado envio email listo para recoger: {email_result}")
+        except Exception as e:
+            print(f"Error enviando email listo para recoger: {e}")
 
     return jsonify({
         "success": True,

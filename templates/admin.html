@@ -1812,12 +1812,23 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: newStatus, send_email: true })
             });
+            const data = await res.json();
             if (res.ok) {
+              if (newStatus === 'Listo para recoger') {
+                if (data.email_sent) {
+                  alert("✓ Pedido marcado como 'Listo para recoger' y correo de aviso enviado a la familia con éxito.");
+                } else {
+                  alert("⚠️ Pedido actualizado a 'Listo para recoger'.");
+                }
+              }
               this.fetchOrders();
               this.fetchStats();
+            } else {
+              alert("Error actualizando pedido: " + (data.error || "No se pudo actualizar"));
             }
           } catch (e) {
             console.error("Error actualizando estado", e);
+            alert("Error de conexión al actualizar estado: " + e.message);
           }
         },
 
