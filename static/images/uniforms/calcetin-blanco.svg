@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EDF2F7"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg-grad)" rx="20"/>
+  
+  <!-- Calcetín Blanco Colegial Infantil CSB -->
+  <g filter="url(#card-shadow)">
+    <!-- Calcetín izquierdo -->
+    <g transform="translate(48, 65)">
+      <rect x="0" y="0" width="30" height="14" rx="2" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/>
+      <line x1="0" y1="7" x2="30" y2="7" stroke="#E2E8F0" stroke-width="1"/>
+      <path d="M0 14 L0 45 C0 58 -8 66 -8 74 C-8 82 8 82 18 75 C26 68 30 54 30 45 L30 14 Z" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M24 46 C30 52 30 58 22 62" fill="none" stroke="#CBD5E1" stroke-width="1.2"/>
+    </g>
+    <!-- Calcetín derecho -->
+    <g transform="translate(122, 65)">
+      <rect x="0" y="0" width="30" height="14" rx="2" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/>
+      <line x1="0" y1="7" x2="30" y2="7" stroke="#E2E8F0" stroke-width="1"/>
+      <path d="M0 14 L0 45 C0 54 4 68 12 75 C22 82 38 82 38 74 C38 66 30 58 30 45 L30 14 Z" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M6 46 C0 52 0 58 8 62" fill="none" stroke="#CBD5E1" stroke-width="1.2"/>
+    </g>
+  </g>
+</svg>

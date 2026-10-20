@@ -50,6 +50,8 @@ function uniformApp() {
     filterByStage(stage) {
       if (stage === 'infantil') {
         this.selectedCategory = 1;
+      } else if (stage === 'primaria' || stage === 'secundaria') {
+        this.selectedCategory = 51;
       } else {
         this.selectedCategory = 'all';
       }
