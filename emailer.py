@@ -84,6 +84,10 @@ def send_via_smtp(recipient, subject, body_text, body_html):
     if not cfg["host"]:
         return False, "Servidor SMTP no configurado (el correo queda registrado y archivado localmente)"
 
+    recipient = str(recipient).strip()
+    if not recipient or "@" not in recipient:
+        return False, f"Dirección de correo inválida: '{recipient}'"
+
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject

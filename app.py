@@ -768,6 +768,8 @@ def create_order():
         """, (order_id, now_str))
 
         conn.commit()
+        conn.close()
+        conn = None
 
         # Preparar diccionario completo del pedido para backup y envío de email
         order_record = {
@@ -795,26 +797,28 @@ def create_order():
         # 1. Backup redundante e inmediato en disco (append-only JSONL persistente)
         backup_order_to_disk(order_record, processed_items)
 
-        # 2. Envío automático de correo a la familia y registro en su ficha (en segundo plano para respuesta instantánea)
-        import threading
-        order_copy = dict(order_record)
-        items_copy = [dict(it) for it in processed_items]
-        host_url = request.host_url
-        threading.Thread(
-            target=send_order_confirmation_email,
-            args=(order_copy, items_copy, host_url),
-            daemon=True
-        ).start()
+        # 2. Envío automático e inmediato de correo de confirmación a la familia
+        try:
+            email_res = send_order_confirmation_email(order_record, processed_items, request.host_url)
+            print(f"✓ Confirmación enviada a {parent_email}: {email_res}")
+        except Exception as email_err:
+            print(f"Aviso envio confirmacion email: {email_err}")
 
     except Exception as e:
-        conn.rollback()
-        conn.close()
+        if conn:
+            try:
+                conn.rollback()
+                conn.close()
+            except Exception:
+                pass
+            conn = None
         return jsonify({"error": f"Error guardando el pedido en base de datos: {str(e)}"}), 500
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     qr_code = generate_qr_base64(locator)
     return jsonify({
