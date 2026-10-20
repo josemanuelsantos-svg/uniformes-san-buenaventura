@@ -483,300 +483,210 @@
     </div>
   </section>
 
-  <!-- ================= GUÍA OFICIAL DE UNIFORMIDAD POR ETAPAS (COMPACTA Y OPTIMIZADA PARA MÓVIL) ================= -->
+  <!-- ================= GUÍA SENCILLA DE PRENDAS POR ETAPA ================= -->
   <section id="guia-etapas" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 mb-8 relative z-20">
-    <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-slate-200/80">
+    <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl border border-slate-200/80">
       
-      <!-- Cabecera Compacta -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-4">
+      <!-- Cabecera Limpia -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
         <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-              📋 Guía de Uniformidad
-            </span>
-            <span class="text-xs text-slate-400">• Sin lotes obligatorios</span>
-          </div>
-          <h2 class="text-lg sm:text-xl font-black font-serif-title text-[#002B66]">¿Qué prendas necesita tu hijo/a según su etapa?</h2>
+          <h2 class="text-base sm:text-lg font-black font-serif-title text-[#002B66] flex items-center gap-2">
+            <span>📋</span>
+            <span>¿Qué prendas necesita tu hijo/a según su etapa?</span>
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">Selecciona el curso para ver la lista rápida de prendas reglamentarias.</p>
         </div>
 
-        <button @click="openRecommenderModal = true" class="self-start sm:self-auto px-3 py-1.5 text-xs font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
-          <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          <span>Asesor de Tallas</span>
-        </button>
+        <!-- Selector de Etapas en Pestañas -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" role="tablist">
+          <button @click="selectStage('infantil')"
+                  :class="activeStage === 'infantil' ? 'bg-emerald-700 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
+                  class="px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition cursor-pointer flex items-center gap-1.5">
+            <span>🧸 Infantil</span>
+            <span class="text-[10px] opacity-75">(3 a 5 años)</span>
+          </button>
+
+          <button @click="selectStage('primaria')"
+                  :class="activeStage === 'primaria' ? 'bg-[#002B66] text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
+                  class="px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition cursor-pointer flex items-center gap-1.5">
+            <span>🎒 Primaria</span>
+            <span class="text-[10px] opacity-75">(1º a 6º)</span>
+          </button>
+
+          <button @click="selectStage('secundaria')"
+                  :class="activeStage === 'secundaria' ? 'bg-indigo-900 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
+                  class="px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition cursor-pointer flex items-center gap-1.5">
+            <span>📚 Secundaria</span>
+            <span class="text-[10px] opacity-75">(ESO)</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Selector de Etapas en Pestañas (Optimizado para Móvil) -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none" role="tablist">
-        <button @click="selectStage('infantil')"
-                :class="activeStage === 'infantil' ? 'bg-emerald-700 text-white font-bold shadow-md scale-102 ring-2 ring-emerald-300' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold'"
-                class="px-4 py-2 rounded-xl text-xs sm:text-sm whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer">
-          <span>🧸 Infantil</span>
-          <span class="text-[11px] opacity-80">(3 a 5 años)</span>
-        </button>
+      <!-- ================= LISTAS SENCILLAS Y DIRECTAS ================= -->
 
-        <button @click="selectStage('primaria')"
-                :class="activeStage === 'primaria' ? 'bg-[#002B66] text-white font-bold shadow-md scale-102 ring-2 ring-blue-300' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold'"
-                class="px-4 py-2 rounded-xl text-xs sm:text-sm whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer">
-          <span>🎒 Primaria</span>
-          <span class="text-[11px] opacity-80">(1º a 6º)</span>
-        </button>
-
-        <button @click="selectStage('secundaria')"
-                :class="activeStage === 'secundaria' ? 'bg-indigo-900 text-white font-bold shadow-md scale-102 ring-2 ring-indigo-300' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold'"
-                class="px-4 py-2 rounded-xl text-xs sm:text-sm whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer">
-          <span>📚 Secundaria</span>
-          <span class="text-[11px] opacity-80">(ESO)</span>
-        </button>
-      </div>
-
-      <!-- ================= CONTENIDO DE CADA ETAPA ================= -->
-
-      <!-- 1. EDUCACIÓN INFANTIL -->
+      <!-- 1. INFANTIL -->
       <div x-show="activeStage === 'infantil'" x-cloak class="space-y-3">
-        <div class="flex items-center justify-between text-xs text-slate-600 bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-200">
-          <span class="font-bold text-emerald-900">🧸 Educación Infantil (1º, 2º y 3º)</span>
-          <span class="text-[11px] text-emerald-700">Prendas obligatorias y deportivas</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-          <!-- Babi -->
-          <div class="p-3 bg-white rounded-xl border-2 border-emerald-200 shadow-2xs hover:border-emerald-400 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">👕</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block truncate">Babi Escolar Oficial CSB</strong>
-              <span class="text-[11px] font-bold text-amber-800 block">⚠️ Cuadro vichy pequeño</span>
-              <span class="text-[10px] text-slate-500">Evite cuadros grandes no reglamentarios</span>
-            </div>
-          </div>
-
-          <!-- Chándal Infantil -->
-          <div class="p-3 bg-white rounded-xl border border-emerald-100 shadow-2xs hover:border-emerald-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">🏃</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Sudadera y Pantalón Infantil</strong>
-              <span class="text-[11px] text-slate-600 block">Piezas sueltas oficiales</span>
-              <span class="text-[10px] text-slate-500">Con coderas y rodilleras de colores</span>
-            </div>
-          </div>
-
-          <!-- Camiseta Deporte Infantil -->
-          <div class="p-3 bg-white rounded-xl border-2 border-emerald-300 bg-emerald-50/30 shadow-2xs hover:border-emerald-400 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">⚽</span>
-            <div class="min-w-0">
-              <strong class="text-emerald-950 text-xs block">Camiseta Deporte CSB</strong>
-              <span class="text-[11px] font-bold text-emerald-800 block">¡Obligatoria en Infantil!</span>
-              <span class="text-[10px] text-slate-500">Camiseta técnica oficial para educación física</span>
-            </div>
-          </div>
-
-          <!-- Bermuda deporte -->
-          <div class="p-3 bg-white rounded-xl border border-emerald-100 shadow-2xs hover:border-emerald-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">🩳</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Pantalón corto de deporte</strong>
-              <span class="text-[11px] text-slate-600 block">Bermuda deportiva royal</span>
-              <span class="text-[10px] text-slate-500">Para días de calor y psicomotricidad</span>
-            </div>
-          </div>
-
-          <!-- Calcetines -->
-          <div class="p-3 bg-white rounded-xl border border-emerald-100 shadow-2xs hover:border-emerald-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">🧦</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Calcetines o Leotardos</strong>
-              <span class="text-[11px] text-slate-600 block">Azul marino oficial</span>
-              <span class="text-[10px] text-slate-500">Algodón colegial reforzado</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="pt-2">
-          <button @click="filterByStage('infantil')"
-                  class="w-full sm:w-auto px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
-            <span>🔍 Ver Prendas de Infantil en el Catálogo</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- 2. EDUCACIÓN PRIMARIA -->
-      <div x-show="activeStage === 'primaria'" x-cloak class="space-y-3">
-        <div class="flex items-center justify-between text-xs text-slate-600 bg-blue-50/70 p-2.5 rounded-xl border border-blue-200">
-          <span class="font-bold text-blue-900">🎒 Educación Primaria (1º a 6º de Primaria)</span>
-          <span class="text-[11px] text-blue-700">Uniforme de diario y deporte</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-          <!-- Falda / Pantalón -->
-          <div class="p-3 bg-white rounded-xl border border-blue-100 shadow-2xs hover:border-blue-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">👗</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Falda CSB / Pantalón Gris</strong>
-              <span class="text-[11px] text-slate-600 block">Prenda reglamentaria inferior</span>
-              <span class="text-[10px] text-slate-500">Falda de tablas con tirantes o pantalón marengo</span>
-            </div>
-          </div>
-
-          <!-- Polo Celeste -->
-          <div class="p-3 bg-white rounded-xl border border-blue-100 shadow-2xs hover:border-blue-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">👕</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Polo celeste Manga Corta</strong>
-              <span class="text-[11px] text-slate-600 block">Prenda principal de diario</span>
-              <span class="text-[10px] text-slate-500">Manga larga solo en restos sueltos</span>
-            </div>
-          </div>
-
-          <!-- Jersey pico -->
-          <div class="p-3 bg-white rounded-xl border border-blue-100 shadow-2xs hover:border-blue-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">🧥</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Jersey oficial de punto</strong>
-              <span class="text-[11px] text-slate-600 block">Azul marino con ribetes</span>
-              <span class="text-[10px] text-slate-500">Cuello pico y escudo bordado CSB</span>
-            </div>
-          </div>
-
-          <!-- Chándal Primaria -->
-          <div class="p-3 bg-white rounded-xl border border-blue-100 shadow-2xs hover:border-blue-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">🏃</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Sudadera y Pantalón chándal</strong>
-              <span class="text-[11px] text-slate-600 block">Se suministra por separado</span>
-              <span class="text-[10px] text-slate-500">Prendas deportivas para educación física</span>
-            </div>
-          </div>
-
-          <!-- Camiseta técnica deporte -->
-          <div class="p-3 bg-white rounded-xl border border-blue-100 shadow-2xs hover:border-blue-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">⚽</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Camiseta técnica y bermuda</strong>
-              <span class="text-[11px] text-slate-600 block">Equipación oficial de deporte</span>
-              <span class="text-[10px] text-slate-500">Tejido transpirable de secado rápido</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="pt-2">
-          <button @click="filterByStage('primaria')"
-                  class="w-full sm:w-auto px-5 py-2.5 bg-[#002B66] hover:bg-[#001D47] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
-            <span>🔍 Ver Catálogo de Primaria</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- 3. EDUCACIÓN SECUNDARIA / ESO -->
-      <div x-show="activeStage === 'secundaria'" x-cloak class="space-y-3">
-        <div class="flex items-center justify-between text-xs text-slate-600 bg-indigo-50/70 p-2.5 rounded-xl border border-indigo-200">
-          <span class="font-bold text-indigo-900">📚 Secundaria / ESO (1º a 4º de ESO)</span>
-          <span class="text-[11px] text-indigo-700">Tallaje juvenil completo</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-          <!-- Falda / Pantalón -->
-          <div class="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs hover:border-indigo-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">👗</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Falda oficial / Pantalón largo</strong>
-              <span class="text-[11px] text-slate-600 block">Tallaje juvenil hasta talla 28</span>
-              <span class="text-[10px] text-slate-500">Patronaje oficial homologado</span>
-            </div>
-          </div>
-
-          <!-- Polo Celeste -->
-          <div class="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs hover:border-indigo-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">👕</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Polo celeste Manga Corta</strong>
-              <span class="text-[11px] text-slate-600 block">Piqué transpirable con escudo CSB</span>
-              <span class="text-[10px] text-slate-500">Prenda de diario para el aula</span>
-            </div>
-          </div>
-
-          <!-- Jersey Marino -->
-          <div class="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs hover:border-indigo-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">🧥</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Jersey oficial azul marino</strong>
-              <span class="text-[11px] text-slate-600 block">Cuello pico reforzado</span>
-              <span class="text-[10px] text-slate-500">Punto fino de alta durabilidad</span>
-            </div>
-          </div>
-
-          <!-- Sudadera y pantalón CSB -->
-          <div class="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs hover:border-indigo-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">🏃</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Sudadera y Pantalón de chándal</strong>
-              <span class="text-[11px] text-slate-600 block">Prendas deportivas sueltas</span>
-              <span class="text-[10px] text-slate-500">Suministro independiente de piezas</span>
-            </div>
-          </div>
-
-          <!-- Camiseta técnica y bermuda -->
-          <div class="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs hover:border-indigo-300 transition flex items-start gap-2.5">
-            <span class="text-xl shrink-0">⚽</span>
-            <div class="min-w-0">
-              <strong class="text-slate-900 text-xs block">Camiseta técnica y bermuda</strong>
-              <span class="text-[11px] text-slate-600 block">Equipación reglamentaria</span>
-              <span class="text-[10px] text-slate-500">Educación física y actividades deportivas</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="pt-2">
-          <button @click="filterByStage('secundaria')"
-                  class="w-full sm:w-auto px-5 py-2.5 bg-indigo-900 hover:bg-indigo-950 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
-            <span>🔍 Ver Catálogo de Secundaria</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- ================= BARRA COMPACTA OFICIAL: PORTERÍA Y RECIBO ESCOLAR ================= -->
-      <div class="mt-5 p-3.5 rounded-xl bg-amber-50/90 border border-amber-300/80 text-amber-950">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
           
-          <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
-            <span class="inline-flex items-center gap-1.5 font-bold text-amber-950">
-              <span>🚪</span> <strong>Recogida:</strong> Portería (C/ El Greco, 16)
-            </span>
-            <span class="hidden sm:inline text-amber-300">•</span>
-            <span class="inline-flex items-center gap-1.5 font-bold text-amber-950">
-              <span>🏦</span> <strong>Pago:</strong> Recibo Escolar directo (sin pago en mano)
-            </span>
-            <span class="hidden sm:inline text-amber-300">•</span>
-            <span class="inline-flex items-center gap-1.5 text-amber-900">
-              <span>👕</span> Babi cuadro pequeño • Chándal por piezas
-            </span>
+          <div class="bg-emerald-50/60 border border-emerald-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">👕</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Babi oficial</span>
+            <span class="text-[10px] font-semibold text-emerald-800">Cuadro pequeño</span>
           </div>
 
-          <button @click="showNoticeDetails = !showNoticeDetails"
-                  class="self-start sm:self-auto text-[11px] font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer flex items-center gap-1">
-            <span x-text="showNoticeDetails ? 'Ocultar detalles' : 'ℹ️ Ver detalles'"></span>
-            <svg class="w-3 h-3 transition-transform" :class="showNoticeDetails ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          <div class="bg-emerald-50/60 border border-emerald-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">🏃</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Sudadera chándal</span>
+            <span class="text-[10px] text-slate-500">Pieza suelta</span>
+          </div>
+
+          <div class="bg-emerald-50/60 border border-emerald-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">👖</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Pantalón chándal</span>
+            <span class="text-[10px] text-slate-500">Pieza suelta</span>
+          </div>
+
+          <div class="bg-emerald-50/60 border-2 border-emerald-400 rounded-xl p-2.5 text-center flex flex-col items-center justify-center bg-white shadow-2xs">
+            <span class="text-xl mb-1">⚽</span>
+            <span class="text-xs font-bold text-emerald-950 leading-tight">Camiseta deporte</span>
+            <span class="text-[10px] font-bold text-emerald-700">Obligatoria</span>
+          </div>
+
+          <div class="bg-emerald-50/60 border border-emerald-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">🩳</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Pantalón corto</span>
+            <span class="text-[10px] text-slate-500">Bermuda deporte</span>
+          </div>
+
+          <div class="bg-emerald-50/60 border border-emerald-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">🧦</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Calcetines / Leotardos</span>
+            <span class="text-[10px] text-slate-500">Azul marino</span>
+          </div>
+
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+          <button @click="filterByStage('infantil')"
+                  class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+            <span>👉 Ver prendas de Infantil en el catálogo</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
+          <span class="text-[11px] text-slate-400 text-center sm:text-right">Puedes elegir libremente las prendas que necesites sin lotes obligatorios.</span>
+        </div>
+      </div>
+
+      <!-- 2. PRIMARIA -->
+      <div x-show="activeStage === 'primaria'" x-cloak class="space-y-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+          
+          <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">👕</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Polo celeste</span>
+            <span class="text-[10px] font-semibold text-blue-800">Manga corta</span>
+          </div>
+
+          <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">👗</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Falda o Pantalón gris</span>
+            <span class="text-[10px] text-slate-500">Diario</span>
+          </div>
+
+          <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">🧥</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Jersey de punto</span>
+            <span class="text-[10px] text-slate-500">Cuello pico marino</span>
+          </div>
+
+          <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">🏃</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Sudadera chándal</span>
+            <span class="text-[10px] text-slate-500">Pieza suelta</span>
+          </div>
+
+          <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">👖</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Pantalón chándal</span>
+            <span class="text-[10px] text-slate-500">Pieza suelta</span>
+          </div>
+
+          <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">⚽</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Camiseta y bermuda</span>
+            <span class="text-[10px] text-slate-500">Deporte oficial</span>
+          </div>
+
         </div>
 
-        <!-- Detalles desplegables si se pulsa 'Ver detalles' -->
-        <div x-show="showNoticeDetails" x-cloak class="mt-3 pt-3 border-t border-amber-200/80 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-800">
-          <div class="bg-white/90 p-3 rounded-lg border border-amber-200">
-            <strong class="text-amber-950 block mb-0.5 text-xs">🚪 1. Recogida en Portería</strong>
-            Los paquetes preparados se retiran exclusivamente en la Portería del Colegio (C/ El Greco, 16) en horario habitual (08:00 a 18:30). Recibirá un email de aviso cuando esté listo.
-          </div>
-          <div class="bg-white/90 p-3 rounded-lg border border-amber-200">
-            <strong class="text-amber-950 block mb-0.5 text-xs">🏦 2. Cobro por Recibo Escolar</strong>
-            No hay que realizar ningún pago en efectivo ni con tarjeta al recoger. El importe se cargará en el recibo escolar habitual de su cuenta del centro.
-          </div>
-          <div class="bg-white/90 p-3 rounded-lg border border-amber-200">
-            <strong class="text-amber-950 block mb-0.5 text-xs">👕 3. Babi y Chándal</strong>
-            • <strong>Babi:</strong> Cuadro pequeño reglamentario oficial CSB.<br>
-            • <strong>Chándal:</strong> Ahora por piezas separadas (sudadera y pantalón).<br>
-            • <strong>Polo M/L:</strong> Restos de tallas sueltas.
-          </div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+          <button @click="filterByStage('primaria')"
+                  class="px-4 py-2 bg-[#002B66] hover:bg-[#001D47] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+            <span>👉 Ver prendas de Primaria en el catálogo</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <span class="text-[11px] text-slate-400 text-center sm:text-right">Puedes elegir libremente las prendas que necesites sin lotes obligatorios.</span>
         </div>
+      </div>
+
+      <!-- 3. SECUNDARIA -->
+      <div x-show="activeStage === 'secundaria'" x-cloak class="space-y-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+          
+          <div class="bg-indigo-50/60 border border-indigo-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">👕</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Polo celeste</span>
+            <span class="text-[10px] font-semibold text-indigo-800">Manga corta</span>
+          </div>
+
+          <div class="bg-indigo-50/60 border border-indigo-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">👗</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Falda o Pantalón gris</span>
+            <span class="text-[10px] text-slate-500">Hasta T.28</span>
+          </div>
+
+          <div class="bg-indigo-50/60 border border-indigo-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">🧥</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Jersey de punto</span>
+            <span class="text-[10px] text-slate-500">Cuello pico marino</span>
+          </div>
+
+          <div class="bg-indigo-50/60 border border-indigo-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">🏃</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Sudadera y pantalón</span>
+            <span class="text-[10px] text-slate-500">Chándal suelto</span>
+          </div>
+
+          <div class="bg-indigo-50/60 border border-indigo-200 rounded-xl p-2.5 text-center flex flex-col items-center justify-center">
+            <span class="text-xl mb-1">⚽</span>
+            <span class="text-xs font-bold text-slate-900 leading-tight">Camiseta y bermuda</span>
+            <span class="text-[10px] text-slate-500">Deporte oficial</span>
+          </div>
+
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+          <button @click="filterByStage('secundaria')"
+                  class="px-4 py-2 bg-indigo-900 hover:bg-indigo-950 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+            <span>👉 Ver prendas de Secundaria en el catálogo</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <span class="text-[11px] text-slate-400 text-center sm:text-right">Puedes elegir libremente las prendas que necesites sin lotes obligatorios.</span>
+        </div>
+      </div>
+
+      <!-- Tira informativa mínima y útil -->
+      <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs text-slate-600">
+        <span class="inline-flex items-center gap-1 font-semibold text-slate-800">
+          <span>🚪</span> <strong>Recogida:</strong> Portería del Colegio (C/ El Greco, 16)
+        </span>
+        <span class="hidden sm:inline text-slate-300">•</span>
+        <span class="inline-flex items-center gap-1 font-semibold text-slate-800">
+          <span>🏦</span> <strong>Cobro:</strong> Directo por recibo escolar
+        </span>
+        <span class="hidden sm:inline text-slate-300">•</span>
+        <span class="inline-flex items-center gap-1 text-slate-600">
+          <span>👕</span> Babi cuadro pequeño • Chándal por piezas
+        </span>
       </div>
 
     </div>
