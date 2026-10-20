@@ -20,7 +20,7 @@
     window.__INITIAL_PRODUCTS__ = {{ products_json | safe }};
   </script>
   <!-- Lógica de aplicación -->
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/app.js?v=3"></script>
   <!-- Alpine.js -->
   <script defer src="/static/js/alpine.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -823,7 +823,7 @@
         
         <!-- Imagen de la prenda -->
         <div class="relative bg-gradient-to-b from-slate-50 to-white aspect-square p-6 flex items-center justify-center overflow-hidden border-b border-slate-100">
-          <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" loading="lazy">
+          <img src="{{ product.image_url }}?v=3" alt="{{ product.name }}" class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" loading="lazy">
           
           <!-- Etiquetas superiores -->
           <div class="absolute top-3 left-3 flex flex-col gap-1.5">
