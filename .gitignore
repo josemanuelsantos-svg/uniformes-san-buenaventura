@@ -5,6 +5,8 @@ __pycache__/
 cloudflared
 cloudflared.tgz
 *.png
+!static/**/*.png
+!static/*.png
 *.log
 cookies.txt
 check_js.js
