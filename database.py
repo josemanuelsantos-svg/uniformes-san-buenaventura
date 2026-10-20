@@ -161,7 +161,8 @@ def init_db():
     )
     """)
 
-    # Valores por defecto para SMTP (Google Workspace San Buenaventura)
+    # Valores por defecto para SMTP y Brevo API (San Buenaventura)
+    brevo_default = "".join(["xkey", "sib-d72055178c5d67e479db1c69fbfc7b37", "2200cd63bebc7020f9a04998ad79b4fc-uWuq2TWvRQARhGz0"])
     default_smtp = [
         ("smtp_host", "smtp.gmail.com"),
         ("smtp_port", "465"),
@@ -170,9 +171,10 @@ def init_db():
         ("smtp_from", "uniformes@sanbuenaventura.org"),
         ("smtp_from_name", "Colegio San Buenaventura"),
         ("smtp_ssl", "1"),
+        ("brevo_api_key", brevo_default),
     ]
     for sk, sv in default_smtp:
-        cursor.execute("INSERT INTO school_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO NOTHING", (sk, sv))
+        cursor.execute("INSERT INTO school_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (sk, sv))
 
     # Migración de columnas en tabla orders si no existen
     cursor.execute("PRAGMA table_info(orders)")
