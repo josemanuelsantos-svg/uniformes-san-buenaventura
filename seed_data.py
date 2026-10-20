@@ -120,10 +120,10 @@ def seed():
             "category_id": cat_map["uniforme-infantil"],
             "name": "Camiseta de Manga Corta - INFANTIL",
             "code": "CAM-MC-INF",
-            "desc": "Camiseta oficial blanca de manga corta para Educación Infantil con cuello y escudo CSB. Prenda independiente para el aula y psicomotricidad (no incluida en el chándal).",
+            "desc": "Camiseta técnica oficial de deporte CSB, manga corta y cuello con vivos oficiales en contraste. Mismo modelo y diseño que Primaria, adaptada a tallas infantiles para psicomotricidad y deporte (prenda independiente no incluida en el chándal).",
             "base_price": 17.00,
             "tier_data": (inf_sizes, {s: 17.00 for s in inf_sizes}),
-            "image": "/static/images/uniforms/camiseta-infantil.svg",
+            "image": "/static/images/uniforms/camiseta-deporte.svg",
             "gender": "Unisex",
             "order": 5
         },
