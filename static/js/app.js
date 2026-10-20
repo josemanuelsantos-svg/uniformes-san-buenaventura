@@ -24,6 +24,7 @@ function uniformApp() {
     openSuccessModal: false,
     openTrackerModal: false,
     openSizeGuideModal: false,
+    openSizeGuide: false,
     openPrivacyModal: false,
     openReturnsPolicyModal: false,
     openExchangeModal: false,

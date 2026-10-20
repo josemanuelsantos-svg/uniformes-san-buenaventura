@@ -816,7 +816,7 @@
             <div class="mb-3.5">
               <div class="flex justify-between items-center mb-1.5">
                 <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">Selecciona Talla:</label>
-                <button type="button" @click="openSizeGuide = true" class="text-[10px] font-bold text-blue-700 hover:underline flex items-center gap-0.5 cursor-pointer">
+                <button type="button" @click="openSizeGuideModal = true; openSizeGuide = true" class="text-[10px] font-bold text-blue-700 hover:underline flex items-center gap-0.5 cursor-pointer">
                   📏 Guía de tallas
                 </button>
               </div>
@@ -1463,9 +1463,9 @@
   </div>
 
   <!-- ================= MODAL GUÍA DE TALLAS ESCOLAR ================= -->
-  <div x-show="openSizeGuideModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+  <div x-show="openSizeGuideModal || openSizeGuide" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4 py-8">
-      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openSizeGuideModal = false"></div>
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openSizeGuideModal = false; openSizeGuide = false"></div>
 
       <div class="relative bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
         <div class="flex items-start justify-between border-b border-slate-100 pb-4 mb-4">
@@ -1476,7 +1476,7 @@
               <p class="text-xs text-slate-500">Colegio San Buenaventura • Referencias orientativas por edad y estatura</p>
             </div>
           </div>
-          <button @click="openSizeGuideModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <button @click="openSizeGuideModal = false; openSizeGuide = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
@@ -1514,7 +1514,7 @@
         </div>
 
         <div class="mt-4 text-right">
-          <button @click="openSizeGuideModal = false" class="px-5 py-2 bg-[#002B66] text-white font-bold text-xs rounded-xl shadow cursor-pointer">
+          <button @click="openSizeGuideModal = false; openSizeGuide = false" class="px-5 py-2 bg-[#002B66] text-white font-bold text-xs rounded-xl shadow cursor-pointer">
             Entendido
           </button>
         </div>
