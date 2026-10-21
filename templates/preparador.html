@@ -13,14 +13,7 @@
 
   <style>
     [x-cloak] { display: none !important; }
-    /* Tipografía grande y descansada para la vista */
     body { font-size: 16px; -webkit-tap-highlight-color: transparent; }
-    /* Animación de marcado completado */
-    @keyframes pulse-green {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-    .check-anim { animation: pulse-green 1s ease; }
   </style>
 </head>
 <body class="h-full flex flex-col font-sans text-slate-800 antialiased" x-data="preparadorApp()" x-init="init()">
@@ -133,7 +126,7 @@
           <button @click="currentFilter = 'listos'; fetchOrders()"
                   :class="currentFilter === 'listos' ? 'bg-emerald-700 text-white shadow font-black scale-102' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
                   class="px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm transition flex items-center gap-1.5 cursor-pointer">
-            <span>✅ Ya Preparados</span>
+            <span>✅ Ya Preparados (Plegados)</span>
             <span class="px-1.5 py-0.5 rounded-full text-xs" :class="currentFilter === 'listos' ? 'bg-emerald-200 text-emerald-950 font-black' : 'bg-slate-200 text-slate-800'" x-text="counts.listos">0</span>
           </button>
 
@@ -159,11 +152,11 @@
       <div class="bg-blue-50 border border-blue-200 rounded-2xl p-3 sm:p-4 text-xs sm:text-sm text-blue-950 flex items-start gap-3 shadow-2xs">
         <span class="text-2xl shrink-0">💡</span>
         <div class="space-y-1">
-          <p class="font-bold">¿Cómo preparar los lotes de forma sencilla?</p>
+          <p class="font-bold">Instrucciones para preparar lotes:</p>
           <p class="text-blue-900 leading-relaxed font-normal">
-            1. Mira la lista de prendas de cada alumno. <br>
-            2. Coge la ropa del almacén y pulsa el botón verde <strong>«En bolsa»</strong> a medida que la introduzcas. <br>
-            3. Si no queda stock de alguna talla, pulsa <strong>«⚠️ Falta Stock»</strong>. Cuando el lote esté completo, pulsa el botón verde gigante <strong>«Listo y Preparado»</strong>.
+            1. Introduce cada prenda en la bolsa y márcala pulsando <strong>«En bolsa»</strong>.<br>
+            2. Si no queda stock de alguna prenda en el almacén, pulsa <strong>«Falta?»</strong>.<br>
+            3. Al terminar la bolsa, pulsa <strong>«✅ ¡LOTE PREPARADO Y LISTO!»</strong>: el pedido se plegará automáticamente en una sola línea para que no ocupe espacio, pero podrás consultarlo cuando quieras con el botón <strong>«Consultar»</strong>.
           </p>
         </div>
       </div>
@@ -178,168 +171,218 @@
       <div x-show="!loading && orders.length === 0" x-cloak class="bg-white rounded-2xl p-8 text-center border border-slate-200 space-y-2">
         <span class="text-4xl block">✨</span>
         <h3 class="font-black text-slate-900 text-lg">No hay pedidos pendientes en esta sección</h3>
-        <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">¡Buen trabajo! Todos los pedidos están listos o no coinciden con el filtro seleccionado.</p>
+        <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">Todos los pedidos están al día o no coinciden con el filtro seleccionado.</p>
         <button @click="currentFilter = 'pendientes'; searchQuery = ''; fetchOrders()" class="mt-2 px-4 py-2 bg-[#002B66] text-white rounded-xl text-xs font-bold cursor-pointer">
           Ver pedidos por preparar
         </button>
       </div>
 
       <!-- ================= LISTA DE TARJETAS DE PEDIDO ================= -->
-      <div class="space-y-4" x-show="!loading && orders.length > 0">
+      <div class="space-y-3" x-show="!loading && orders.length > 0">
         
         <template x-for="(order, index) in orders" :key="order.id">
-          <div class="bg-white rounded-2xl border-2 transition-all shadow-sm overflow-hidden"
+          <div class="bg-white rounded-2xl border-2 transition-all shadow-xs overflow-hidden"
                :class="{
                  'border-amber-400 bg-amber-50/20': order.stock_alert == 1,
-                 'border-emerald-300': order.status === 'Listo para recoger',
-                 'border-slate-200 hover:border-blue-400': order.status !== 'Listo para recoger' && order.stock_alert != 1
+                 'border-emerald-300': isOrderCompleted(order),
+                 'border-slate-200 hover:border-blue-400': !isOrderCompleted(order) && order.stock_alert != 1
                }">
 
-            <!-- Encabezado de la Tarjeta del Pedido -->
-            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-slate-50/80 to-white">
+            <!-- ================= VISTA PLEGADA / COLAPSADA ================= -->
+            <div x-show="!isOrderExpanded(order)"
+                 class="p-3.5 sm:p-4 flex items-center justify-between gap-3 bg-gradient-to-r from-emerald-50/70 via-white to-emerald-50/30 hover:bg-emerald-50 transition cursor-pointer select-none"
+                 @click="toggleOrderExpand(order.id)">
               
-              <!-- Datos del Alumno -->
-              <div class="space-y-1">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="text-lg sm:text-xl font-black text-slate-900 tracking-tight" x-text="order.student_name"></span>
-                  <span class="px-2.5 py-0.5 bg-blue-100 text-blue-900 text-xs font-black rounded-lg border border-blue-200" x-text="order.student_course"></span>
-                </div>
+              <div class="flex items-center gap-3 min-w-0 flex-1">
+                <span class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-lg shrink-0 border border-emerald-300">✅</span>
                 
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-mono">
-                  <span>Pedido: <strong class="text-slate-800" x-text="order.locator"></strong></span>
-                  <span>•</span>
-                  <span>Familia: <strong class="text-slate-700 font-sans" x-text="order.parent_name"></strong></span>
-                  <template x-if="order.parent_phone">
-                    <span class="inline-flex items-center gap-1 font-sans">
-                      <span>• 📞</span>
-                      <a :href="'tel:' + order.parent_phone" class="text-blue-700 hover:underline font-bold" x-text="order.parent_phone"></a>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-black text-slate-900 text-sm sm:text-base truncate" x-text="order.student_name"></span>
+                    <span class="px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded-md" x-text="order.student_course"></span>
+                    <span class="font-mono text-xs font-bold text-slate-500" x-text="order.locator"></span>
+                  </div>
+                  
+                  <div class="text-xs text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                    <span class="text-emerald-800 font-bold" x-text="'Lote completado (' + (order.items ? order.items.length : 0) + ' prendas)'"></span>
+                    <span>•</span>
+                    <span class="text-slate-600 font-medium">Listo para recoger en portería</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botón Consultar -->
+              <button @click.stop="toggleOrderExpand(order.id)"
+                      class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer">
+                <span>👁️ Consultar prendas</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+
+            </div>
+
+            <!-- ================= VISTA DESPLEGADA (ACTIVA PARA TRABAJAR) ================= -->
+            <div x-show="isOrderExpanded(order)" x-cloak>
+
+              <!-- Encabezado de la Tarjeta del Pedido -->
+              <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-slate-50/80 to-white">
+                
+                <!-- Datos del Alumno -->
+                <div class="space-y-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-lg sm:text-xl font-black text-slate-900 tracking-tight" x-text="order.student_name"></span>
+                    <span class="px-2.5 py-0.5 bg-blue-100 text-blue-900 text-xs font-black rounded-lg border border-blue-200" x-text="order.student_course"></span>
+                  </div>
+                  
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-mono">
+                    <span>Pedido: <strong class="text-slate-800" x-text="order.locator"></strong></span>
+                    <span>•</span>
+                    <span>Familia: <strong class="text-slate-700 font-sans" x-text="order.parent_name"></strong></span>
+                    <template x-if="order.parent_phone">
+                      <span class="inline-flex items-center gap-1 font-sans">
+                        <span>• 📞</span>
+                        <a :href="'tel:' + order.parent_phone" class="text-blue-700 hover:underline font-bold" x-text="order.parent_phone"></a>
+                      </span>
+                    </template>
+                  </div>
+                </div>
+
+                <!-- Estado Visual Actual + Botón Plegar -->
+                <div class="flex items-center gap-2 shrink-0">
+                  <template x-if="order.stock_alert == 1">
+                    <span class="px-3 py-1.5 bg-amber-100 text-amber-900 font-extrabold text-xs rounded-xl border border-amber-300 flex items-center gap-1.5 shadow-2xs">
+                      <span>⚠️</span> Falta Stock
                     </span>
                   </template>
+                  <template x-if="order.status === 'Listo para recoger' && order.stock_alert != 1">
+                    <span class="px-3 py-1.5 bg-emerald-100 text-emerald-900 font-extrabold text-xs rounded-xl border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
+                      <span>✅</span> Preparado / Listo
+                    </span>
+                  </template>
+                  <template x-if="order.status === 'En preparación' && order.stock_alert != 1">
+                    <span class="px-3 py-1.5 bg-blue-100 text-blue-900 font-extrabold text-xs rounded-xl border border-blue-300 flex items-center gap-1.5 shadow-2xs">
+                      <span>🔄</span> En preparación
+                    </span>
+                  </template>
+                  <template x-if="order.status === 'Pendiente' && order.stock_alert != 1">
+                    <span class="px-3 py-1.5 bg-slate-100 text-slate-800 font-extrabold text-xs rounded-xl border border-slate-300 flex items-center gap-1.5">
+                      <span>🕒</span> Por preparar
+                    </span>
+                  </template>
+
+                  <!-- Botón Plegar Ficha -->
+                  <button @click="toggleOrderExpand(order.id)"
+                          class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                          title="Plegar este pedido">
+                    <span>▲ Plegar</span>
+                  </button>
                 </div>
+
               </div>
 
-              <!-- Estado Visual Actual -->
-              <div class="flex items-center gap-2 shrink-0">
-                <template x-if="order.stock_alert == 1">
-                  <span class="px-3 py-1.5 bg-amber-100 text-amber-900 font-extrabold text-xs rounded-xl border border-amber-300 flex items-center gap-1.5 shadow-2xs">
-                    <span>⚠️</span> Falta Stock
-                  </span>
-                </template>
-                <template x-if="order.status === 'Listo para recoger' && order.stock_alert != 1">
-                  <span class="px-3 py-1.5 bg-emerald-100 text-emerald-900 font-extrabold text-xs rounded-xl border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
-                    <span>✅</span> Preparado / Listo
-                  </span>
-                </template>
-                <template x-if="order.status === 'En preparación' && order.stock_alert != 1">
-                  <span class="px-3 py-1.5 bg-blue-100 text-blue-900 font-extrabold text-xs rounded-xl border border-blue-300 flex items-center gap-1.5 shadow-2xs">
-                    <span>🔄</span> En preparación
-                  </span>
-                </template>
-                <template x-if="order.status === 'Pendiente' && order.stock_alert != 1">
-                  <span class="px-3 py-1.5 bg-slate-100 text-slate-800 font-extrabold text-xs rounded-xl border border-slate-300 flex items-center gap-1.5">
-                    <span>🕒</span> Por preparar
-                  </span>
-                </template>
-              </div>
+              <!-- Notas del Pedido si existen -->
+              <template x-if="order.notes">
+                <div class="px-4 py-2 bg-amber-50/80 border-b border-amber-200/70 text-xs text-amber-900 flex items-center gap-2">
+                  <span class="font-bold">📝 Nota de la familia:</span>
+                  <span class="italic font-medium" x-text="order.notes"></span>
+                </div>
+              </template>
 
-            </div>
-
-            <!-- Notas del Pedido si existen -->
-            <template x-if="order.notes">
-              <div class="px-4 py-2 bg-amber-50/80 border-b border-amber-200/70 text-xs text-amber-900 flex items-center gap-2">
-                <span class="font-bold">📝 Nota de la familia:</span>
-                <span class="italic font-medium" x-text="order.notes"></span>
-              </div>
-            </template>
-
-            <!-- ================= LISTA DE PRENDAS DEL LOTE ================= -->
-            <div class="p-4 sm:p-5 space-y-2.5">
-              
-              <div class="text-xs uppercase tracking-wider font-bold text-slate-500 mb-1 flex items-center justify-between">
-                <span>Prendas de este lote (<span x-text="order.items.length"></span>)</span>
-                <span class="text-[11px] font-normal text-slate-400">Marca cada prenda al meterla en la bolsa</span>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                <template x-for="item in order.items" :key="item.id">
-                  <div class="p-3 rounded-xl border-2 transition-all flex items-center justify-between gap-3"
-                       :class="{
-                         'bg-emerald-50 border-emerald-300 shadow-2xs': item.is_prepared == 1,
-                         'bg-amber-50/80 border-amber-300': item.missing_stock == 1,
-                         'bg-slate-50/80 border-slate-200': item.is_prepared != 1 && item.missing_stock != 1
-                       }">
-                    
-                    <!-- Prenda, Talla y Cantidad -->
-                    <div class="flex items-center gap-3 min-w-0 flex-1">
-                      
-                      <!-- Ilustración Vectorial Real -->
-                      <div class="w-12 h-12 rounded-xl bg-white p-1 border border-slate-200/80 shrink-0 flex items-center justify-center shadow-2xs">
-                        <img :src="item.image_url" :alt="item.product_name" class="w-full h-full object-contain">
-                      </div>
-
-                      <div class="min-w-0 flex-1">
-                        <p class="font-bold text-slate-900 text-xs sm:text-sm truncate" x-text="item.product_name"></p>
-                        
-                        <div class="flex flex-wrap items-center gap-2 mt-1">
-                          <!-- Talla en Grande Destacada -->
-                          <span class="px-2.5 py-0.5 bg-[#002B66] text-white text-xs font-black rounded-md shadow-2xs" x-text="'Talla ' + item.size"></span>
-                          
-                          <!-- Cantidad en Grande -->
-                          <span class="px-2 py-0.5 bg-slate-200 text-slate-900 text-xs font-extrabold rounded-md" x-text="item.quantity + ' ud' + (item.quantity > 1 ? 's' : '')"></span>
-                        </div>
-                      </div>
-
-                    </div>
-
-                    <!-- Botones Rápidos por Prenda -->
-                    <div class="flex items-center gap-1.5 shrink-0">
-                      
-                      <!-- Botón Metido en Bolsa (Toggle) -->
-                      <button @click="toggleItemField(order.id, item.id, 'is_prepared', item.is_prepared == 1 ? 0 : 1)"
-                              :class="item.is_prepared == 1 ? 'bg-emerald-600 text-white font-black ring-2 ring-emerald-400' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold'"
-                              class="px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1 shadow-2xs">
-                        <span x-text="item.is_prepared == 1 ? '✅ En bolsa' : '⚪ Metida'"></span>
-                      </button>
-
-                      <!-- Botón Falta Stock (Toggle) -->
-                      <button @click="toggleItemField(order.id, item.id, 'missing_stock', item.missing_stock == 1 ? 0 : 1)"
-                              :class="item.missing_stock == 1 ? 'bg-amber-500 text-slate-950 font-black ring-2 ring-amber-300' : 'bg-white hover:bg-amber-50 text-slate-500 border border-slate-200 font-bold'"
-                              class="px-2.5 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1"
-                              title="Marcar si falta stock de esta prenda">
-                        <span x-text="item.missing_stock == 1 ? '⚠️ Falta' : 'Falta?'"></span>
-                      </button>
-
-                    </div>
-
-                  </div>
-                </template>
-              </div>
-
-            </div>
-
-            <!-- ================= BOTONERA PRINCIPAL DEL PEDIDO ================= -->
-            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-              
-              <!-- Estado de preparación rápido -->
-              <div class="text-xs text-slate-500 text-center sm:text-left">
-                <span x-text="getPreparedSummary(order)"></span>
-              </div>
-
-              <!-- Botones Grandes de Acción -->
-              <div class="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+              <!-- ================= LISTA DE PRENDAS DEL LOTE ================= -->
+              <div class="p-4 sm:p-5 space-y-2.5">
                 
-                <!-- Botón: Falta Alguna Prenda -->
-                <button @click="setOrderStatus(order.id, 'Falta de stock', true)"
-                        class="flex-1 sm:flex-none px-4 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
-                  <span>⚠️ Falta Alguna Prenda</span>
-                </button>
+                <div class="text-xs uppercase tracking-wider font-bold text-slate-500 mb-1 flex items-center justify-between">
+                  <span>Prendas de este lote (<span x-text="order.items.length"></span>)</span>
+                  <span class="text-[11px] font-normal text-slate-400">Marca cada prenda al meterla en la bolsa</span>
+                </div>
 
-                <!-- Botón Principal Verde: Lote Preparado y Listo -->
-                <button @click="setOrderStatus(order.id, 'Listo para recoger', false)"
-                        class="flex-1 sm:flex-none px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 shadow-md hover:scale-102 cursor-pointer">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                  <span>✅ ¡LOTE PREPARADO Y LISTO!</span>
-                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  <template x-for="item in order.items" :key="item.id">
+                    <div class="p-3 rounded-xl border-2 transition-all flex items-center justify-between gap-3"
+                         :class="{
+                           'bg-emerald-50 border-emerald-300 shadow-2xs': item.is_prepared == 1,
+                           'bg-amber-50/80 border-amber-300': item.missing_stock == 1,
+                           'bg-slate-50/80 border-slate-200': item.is_prepared != 1 && item.missing_stock != 1
+                         }">
+                      
+                      <!-- Prenda, Talla y Cantidad -->
+                      <div class="flex items-center gap-3 min-w-0 flex-1">
+                        
+                        <!-- Ilustración Vectorial Real -->
+                        <div class="w-12 h-12 rounded-xl bg-white p-1 border border-slate-200/80 shrink-0 flex items-center justify-center shadow-2xs">
+                          <img :src="item.image_url" :alt="item.product_name" class="w-full h-full object-contain">
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+                          <p class="font-bold text-slate-900 text-xs sm:text-sm truncate" x-text="item.product_name"></p>
+                          
+                          <div class="flex flex-wrap items-center gap-2 mt-1">
+                            <!-- Talla en Grande Destacada -->
+                            <span class="px-2.5 py-0.5 bg-[#002B66] text-white text-xs font-black rounded-md shadow-2xs" x-text="'Talla ' + item.size"></span>
+                            
+                            <!-- Cantidad en Grande -->
+                            <span class="px-2 py-0.5 bg-slate-200 text-slate-900 text-xs font-extrabold rounded-md" x-text="item.quantity + ' ud' + (item.quantity > 1 ? 's' : '')"></span>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      <!-- Botones Rápidos por Prenda -->
+                      <div class="flex items-center gap-1.5 shrink-0">
+                        
+                        <!-- Botón Metido en Bolsa (Toggle) -->
+                        <button @click="toggleItemField(order.id, item.id, 'is_prepared', item.is_prepared == 1 ? 0 : 1)"
+                                :class="item.is_prepared == 1 ? 'bg-emerald-600 text-white font-black ring-2 ring-emerald-400' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold'"
+                                class="px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1 shadow-2xs">
+                          <span x-text="item.is_prepared == 1 ? '✅ En bolsa' : '⚪ Metida'"></span>
+                        </button>
+
+                        <!-- Botón Falta Stock (Toggle) -->
+                        <button @click="toggleItemField(order.id, item.id, 'missing_stock', item.missing_stock == 1 ? 0 : 1)"
+                                :class="item.missing_stock == 1 ? 'bg-amber-500 text-slate-950 font-black ring-2 ring-amber-300' : 'bg-white hover:bg-amber-50 text-slate-500 border border-slate-200 font-bold'"
+                                class="px-2.5 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1"
+                                title="Marcar si falta stock de esta prenda">
+                          <span x-text="item.missing_stock == 1 ? '⚠️ Falta' : 'Falta?'"></span>
+                        </button>
+
+                      </div>
+
+                    </div>
+                  </template>
+                </div>
+
+              </div>
+
+              <!-- ================= BOTONERA PRINCIPAL DEL PEDIDO ================= -->
+              <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                
+                <!-- Estado de preparación rápido -->
+                <div class="text-xs text-slate-500 text-center sm:text-left">
+                  <span x-text="getPreparedSummary(order)"></span>
+                </div>
+
+                <!-- Botones Grandes de Acción -->
+                <div class="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+                  
+                  <!-- Botón: Falta Alguna Prenda -->
+                  <button @click="setOrderStatus(order.id, 'Falta de stock', true)"
+                          class="flex-1 sm:flex-none px-4 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
+                    <span>⚠️ Falta Alguna Prenda</span>
+                  </button>
+
+                  <!-- Botón Principal Verde: Lote Preparado y Listo (se pliega automáticamente) -->
+                  <button @click="setOrderStatus(order.id, 'Listo para recoger', false)"
+                          class="flex-1 sm:flex-none px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 shadow-md hover:scale-102 cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    <span>✅ ¡LOTE PREPARADO Y LISTO!</span>
+                  </button>
+
+                  <!-- Botón Plegar Ficha -->
+                  <button @click="toggleOrderExpand(order.id)"
+                          class="px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                    <span>▲ Plegar</span>
+                  </button>
+
+                </div>
 
               </div>
 
@@ -436,6 +479,7 @@
         loadingPicking: false,
         toastMessage: '',
         toastTimeout: null,
+        expandedOrders: {},
         counts: {
           pendientes: 0,
           falta_stock: 0,
@@ -446,9 +490,32 @@
           return this.counts.pendientes + this.counts.falta_stock;
         },
 
+        isOrderCompleted(order) {
+          return order.status === 'Listo para recoger' || order.status === 'Entregado';
+        },
+
+        isOrderExpanded(order) {
+          if (this.expandedOrders[order.id] !== undefined) {
+            return this.expandedOrders[order.id];
+          }
+          // Si está completado (Listo o Entregado), por defecto se pliega
+          if (this.isOrderCompleted(order)) {
+            return false;
+          }
+          // Si está por preparar, se muestra abierto
+          return true;
+        },
+
+        toggleOrderExpand(orderId) {
+          const ord = this.orders.find(o => o.id === orderId);
+          if (!ord) return;
+          const current = this.isOrderExpanded(ord);
+          this.expandedOrders[orderId] = !current;
+        },
+
         async init() {
           await this.fetchOrders();
-          // Actualización automática suave cada 60 segundos por si entran pedidos nuevos
+          // Actualización suave cada 60 segundos
           setInterval(() => {
             if (!this.loading) {
               this.fetchOrders(false);
@@ -505,7 +572,6 @@
             });
             const data = await res.json();
             if (data.success) {
-              // Actualizar estado local inmediatamente
               const ord = this.orders.find(o => o.id === orderId);
               if (ord && ord.items) {
                 const it = ord.items.find(i => i.id === itemId);
@@ -540,12 +606,14 @@
             const data = await res.json();
             if (data.success) {
               if (status === 'Listo para recoger') {
-                this.showToast(`¡Bolsa de ${studentName} marcada como lista!`);
+                // Plegar inmediatamente el pedido completado
+                this.expandedOrders[orderId] = false;
+                this.showToast(`¡Bolsa de ${studentName} preparada y plegada!`);
               } else if (isStockIssue) {
                 this.showToast(`Aviso de falta de stock guardado para ${studentName}`);
               }
 
-              // Refrescar lista de pedidos para reflejar el filtro actual
+              // Refrescar lista de pedidos para reflejar el estado actualizado
               await this.fetchOrders(false);
             }
           } catch (e) {
