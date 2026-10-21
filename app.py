@@ -22,6 +22,11 @@ app.config["SECRET_KEY"] = "san-buenaventura-secret-key-2026"
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+@app.route("/ping", methods=["GET", "HEAD"])
+@app.route("/health", methods=["GET", "HEAD"])
+def ping():
+    return "OK", 200, {"Content-Type": "text/plain"}
+
 # Inicializar DB y datos garantizando tablas
 init_db()
 seed_data.seed()
