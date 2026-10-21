@@ -320,8 +320,9 @@
                     <p class="text-lg font-black text-slate-900 leading-tight" x-text="formatMoney(order.total_amount)"></p>
                   </div>
 
-                  <!-- Selector rápido de estado ("Marcar") -->
-                  <div class="relative" x-show="userRole !== 'viewer'">
+                  <!-- Selector / Acciones de Estado -->
+                  <!-- PERFIL MAESTRO: Control total de estados -->
+                  <div class="relative" x-show="userRole === 'master'">
                     <select :value="order.status"
                             @change="changeOrderStatus(order.id, $event.target.value)"
                             :class="getStatusBadgeClass(order.status)"
@@ -330,9 +331,53 @@
                       <option value="En preparación">En preparación</option>
                       <option value="Listo para recoger">Listo para recoger (Envía mail)</option>
                       <option value="Entregado">Entregado</option>
-                      <option value="Cancelado" :disabled="userRole === 'operator'" x-text="userRole === 'operator' ? 'Cancelado (Solo Maestro)' : 'Cancelado'"></option>
+                      <option value="Cancelado">Cancelado</option>
                     </select>
                   </div>
+
+                  <!-- PERFIL PORTERÍA (operator): Solo puede gestionar la entrega cuando esté "Listo para recoger" -->
+                  <div x-show="userRole === 'operator'" class="inline-flex items-center">
+                    <!-- Si está Listo para recoger -> Botón para marcar ENTREGADO -->
+                    <template x-if="order.status === 'Listo para recoger'">
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-black px-2.5 py-1.5 rounded-xl border bg-emerald-100 text-emerald-950 border-emerald-300 shadow-2xs">
+                          📦 Listo para recoger
+                        </span>
+                        <button @click="changeOrderStatus(order.id, 'Entregado')"
+                                type="button"
+                                class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition flex items-center gap-1 cursor-pointer"
+                                title="Pulsar cuando la familia recoja el uniforme en portería">
+                          <span>✅ Marcar ENTREGADO</span>
+                        </button>
+                      </div>
+                    </template>
+
+                    <!-- Si está Entregado -> Opción para desmarcar entrega si hubo error -->
+                    <template x-if="order.status === 'Entregado'">
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-bold px-2.5 py-1.5 rounded-xl border bg-slate-200 text-slate-800 border-slate-300">
+                          ✓ Entregado
+                        </span>
+                        <button @click="changeOrderStatus(order.id, 'Listo para recoger')"
+                                type="button"
+                                class="px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-bold border border-slate-300 shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                                title="Desmarcar entrega (devolver a Listo para recoger)">
+                          <span>↩️ No entregado</span>
+                        </button>
+                      </div>
+                    </template>
+
+                    <!-- Si está en otro estado (Pendiente, En preparación, Cancelado) -> Bloqueado en almacén -->
+                    <template x-if="order.status !== 'Listo para recoger' && order.status !== 'Entregado'">
+                      <div class="flex items-center gap-1.5">
+                        <span :class="getStatusBadgeClass(order.status)" class="text-xs font-bold px-3 py-2 rounded-xl border inline-block" x-text="order.status"></span>
+                        <span class="text-[10px] text-slate-400 font-bold px-2 py-1 bg-slate-100 rounded-lg border border-slate-200" title="Solo editable cuando almacén lo marque Listo para recoger">
+                          🔒 En almacén
+                        </span>
+                      </div>
+                    </template>
+                  </div>
+
                   <!-- Modo Visor: Etiqueta de estado de solo lectura -->
                   <div x-show="userRole === 'viewer'">
                     <span :class="getStatusBadgeClass(order.status)" class="text-xs font-bold px-3 py-2 rounded-xl border inline-block" x-text="order.status"></span>
@@ -1119,7 +1164,8 @@
 
           <!-- Botones de Acción Inmediata -->
           <div class="flex items-center gap-2 pt-1">
-            <template x-if="userRole !== 'viewer'">
+            <!-- MODO MAESTRO: Puede entregar directamente -->
+            <template x-if="userRole === 'master'">
               <div class="flex-1 flex items-center gap-2">
                 <button x-show="scannedOrder.status !== 'Entregado'"
                         @click="deliverScannedOrder()"
@@ -1129,9 +1175,50 @@
                   <span x-text="deliveringOrder ? 'Registrando entrega...' : '✅ Marcar como ENTREGADO'"></span>
                 </button>
 
-                <span x-show="scannedOrder.status === 'Entregado'" class="flex-1 py-2.5 bg-slate-200 text-slate-600 font-bold rounded-xl text-xs text-center">
-                  ✓ Pedido ya entregado
-                </span>
+                <div x-show="scannedOrder.status === 'Entregado'" class="flex-1 flex items-center gap-2">
+                  <span class="flex-1 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs text-center">
+                    ✓ Pedido ya entregado
+                  </span>
+                  <button @click="undeliverScannedOrder()"
+                          :disabled="deliveringOrder"
+                          class="px-3 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold border border-slate-300 rounded-xl text-xs transition cursor-pointer"
+                          title="Desmarcar entrega">
+                    ↩️ Desmarcar
+                  </button>
+                </div>
+              </div>
+            </template>
+
+            <!-- MODO PORTERÍA (operator): Solo puede entregar si está Listo para recoger -->
+            <template x-if="userRole === 'operator'">
+              <div class="flex-1 flex items-center gap-2">
+                <!-- Caso 1: Listo para recoger -> Botón verde de entrega -->
+                <button x-show="scannedOrder.status === 'Listo para recoger'"
+                        @click="deliverScannedOrder()"
+                        :disabled="deliveringOrder"
+                        class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span x-text="deliveringOrder ? 'Registrando entrega...' : '✅ Marcar como ENTREGADO'"></span>
+                </button>
+
+                <!-- Caso 2: Ya entregado -> Puede desmarcar si hubo error -->
+                <div x-show="scannedOrder.status === 'Entregado'" class="flex-1 flex items-center gap-2">
+                  <span class="flex-1 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs text-center">
+                    ✓ Pedido ya entregado
+                  </span>
+                  <button @click="undeliverScannedOrder()"
+                          :disabled="deliveringOrder"
+                          class="px-3 py-2.5 bg-white hover:bg-slate-100 text-slate-700 font-bold border border-slate-300 rounded-xl text-xs transition cursor-pointer"
+                          title="Desmarcar entrega si hubo error">
+                    ↩️ No entregado
+                  </button>
+                </div>
+
+                <!-- Caso 3: Aún en almacén (Pendiente, En preparación) -->
+                <div x-show="scannedOrder.status !== 'Listo para recoger' && scannedOrder.status !== 'Entregado'"
+                     class="flex-1 py-2.5 px-3 bg-amber-50 border border-amber-300 text-amber-900 font-bold rounded-xl text-xs text-center">
+                  <span>🔒 En almacén (<span x-text="scannedOrder.status"></span>). Solo entregable cuando esté 'Listo para recoger'.</span>
+                </div>
               </div>
             </template>
 
@@ -2534,6 +2621,34 @@
           } catch (err) {
             console.error("Error entregando pedido", err);
             this.scanErrorMsg = "Error en la petición de entrega.";
+          } finally {
+            this.deliveringOrder = false;
+          }
+        },
+
+        async undeliverScannedOrder() {
+          if (!this.scannedOrder) return;
+          this.deliveringOrder = true;
+          this.scanErrorMsg = '';
+          this.scanSuccessMsg = '';
+          try {
+            const res = await fetch(`/api/admin/orders/${this.scannedOrder.id}/status`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'Listo para recoger', send_email: false, comment: 'Desmarcada entrega desde portería (devuelto a Listo para recoger).' })
+            });
+            const data = await res.json();
+            if (res.ok) {
+              this.scannedOrder.status = 'Listo para recoger';
+              this.scanSuccessMsg = `✓ Entrega desmarcada: El pedido ${this.scannedOrder.locator} vuelve a estar en 'Listo para recoger'.`;
+              this.fetchOrders();
+              this.fetchStats();
+            } else {
+              this.scanErrorMsg = data.error || "No se pudo actualizar el pedido.";
+            }
+          } catch (err) {
+            console.error("Error desmarcando entrega", err);
+            this.scanErrorMsg = "Error en la petición al servidor.";
           } finally {
             this.deliveringOrder = false;
           }

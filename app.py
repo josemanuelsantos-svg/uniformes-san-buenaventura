@@ -117,7 +117,7 @@ ROLE_METADATA = {
         "name": "Portería & Gestión de Cambios y Devoluciones",
         "badge": "🏢 Portería (Cambios & Devoluciones)",
         "badge_color": "bg-amber-100 text-amber-950 border-amber-300 font-extrabold",
-        "description": "Atención a familias en portería: recogida de prendas, trámite de devoluciones y cambios de prenda o talla en pedidos existentes.",
+        "description": "Atención a familias en portería: entrega de pedidos listos para recoger, recogida de prendas devueltas y cambios de prenda o talla.",
         "can_edit_all": False,
         "can_cancel_orders": False,
         "can_edit_catalog": False,
@@ -1005,6 +1005,10 @@ def admin_deliver_order(order_id):
     if not check_admin_auth():
         return jsonify({"error": "No autorizado"}), 401
 
+    role = get_admin_role()
+    if role == "viewer":
+        return jsonify({"error": "Modo consulta no tiene permisos para entregar pedidos."}), 403
+
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
@@ -1013,16 +1017,31 @@ def admin_deliver_order(order_id):
         conn.close()
         return jsonify({"error": "Pedido no encontrado"}), 404
 
+    order_dict = dict(order)
+    # Si es operario de portería, SOLO puede entregar si el pedido está 'Listo para recoger'
+    if role == "operator" and order_dict.get("status") != "Listo para recoger":
+        conn.close()
+        return jsonify({
+            "error": f"El perfil de portería solo puede marcar como entregado si el pedido está 'Listo para recoger' (estado actual: '{order_dict.get('status')}')."
+        }), 400
+
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cursor.execute("UPDATE orders SET status = 'Entregado', updated_at = ? WHERE id = ?", (now_str, order_id))
     cursor.execute("""
         INSERT INTO order_history (order_id, status, comment, timestamp)
-        VALUES (?, 'Entregado', 'Uniforme entregado en conserjería tras escaneo de QR.', ?)
+        VALUES (?, 'Entregado', 'Uniforme entregado en conserjería a la familia.', ?)
     """, (order_id, now_str))
     conn.commit()
+
+    cursor.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
+    updated_order = dict(cursor.fetchone())
     conn.close()
 
-    return jsonify({"success": True, "message": f"Pedido {order['locator']} marcado como ENTREGADO a la familia."})
+    return jsonify({
+        "success": True,
+        "order": updated_order,
+        "message": f"Pedido {order_dict['locator']} marcado como ENTREGADO a la familia."
+    })
 
 def generate_ticket_code(prefix="CAMBIO"):
     year = datetime.now().year
@@ -1637,6 +1656,13 @@ def admin_emit_invoice(order_id):
 
 @app.route("/api/admin/orders/<int:order_id>/status", methods=["PATCH"])
 def admin_update_order_status(order_id):
+    if not check_admin_auth():
+        return jsonify({"error": "No autorizado"}), 401
+
+    role = get_admin_role()
+    if role == "viewer":
+        return jsonify({"error": "Acceso restringido: El perfil de solo consulta no puede modificar estados."}), 403
+
     data = request.get_json() or {}
     new_status = data.get("status", "").strip()
     comment = data.get("comment", "").strip()
@@ -1655,15 +1681,36 @@ def admin_update_order_status(order_id):
         return jsonify({"error": "Pedido no encontrado"}), 404
 
     order_dict = dict(order)
+    current_status = order_dict.get("status")
+
+    # VALIDACIÓN ESPECÍFICA PARA EL PERFIL DE PORTERÍA (operator):
+    # Solo puede editar si el pedido está actualmente 'Listo para recoger' o 'Entregado'.
+    # Y solo puede alternar entre 'Entregado' y 'Listo para recoger'.
+    if role == "operator":
+        if current_status not in ("Listo para recoger", "Entregado"):
+            conn.close()
+            return jsonify({
+                "error": f"El perfil de portería solo puede editar la entrega de pedidos que ya estén preparados ('Listo para recoger'). El estado actual es '{current_status}'."
+            }), 403
+
+        if new_status not in ("Listo para recoger", "Entregado"):
+            conn.close()
+            return jsonify({
+                "error": "El perfil de portería solo tiene permiso para marcar el pedido como 'Entregado' o 'Listo para recoger'."
+            }), 403
+
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     if not comment:
         if new_status == "En preparación":
             comment = "Prendas en preparación en el almacén del colegio."
         elif new_status == "Listo para recoger":
-            comment = "Pedido empaquetado y depositado en conserjería para su recogida."
+            if current_status == "Entregado":
+                comment = "Entrega desmarcada desde portería (pedido vuelve a Listo para recoger)."
+            else:
+                comment = "Pedido empaquetado y depositado en conserjería para su recogida."
         elif new_status == "Entregado":
-            comment = "Uniforme entregado a la familia."
+            comment = "Uniforme entregado a la familia en portería."
         elif new_status == "Cancelado":
             comment = "Pedido cancelado."
         else:
