@@ -69,6 +69,10 @@ def init_db():
     existing_cols = [r[1] for r in cursor.fetchall()]
     if "size_prices_json" not in existing_cols:
         cursor.execute("ALTER TABLE products ADD COLUMN size_prices_json TEXT")
+    if "out_of_stock_sizes_json" not in existing_cols:
+        cursor.execute("ALTER TABLE products ADD COLUMN out_of_stock_sizes_json TEXT DEFAULT '[]'")
+    if "is_out_of_stock" not in existing_cols:
+        cursor.execute("ALTER TABLE products ADD COLUMN is_out_of_stock INTEGER DEFAULT 0")
 
     # Tabla de Pedidos / Reservas (Persistencia garantizada)
     cursor.execute("""
@@ -212,6 +216,8 @@ def init_db():
         cursor.execute("ALTER TABLE order_items ADD COLUMN is_prepared INTEGER DEFAULT 0")
     if "missing_stock" not in item_cols:
         cursor.execute("ALTER TABLE order_items ADD COLUMN missing_stock INTEGER DEFAULT 0")
+    if "is_out_of_stock" not in item_cols:
+        cursor.execute("ALTER TABLE order_items ADD COLUMN is_out_of_stock INTEGER DEFAULT 0")
 
     # Rellenar datos fiscales y número de factura correlativo en pedidos existentes que no lo tengan
     cursor.execute("SELECT id, parent_name, invoice_number, billing_name FROM orders ORDER BY id ASC")

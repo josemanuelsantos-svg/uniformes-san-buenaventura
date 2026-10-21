@@ -288,9 +288,44 @@ function uniformApp() {
       });
     },
 
+    isSizeOutOfStock(product, size) {
+      if (!product) return false;
+      if (product.is_out_of_stock) return true;
+      const s = size || this.selectedSizes[product.id] || (product.sizes ? product.sizes[0] : null);
+      if (!s) return false;
+      const oos = product.out_of_stock_sizes || [];
+      return oos.includes(s);
+    },
+
+    isProductOutOfStock(product) {
+      if (!product) return false;
+      if (product.is_out_of_stock) return true;
+      const oos = product.out_of_stock_sizes || [];
+      const allSizes = product.sizes || [];
+      return allSizes.length > 0 && allSizes.every(s => oos.includes(s));
+    },
+
+    isCurrentSizeOutOfStock(product) {
+      if (!product) return false;
+      const size = this.selectedSizes[product.id] || (product.sizes ? product.sizes[0] : null);
+      return this.isSizeOutOfStock(product, size);
+    },
+
+    getOfficialPriceForSize(product, size) {
+      if (!product) return 0;
+      const s = size || this.selectedSizes[product.id] || (product.sizes ? product.sizes[0] : null);
+      if (s && product.size_prices && product.size_prices[s] !== undefined) {
+        return product.size_prices[s];
+      }
+      return product.price;
+    },
+
     getCurrentPrice(product) {
       if (!product) return 0;
       const size = this.selectedSizes[product.id] || (product.sizes ? product.sizes[0] : null);
+      if (this.isSizeOutOfStock(product, size)) {
+        return 0; // Agotado: 0,00 € (No se cobra ahora)
+      }
       return this.getPriceForSize(product, size);
     },
 
@@ -305,26 +340,38 @@ function uniformApp() {
     addToCart(product, customSize, studentName, customQty) {
       if (!product) return;
       const size = customSize || this.selectedSizes[product.id] || (product.sizes ? product.sizes[0] : 'Única');
-      const unitPrice = this.getPriceForSize(product, size);
+      const isOos = this.isSizeOutOfStock(product, size);
+      const officialPrice = this.getOfficialPriceForSize(product, size);
+      // REGLA: Si está agotado NO se cobra (0 €), se queda pendiente para dar el resto al llegar
+      const unitPrice = isOos ? 0 : officialPrice;
       const student = (studentName || '').trim();
       const qtyToAdd = parseInt(customQty || 1, 10);
 
       const existing = this.cart.find(it => it.product_id === product.id && it.size === size && (it.student_name || '') === student);
       if (existing) {
         existing.quantity += qtyToAdd;
+        existing.is_out_of_stock = isOos;
+        existing.official_price = officialPrice;
+        existing.unit_price = unitPrice;
       } else {
         this.cart.push({
           product_id: product.id,
           product_name: product.name,
           size: size,
           unit_price: unitPrice,
+          official_price: officialPrice,
+          is_out_of_stock: isOos,
           quantity: qtyToAdd,
           image_url: product.image_url,
           student_name: student
         });
       }
 
-      this.showToast(`Añadido: ${qtyToAdd}x ${product.name} (${size})` + (student ? ` [${student}]` : '') + ` - ${this.formatMoney(unitPrice * qtyToAdd)}`);
+      if (isOos) {
+        this.showToast(`📋 Prenda AGOTADA reservada: ${qtyToAdd}x ${product.name} (${size}) - 0,00 € (Pendiente de cobro al llegar reposición)`);
+      } else {
+        this.showToast(`Añadido: ${qtyToAdd}x ${product.name} (${size})` + (student ? ` [${student}]` : '') + ` - ${this.formatMoney(unitPrice * qtyToAdd)}`);
+      }
     },
 
     get upsellSuggestions() {
@@ -362,6 +409,14 @@ function uniformApp() {
 
     get cartTotal() {
       return this.cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+    },
+
+    get cartHasOutOfStockItems() {
+      return this.cart.some(it => it.is_out_of_stock);
+    },
+
+    get outOfStockItemsCount() {
+      return this.cart.filter(it => it.is_out_of_stock).reduce((sum, it) => sum + it.quantity, 0);
     },
 
     showToast(msg) {

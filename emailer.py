@@ -322,19 +322,32 @@ def send_order_confirmation_email(order, items, base_url="http://localhost:5050/
     # Construir listado de prendas en texto y HTML
     items_text = ""
     items_html_rows = ""
+    has_oos_in_email = False
     for it in items:
-        sub = f"{it['subtotal']:.2f} €"
+        is_oos = bool(it.get('is_out_of_stock') or it.get('missing_stock') or float(it.get('subtotal', 0)) == 0)
+        if is_oos:
+            has_oos_in_email = True
+            sub = "0,00 € (Agotado - Pendiente de reposición)"
+            name_display = f"{it['product_name']} <span style='background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:bold;margin-left:4px;'>⚠️ AGOTADO</span>"
+        else:
+            sub = f"{it['subtotal']:.2f} €"
+            name_display = it['product_name']
+
         items_text += f"- {it['product_name']} (Talla: {it['size']}) x{it['quantity']} = {sub}\n"
         items_html_rows += f"""
         <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 10px 8px; font-weight: 600; color: #1e293b;">{it['product_name']}</td>
+            <td style="padding: 10px 8px; font-weight: 600; color: #1e293b;">{name_display}</td>
             <td style="padding: 10px 8px; text-align: center; color: #475569;"><span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-family: monospace;">{it['size']}</span></td>
             <td style="padding: 10px 8px; text-align: center; color: #475569;">{it['quantity']}</td>
             <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: #0f172a;">{sub}</td>
         </tr>
         """
 
-    subject = f"Reserva de Uniformes Recibida [{locator}] - Colegio San Buenaventura"
+    subject = f"Comprobante de Reserva de Uniformes [{locator}] - Colegio San Buenaventura"
+
+    oos_note_text = ""
+    if has_oos_in_email:
+        oos_note_text = "\n* NOTA SOBRE PRENDAS AGOTADAS: Las prendas agotadas se reservan sin cobrar (0,00 €) y se entregarán en cuanto el colegio reciba el nuevo stock del taller.\n"
 
     body_text = f"""Paz y Bien.
 
@@ -349,21 +362,28 @@ PUNTO DE RECOGIDA: Portería del Colegio (C/ El Greco, 16)
 
 PRENDAS RESERVADAS:
 {items_text}
-TOTAL ESTIMADO: {total}
-
+TOTAL A COBRAR EN RECIBO: {total}
+{oos_note_text}
 ESTADO ACTUAL: PENDIENTE DE PREPARACIÓN
 En cuanto el personal de portería y almacén prepare su paquete, le enviaremos un nuevo correo indicándole que ya puede pasar a recogerlo por portería.
 
-Puede consultar su pedido y descargar su factura proforma oficial en cualquier momento en el siguiente enlace:
-{invoice_url}
-
-Para consultar el estado en la web:
+Puede consultar su reserva y comprobante en cualquier momento en el siguiente enlace:
 {tracking_url}
+
+Si necesita Factura Oficial para su empresa o declaración, Secretaría se la emitirá a petición de la familia.
 
 Atentamente,
 Portería y Almacén de Uniformes
 Colegio San Buenaventura
 """
+
+    oos_alert_html = ""
+    if has_oos_in_email:
+        oos_alert_html = """
+        <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; color: #92400e; line-height: 1.4;">
+            <strong>⚠️ Prendas agotadas reservadas:</strong> Las prendas marcadas como <em>Agotadas</em> no han sido cobradas en este recibo (<strong>0,00 €</strong>). Quedan reservadas y el colegio las entregará en portería al recibir la reposición del taller.
+        </div>
+        """
 
     body_html = f"""
     <!DOCTYPE html>
@@ -407,15 +427,18 @@ Colegio San Buenaventura
                     </tfoot>
                 </table>
 
+                {oos_alert_html}
+
                 <div style="text-align: center; margin: 25px 0;">
-                    <a href="{invoice_url}" style="background-color: #1b365d; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px; display: inline-block;">
-                        Ver / Imprimir Factura Oficial (PDF)
+                    <a href="{tracking_url}" style="background-color: #002B66; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px; display: inline-block;">
+                        📄 Consultar Comprobante de Reserva
                     </a>
                 </div>
 
                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #1e3a8a; line-height: 1.5;">
-                    <strong>ℹ️ Información importante de cobro y recogida:</strong><br>
+                    <strong>ℹ️ Información de cobro, recogida y facturación:</strong><br>
                     • <strong>Forma de cobro:</strong> El importe se cargará directamente por <strong>Recibo Escolar</strong> en su cuenta bancaria habitual del colegio (no requiere pago online ni presencial).<br>
+                    • <strong>Factura Oficial:</strong> Si precisa Factura Oficial con desglose fiscal específico, Secretaría se la emitirá a petición de la familia.<br>
                     • <strong>Punto de recogida:</strong> <strong>Portería del Colegio</strong> (C/ El Greco, 16) una vez reciba el aviso de pedido preparado.
                 </div>
             </div>

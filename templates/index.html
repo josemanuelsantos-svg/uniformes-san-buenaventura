@@ -831,22 +831,56 @@
               {% for cat in categories if cat.id == product.category_id %}
               <span class="text-[10px] font-bold uppercase tracking-wider text-blue-900 bg-blue-50 px-2 py-0.5 rounded inline-block border border-blue-100">{{ cat.name }}</span>
               {% endfor %}
-              <span class="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Disponible
-              </span>
+              <template x-if="isCurrentSizeOutOfStock(getProductById({{ product.id }}))">
+                <span class="text-[10px] font-extrabold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300 flex items-center gap-1 shadow-2xs">
+                  <span>⚠️</span> Agotado (Reserva 0 €)
+                </span>
+              </template>
+              <template x-if="!isCurrentSizeOutOfStock(getProductById({{ product.id }}))">
+                <span class="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Disponible
+                </span>
+              </template>
             </div>
             <h3 class="font-bold text-slate-900 text-base leading-snug group-hover:text-blue-900 transition">{{ product.name }}</h3>
             <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ product.description }}</p>
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-100">
+            <!-- Aviso si la talla seleccionada está agotada -->
+            <template x-if="isCurrentSizeOutOfStock(getProductById({{ product.id }}))">
+              <div class="mb-3 p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-950 text-xs">
+                <div class="flex items-center justify-between font-bold">
+                  <span>⚠️ Talla Agotada en Almacén</span>
+                  <span class="text-[10px] bg-amber-200 text-amber-950 px-1.5 py-0.5 rounded font-black">0,00 € AHORA</span>
+                </div>
+                <p class="text-[11px] text-amber-800 mt-1 leading-snug">
+                  <strong>No se cobra en este recibo</strong>. Puedes reservarla ahora: quedará en pendiente y el colegio te la entregará en cuanto llegue la reposición del taller.
+                </p>
+              </div>
+            </template>
+
             <!-- Precio dinámico según talla + desglose IVA -->
             <div class="flex items-baseline justify-between mb-3">
               <div>
-                <span class="text-[11px] text-slate-400 font-semibold block">Precio oficial (IVA incl.):</span>
-                <span class="text-[10px] text-slate-400" x-text="'Base: ' + formatMoney(getCurrentPrice(getProductById({{ product.id }})) / 1.21)"></span>
+                <span class="text-[11px] text-slate-400 font-semibold block">
+                  <span x-show="!isCurrentSizeOutOfStock(getProductById({{ product.id }}))">Precio oficial (IVA incl.):</span>
+                  <span x-show="isCurrentSizeOutOfStock(getProductById({{ product.id }}))" class="text-amber-700 font-bold">Importe actual a cobrar:</span>
+                </span>
+                <span class="text-[10px] text-slate-400" x-show="!isCurrentSizeOutOfStock(getProductById({{ product.id }}))" x-text="'Base: ' + formatMoney(getCurrentPrice(getProductById({{ product.id }})) / 1.21)"></span>
+                <span class="text-[10px] text-slate-400" x-show="isCurrentSizeOutOfStock(getProductById({{ product.id }}))" x-text="'Ref. habitual: ' + formatMoney(getOfficialPriceForSize(getProductById({{ product.id }})))"></span>
               </div>
-              <span class="text-2xl font-black text-blue-950" x-text="formatMoney(getCurrentPrice(getProductById({{ product.id }})))">{{ "%.2f"|format(product.price) }} €</span>
+              <div class="text-right">
+                <template x-if="isCurrentSizeOutOfStock(getProductById({{ product.id }}))">
+                  <div class="flex items-baseline gap-1.5">
+                    <span class="text-xs text-slate-400 line-through" x-text="formatMoney(getOfficialPriceForSize(getProductById({{ product.id }})))"></span>
+                    <span class="text-2xl font-black text-amber-700">0,00 €</span>
+                  </div>
+                </template>
+                <template x-if="!isCurrentSizeOutOfStock(getProductById({{ product.id }}))">
+                  <span class="text-2xl font-black text-blue-950" x-text="formatMoney(getCurrentPrice(getProductById({{ product.id }})))">{{ "%.2f"|format(product.price) }} €</span>
+                </template>
+              </div>
             </div>
 
             <!-- Selector Rápido de Talla con Píldoras + Desplegable -->
@@ -858,31 +892,38 @@
                 </button>
               </div>
 
-              <!-- Píldoras rápidas de talla -->
+              <!-- Píldoras rápidas de talla con indicativo de agotado -->
               <div class="flex flex-wrap gap-1 mb-2">
                 {% for sz in product.sizes %}
                 <button type="button"
                         @click="selectedSizes[{{ product.id }}] = '{{ sz }}'"
-                        :class="selectedSizes[{{ product.id }}] === '{{ sz }}' ? 'bg-blue-900 text-white border-blue-900 shadow-2xs scale-105' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/40'"
-                        class="px-2 py-1 text-[11px] font-bold rounded-lg border transition cursor-pointer">
-                  {{ sz }}
+                        :class="[
+                          selectedSizes[{{ product.id }}] === '{{ sz }}' ? 'bg-blue-900 text-white border-blue-900 shadow-2xs scale-105' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/40',
+                          isSizeOutOfStock(getProductById({{ product.id }}), '{{ sz }}') ? 'border-amber-400 bg-amber-50/60' : ''
+                        ]"
+                        class="px-2 py-1 text-[11px] font-bold rounded-lg border transition cursor-pointer relative flex items-center gap-1">
+                  <span>{{ sz }}</span>
+                  <span x-show="isSizeOutOfStock(getProductById({{ product.id }}), '{{ sz }}')" class="text-[9px] font-black text-amber-800 bg-amber-200 px-1 rounded leading-none">Agotada</span>
                 </button>
                 {% endfor %}
               </div>
 
               <select x-model="selectedSizes[{{ product.id }}]" class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-800 cursor-pointer">
                 {% for sz in product.sizes %}
-                <option value="{{ sz }}">Talla {{ sz }}{% if product.size_prices and product.size_prices.get(sz) %} — {{ "%.2f"|format(product.size_prices.get(sz)) }} €{% endif %}</option>
+                <option value="{{ sz }}">
+                  Talla {{ sz }}{% if sz in (product.out_of_stock_sizes or []) or product.is_out_of_stock %} — [AGOTADA - Reserva a 0,00 €]{% elif product.size_prices and product.size_prices.get(sz) %} — {{ "%.2f"|format(product.size_prices.get(sz)) }} €{% endif %}
+                </option>
                 {% endfor %}
               </select>
             </div>
 
-            <!-- Botones de Compra: +1 ud y +2 uds rápido -->
+            <!-- Botones de Compra: Si está agotado dice 'Reservar (Agotado - 0 €)' -->
             <div class="flex gap-2">
               <button @click="addToCart(getProductById({{ product.id }}))"
-                      class="flex-1 py-2.5 px-3 bg-[#002B66] hover:bg-blue-950 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                      :class="isCurrentSizeOutOfStock(getProductById({{ product.id }})) ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-200' : 'bg-[#002B66] hover:bg-blue-950 text-white'"
+                      class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>Añadir</span>
+                <span x-text="isCurrentSizeOutOfStock(getProductById({{ product.id }})) ? '📋 Reservar (Agotado - 0 €)' : 'Añadir'"></span>
               </button>
               <button @click="addToCart(getProductById({{ product.id }}), null, '', 2)"
                       title="Añadir 2 unidades de esta talla para recambio semanal"
@@ -1253,19 +1294,15 @@
           <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
         </div>
 
-        <h3 class="text-2xl font-black font-serif-title text-slate-900">¡Reserva y Factura Generadas!</h3>
+        <h3 class="text-2xl font-black font-serif-title text-slate-900">¡Reserva Registrada con Éxito!</h3>
         <p class="text-xs sm:text-sm text-slate-600 mt-2">
-          Hemos registrado tu pedido y emitido el documento fiscal para el Colegio San Buenaventura.
+          Hemos recibido tu solicitud de uniformes escolares para el Colegio San Buenaventura.
         </p>
 
-        <!-- Tarjeta Localizador y Nº Factura -->
+        <!-- Tarjeta Localizador y Total -->
         <div class="my-5 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-          <div class="flex items-center justify-between text-xs border-b border-slate-200 pb-2">
-            <span class="font-bold text-slate-500 uppercase">Nº Factura Oficial:</span>
-            <span class="font-mono font-black text-blue-950 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200" x-text="confirmedOrder?.invoice_number || 'FAC-2026'"></span>
-          </div>
           <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Localizador de Pedido</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Localizador de Reserva</span>
             <div class="flex items-center justify-center gap-3">
               <span class="text-2xl sm:text-3xl font-black text-blue-900 font-mono tracking-wider" x-text="confirmedOrder?.locator"></span>
               <button @click="copyLocator(confirmedOrder?.locator)" class="p-2 text-slate-400 hover:text-slate-700 bg-white border border-slate-200 rounded-lg shadow-2xs" title="Copiar localizador">
@@ -1274,6 +1311,14 @@
             </div>
             <span x-show="copiedMessage" class="text-xs text-emerald-600 font-semibold block mt-1">¡Copiado al portapapeles!</span>
           </div>
+
+          <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200">
+            <span class="font-bold text-slate-500 uppercase">Total a Cobrar en Recibo:</span>
+            <span class="font-mono font-black text-emerald-800 text-sm" x-text="formatMoney(confirmedOrder?.total_amount)"></span>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed text-left">
+            Te hemos enviado un correo con el comprobante completo. Te avisaremos cuando tu lote esté preparado en portería.
+          </p>
         </div>
 
         <!-- Tarjeta QR de Recogida Rápida en Portería -->
@@ -1282,17 +1327,17 @@
             <img :src="confirmedOrder.qr_code" alt="Código QR de Entrega" class="w-32 h-32 rounded-xl bg-white p-2 border border-amber-300 shadow-sm">
             <span class="text-xs font-bold text-slate-800 mt-2">📱 Código QR de Recogida Rápida</span>
             <p class="text-[11px] text-slate-500 mt-0.5 max-w-xs leading-relaxed">
-              Muestra este código en portería para retirar tu paquete rápidamente cuando esté preparado.
+              Muestra este código en portería para retirar tu paquete cuando esté preparado.
             </p>
           </div>
         </template>
 
-        <!-- Acciones: Emisor de Factura y Cerrar -->
+        <!-- Acciones: Comprobante y Cerrar -->
         <div class="space-y-2.5">
-          <a :href="confirmedOrder?.invoice_url" target="_blank"
-             class="w-full py-3.5 px-4 bg-blue-900 hover:bg-blue-950 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-            <span>Abrir Emisor de Factura Oficial / Descargar PDF</span>
+          <a :href="'/comprobante/' + confirmedOrder?.locator" target="_blank"
+             class="w-full py-3.5 px-4 bg-[#002B66] hover:bg-[#001D47] text-white font-bold text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Ver / Descargar Comprobante Oficial de Reserva</span>
           </a>
 
           <button @click="openSuccessModal = false"
@@ -1302,7 +1347,7 @@
         </div>
 
         <p class="text-[11px] text-slate-400 mt-4 leading-relaxed">
-          También puedes editar o completar los datos fiscales desde el propio documento de factura en cualquier momento.
+          * Si precisa Factura Oficial con desglose fiscal específico para su empresa o declaración, Secretaría se la emitirá a petición de la familia.
         </p>
       </div>
     </div>

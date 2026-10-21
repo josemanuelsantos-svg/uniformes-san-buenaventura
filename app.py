@@ -114,10 +114,10 @@ ROLE_METADATA = {
     },
     "operator": {
         "id": "operator",
-        "name": "Gestión de Cambios & Almacén",
-        "badge": "🔄 Cambios & Almacén",
-        "badge_color": "bg-blue-100 text-blue-900 border-blue-300",
-        "description": "Consulta de pedidos, canje de tallas y tramitación de devoluciones. Sin permiso para modificar importes, cancelar pedidos o editar catálogo.",
+        "name": "Portería & Gestión de Cambios y Devoluciones",
+        "badge": "🏢 Portería (Cambios & Devoluciones)",
+        "badge_color": "bg-amber-100 text-amber-950 border-amber-300 font-extrabold",
+        "description": "Atención a familias en portería: recogida de prendas, trámite de devoluciones y cambios de prenda o talla en pedidos existentes.",
         "can_edit_all": False,
         "can_cancel_orders": False,
         "can_edit_catalog": False,
@@ -204,6 +204,32 @@ def protect_admin_api():
         # Permisos totales sobre todos los recursos
         return None
 
+def format_product_dict(row):
+    item = dict(row)
+    try:
+        item["sizes"] = json.loads(item["sizes_json"])
+    except Exception:
+        item["sizes"] = [s.strip() for s in (item.get("sizes_json") or "").split(",") if s.strip()]
+
+    if item.get("size_prices_json"):
+        try:
+            item["size_prices"] = json.loads(item["size_prices_json"])
+        except Exception:
+            item["size_prices"] = {}
+    else:
+        item["size_prices"] = {}
+
+    if item.get("out_of_stock_sizes_json"):
+        try:
+            item["out_of_stock_sizes"] = json.loads(item["out_of_stock_sizes_json"])
+        except Exception:
+            item["out_of_stock_sizes"] = []
+    else:
+        item["out_of_stock_sizes"] = []
+
+    item["is_out_of_stock"] = int(item.get("is_out_of_stock") or 0)
+    return item
+
 @app.route("/")
 def index():
     locator = request.args.get("locator", "").strip().upper()
@@ -216,23 +242,7 @@ def index():
     products_raw = cursor.fetchall()
     conn.close()
 
-    products = []
-    for row in products_raw:
-        item = dict(row)
-        try:
-            item["sizes"] = json.loads(item["sizes_json"])
-        except Exception:
-            item["sizes"] = [s.strip() for s in item["sizes_json"].split(",")]
-
-        if item.get("size_prices_json"):
-            try:
-                item["size_prices"] = json.loads(item["size_prices_json"])
-            except Exception:
-                item["size_prices"] = {}
-        else:
-            item["size_prices"] = {}
-
-        products.append(item)
+    products = [format_product_dict(r) for r in products_raw]
 
     for cat in categories:
         cat["product_count"] = sum(1 for p in products if p["category_id"] == cat["id"])
@@ -257,7 +267,7 @@ def admin_login():
         session["admin_role"] = role_detected
         if next_target:
             return redirect(next_target)
-        next_path = "/preparador" if role_detected == "operator" else "/admin"
+        next_path = "/admin"
         if request.args.get("scanner"):
             next_path += "?scanner=1"
         return redirect(next_path)
@@ -270,10 +280,9 @@ def admin_login():
             session["admin_role"] = role
             if next_target:
                 return redirect(next_target)
-            next_path = "/preparador" if role == "operator" else "/admin"
-            return redirect(next_path)
+            return redirect("/admin")
         else:
-            error = "Clave de acceso no reconocida. Introduce una clave autorizada para Maestro, Cambios o Consulta."
+            error = "Clave de acceso no reconocida. Introduce una clave autorizada para Maestro, Portería o Consulta."
     return render_template("admin_login.html", error=error)
 
 @app.route("/admin/logout")
@@ -287,12 +296,11 @@ def admin():
     if not check_admin_auth():
         return redirect("/admin/login")
     role = get_admin_role()
-    if role == "operator":
-        return redirect("/preparador")
     role_info = ROLE_METADATA.get(role, ROLE_METADATA["viewer"])
     return render_template("admin.html", current_role=role, role_info=role_info)
 
 @app.route("/factura/<locator>")
+@app.route("/comprobante/<locator>")
 def invoice_view(locator):
     conn = get_db()
     cursor = conn.cursor()
@@ -303,10 +311,35 @@ def invoice_view(locator):
         abort(404, description="Pedido no encontrado")
 
     order = dict(order_row)
-    if not order.get("invoice_number"):
-        order["invoice_number"] = f"FAC-2026-{order['id']:04d}"
+    # La factura no se genera automáticamente al padre, debe ser emitida por el administrador
+    is_emitted = bool(order.get("invoice_number"))
     if not order.get("billing_name"):
         order["billing_name"] = order["parent_name"]
+
+    cursor.execute("""
+        SELECT oi.*, COALESCE(NULLIF(oi.product_code, ''), p.code, 'UNIF') as ref_code
+        FROM order_items oi
+        LEFT JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?
+    """, (order["id"],))
+    items = [dict(r) for r in cursor.fetchall()]
+
+    cursor.execute("SELECT key, value FROM school_settings")
+    settings = {row["key"]: row["value"] for row in cursor.fetchall()}
+    conn.close()
+
+    is_admin = bool(session.get("is_admin"))
+    user_role = get_admin_role() if is_admin else None
+
+    return render_template(
+        "invoice.html",
+        order=order,
+        items=items,
+        settings=settings,
+        is_emitted=is_emitted,
+        is_admin=is_admin,
+        user_role=user_role
+    )
 
     cursor.execute("""
         SELECT oi.*, COALESCE(NULLIF(oi.product_code, ''), p.code, 'UNIF') as ref_code
@@ -648,23 +681,7 @@ def get_catalog():
     products_raw = cursor.fetchall()
     conn.close()
 
-    products = []
-    for row in products_raw:
-        item = dict(row)
-        try:
-            item["sizes"] = json.loads(item["sizes_json"])
-        except Exception:
-            item["sizes"] = [s.strip() for s in item["sizes_json"].split(",")]
-
-        if item.get("size_prices_json"):
-            try:
-                item["size_prices"] = json.loads(item["size_prices_json"])
-            except Exception:
-                item["size_prices"] = {}
-        else:
-            item["size_prices"] = {}
-        products.append(item)
-
+    products = [format_product_dict(r) for r in products_raw]
     return jsonify({"categories": categories, "products": products})
 
 @app.route("/api/orders", methods=["POST"])
@@ -705,6 +722,8 @@ def create_order():
         # Validar productos y calcular total real desde base de datos según la talla elegida
         total_amount = 0.0
         processed_items = []
+        has_out_of_stock = False
+
         for item in items:
             prod_id = item.get("product_id")
             size = str(item.get("size", "")).strip()
@@ -713,7 +732,7 @@ def create_order():
             if quantity <= 0:
                 continue
 
-            cursor.execute("SELECT id, name, code, price, size_prices_json FROM products WHERE id = ?", (prod_id,))
+            cursor.execute("SELECT id, name, code, price, size_prices_json, out_of_stock_sizes_json, is_out_of_stock FROM products WHERE id = ?", (prod_id,))
             prod = cursor.fetchone()
             if not prod:
                 continue
@@ -727,8 +746,29 @@ def create_order():
                 except Exception:
                     pass
 
-            subtotal = round(unit_price * quantity, 2)
-            total_amount += subtotal
+            # Comprobar si la prenda o la talla concreta están agotadas
+            is_item_out_of_stock = False
+            if prod["is_out_of_stock"]:
+                is_item_out_of_stock = True
+            elif prod["out_of_stock_sizes_json"]:
+                try:
+                    oos_sizes = json.loads(prod["out_of_stock_sizes_json"])
+                    if size in oos_sizes:
+                        is_item_out_of_stock = True
+                except Exception:
+                    pass
+
+            if is_item_out_of_stock:
+                has_out_of_stock = True
+                # ¡REGLA AGOTADO: NO SE COBRA AHORA! Subtotal 0,00 €, se queda pendiente para dar el resto al llegar reposición
+                subtotal = 0.0
+                missing_stock = 1
+                is_prepared = 0
+            else:
+                subtotal = round(unit_price * quantity, 2)
+                total_amount += subtotal
+                missing_stock = 0
+                is_prepared = 0
 
             item_student = str(item.get("student_name", "")).strip() or student_name
 
@@ -740,7 +780,10 @@ def create_order():
                 "unit_price": unit_price,
                 "quantity": quantity,
                 "subtotal": subtotal,
-                "student_name": item_student
+                "student_name": item_student,
+                "is_prepared": is_prepared,
+                "missing_stock": missing_stock,
+                "is_out_of_stock": 1 if is_item_out_of_stock else 0
             })
 
         if not processed_items:
@@ -758,44 +801,49 @@ def create_order():
                 break
             locator = generate_locator()
 
-        # Inserción con transacción segura incluyendo datos de facturación
+        # Inserción con transacción segura incluyendo datos de facturación y alerta de stock si hay agotadas
+        stock_alert_val = 1 if has_out_of_stock else 0
         cursor.execute("""
             INSERT INTO orders (
                 locator, student_name, student_course, parent_name, parent_phone,
                 parent_email, parent_nif, billing_name, billing_address, billing_postal_code,
                 billing_city, payment_method, notes, status, total_amount, created_at, updated_at,
-                notification_channel, rgpd_accepted
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendiente', ?, ?, ?, 'email', 1)
+                notification_channel, rgpd_accepted, stock_alert
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendiente', ?, ?, ?, 'email', 1, ?)
         """, (
             locator, student_name, student_course, parent_name, parent_phone,
             parent_email, parent_nif, billing_name, billing_address, billing_postal_code,
-            billing_city, payment_method, notes, total_amount, now_str, now_str
+            billing_city, payment_method, notes, total_amount, now_str, now_str, stock_alert_val
         ))
 
         order_id = cursor.lastrowid
-        invoice_number = f"FAC-{datetime.now().year}-{order_id:04d}"
-        cursor.execute("UPDATE orders SET invoice_number = ? WHERE id = ?", (invoice_number, order_id))
+        # La factura oficial NO se genera automáticamente al padre, la emitirá el administrador
+        invoice_number = ""
 
         for pi in processed_items:
             cursor.execute("""
-                INSERT INTO order_items (order_id, product_id, product_code, product_name, size, unit_price, quantity, subtotal, student_name)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (order_id, pi["product_id"], pi["product_code"], pi["product_name"], pi["size"], pi["unit_price"], pi["quantity"], pi["subtotal"], pi["student_name"]))
+                INSERT INTO order_items (order_id, product_id, product_code, product_name, size, unit_price, quantity, subtotal, student_name, is_prepared, missing_stock, is_out_of_stock)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (order_id, pi["product_id"], pi["product_code"], pi["product_name"], pi["size"], pi["unit_price"], pi["quantity"], pi["subtotal"], pi["student_name"], pi["is_prepared"], pi["missing_stock"], pi["is_out_of_stock"]))
+
+        history_msg = 'Reserva y datos de facturación registrados en el sistema por la familia.'
+        if has_out_of_stock:
+            history_msg += ' (Incluye prendas agotadas reservadas sin cobrar a 0,00 € pendientes de entrega al llegar reposición).'
 
         cursor.execute("""
             INSERT INTO order_history (order_id, status, comment, timestamp)
-            VALUES (?, 'Pendiente', 'Reserva y datos de facturación registrados en el sistema por la familia.', ?)
-        """, (order_id, now_str))
+            VALUES (?, 'Pendiente', ?, ?)
+        """, (order_id, history_msg, now_str))
 
         conn.commit()
         conn.close()
         conn = None
 
-        # Preparar diccionario completo del pedido para backup y envío de email
+        # Preparar diccionario completo del pedido para backup y comprobante
         order_record = {
             "id": order_id,
             "locator": locator,
-            "invoice_number": invoice_number,
+            "invoice_number": "",
             "student_name": student_name,
             "student_course": student_course,
             "parent_name": parent_name,
@@ -817,7 +865,7 @@ def create_order():
         # 1. Backup redundante e inmediato en disco (append-only JSONL persistente)
         backup_order_to_disk(order_record, processed_items)
 
-        # 2. Envío automático e inmediato de correo de confirmación a la familia
+        # 2. Envío automático de comprobante de reserva a la familia
         try:
             email_res = send_order_confirmation_email(order_record, processed_items, request.host_url)
             print(f"✓ Confirmación enviada a {parent_email}: {email_res}")
@@ -844,11 +892,12 @@ def create_order():
     return jsonify({
         "success": True,
         "locator": locator,
-        "invoice_number": invoice_number,
+        "invoice_number": "",
         "order_id": order_id,
         "total_amount": total_amount,
-        "message": f"¡Tu reserva ha sido guardada con éxito! Hemos enviado un correo de confirmación a {parent_email}.",
-        "invoice_url": f"/factura/{locator}",
+        "message": f"¡Tu reserva ha sido guardada con éxito! Hemos enviado un comprobante a {parent_email}.",
+        "invoice_url": f"/comprobante/{locator}",
+        "voucher_url": f"/comprobante/{locator}",
         "qr_code": qr_code
     })
 
@@ -1460,11 +1509,10 @@ def admin_in_person_item_action(order_id):
 
     elif action == "exchange":
         new_size = data.get("new_size", "").strip()
-        if not new_size:
-            conn.close()
-            return jsonify({"error": "Debe especificar la nueva talla para el cambio."}), 400
-
+        new_product_id = data.get("new_product_id")
         old_size = item["size"]
+        old_name = item["product_name"]
+
         try:
             qty_to_change = int(data.get("quantity", item["quantity"]))
         except Exception:
@@ -1473,20 +1521,56 @@ def admin_in_person_item_action(order_id):
         if qty_to_change <= 0 or qty_to_change > item["quantity"]:
             qty_to_change = item["quantity"]
 
-        if qty_to_change == item["quantity"]:
-            cursor.execute("UPDATE order_items SET size = ? WHERE id = ?", (new_size, item_id))
-        else:
-            # Dividir la línea
-            remaining_qty = item["quantity"] - qty_to_change
-            cursor.execute("UPDATE order_items SET quantity = ?, subtotal = ? WHERE id = ?", 
-                           (remaining_qty, round(remaining_qty * item["unit_price"], 2), item_id))
-            cursor.execute("""
-                INSERT INTO order_items (order_id, product_id, product_name, size, unit_price, quantity, subtotal, student_name, product_code)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (order_id, item["product_id"], item["product_name"], new_size, item["unit_price"], 
-                  qty_to_change, round(qty_to_change * item["unit_price"], 2), item["student_name"], item["product_code"]))
+        # Determinar si cambia de prenda o solo de talla
+        target_prod_id = int(new_product_id) if new_product_id else item["product_id"]
+        cursor.execute("SELECT id, name, code, price, size_prices_json FROM products WHERE id = ?", (target_prod_id,))
+        target_prod = cursor.fetchone()
+        if not target_prod:
+            conn.close()
+            return jsonify({"error": "La prenda seleccionada para el cambio no existe en el catálogo."}), 404
 
-        comment = f"Cambio presencial en portería: {qty_to_change} ud(s) de {item['product_name']} cambiadas de talla {old_size} a {new_size}. Prenda canjeada en el centro. Motivo: {reason}."
+        target_name = target_prod["name"]
+        target_code = target_prod["code"] or "UNIF"
+        target_size = new_size if new_size else old_size
+
+        # Calcular precio unitario de la nueva prenda / talla
+        target_unit_price = float(target_prod["price"])
+        if target_prod["size_prices_json"] and target_size:
+            try:
+                sp_map = json.loads(target_prod["size_prices_json"])
+                if target_size in sp_map:
+                    target_unit_price = float(sp_map[target_size])
+            except Exception:
+                pass
+
+        new_subtotal = round(target_unit_price * qty_to_change, 2)
+
+        if qty_to_change == item["quantity"]:
+            cursor.execute("""
+                UPDATE order_items 
+                SET product_id = ?, product_name = ?, product_code = ?, size = ?, unit_price = ?, subtotal = ?
+                WHERE id = ?
+            """, (target_prod_id, target_name, target_code, target_size, target_unit_price, new_subtotal, item_id))
+        else:
+            # Dividir la línea: conservar prendas no cambiadas y añadir la nueva línea
+            rem_qty = item["quantity"] - qty_to_change
+            rem_subtotal = round(rem_qty * float(item["unit_price"]), 2)
+            cursor.execute("UPDATE order_items SET quantity = ?, subtotal = ? WHERE id = ?", (rem_qty, rem_subtotal, item_id))
+            cursor.execute("""
+                INSERT INTO order_items (order_id, product_id, product_name, size, unit_price, quantity, subtotal, student_name, product_code, is_prepared, missing_stock)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)
+            """, (order_id, target_prod_id, target_name, target_size, target_unit_price, qty_to_change, new_subtotal, item["student_name"], target_code))
+
+        # Recalcular total real del pedido
+        cursor.execute("SELECT COALESCE(SUM(subtotal), 0) as new_total FROM order_items WHERE order_id = ?", (order_id,))
+        new_total = round(float(cursor.fetchone()["new_total"]), 2)
+        cursor.execute("UPDATE orders SET total_amount = ?, updated_at = ? WHERE id = ?", (new_total, now_str, order_id))
+
+        if target_prod_id != item["product_id"]:
+            comment = f"Cambio de prenda en portería: {qty_to_change} ud(s) de '{old_name}' (Talla {old_size}) cambiada(s) por '{target_name}' (Talla {target_size}). Prenda recogida en mano en el centro. Total pedido ajustado a {new_total:.2f} €. Motivo: {reason}."
+        else:
+            comment = f"Cambio de talla en portería: {qty_to_change} ud(s) de '{old_name}' cambiada(s) de talla {old_size} a {target_size}. Total pedido ajustado a {new_total:.2f} €. Motivo: {reason}."
+
         if notes:
             comment += f" Observaciones: {notes}"
 
@@ -1495,17 +1579,61 @@ def admin_in_person_item_action(order_id):
             VALUES (?, (SELECT status FROM orders WHERE id = ?), ?, ?)
         """, (order_id, order_id, comment, now_str))
 
-        cursor.execute("UPDATE orders SET updated_at = ? WHERE id = ?", (now_str, order_id))
         conn.commit()
         conn.close()
         return jsonify({
             "success": True,
-            "message": f"Cambio de talla registrado: {item['product_name']} de {old_size} a {new_size}."
+            "message": f"Cambio registrado: {qty_to_change} ud(s) canjeada(s) por {target_name} ({target_size}). Nuevo total: {new_total:.2f} €.",
+            "new_total": new_total
         })
 
     else:
         conn.close()
         return jsonify({"error": "Acción desconocida. Debe ser 'exchange' o 'return'."}), 400
+
+@app.route("/api/admin/orders/<int:order_id>/emit-invoice", methods=["POST"])
+def admin_emit_invoice(order_id):
+    """Genera y emite la Factura Oficial por el administrador con numeración correlativa inmutable"""
+    role = get_admin_role()
+    if role == "viewer":
+        return jsonify({"error": "No tiene permisos para emitir facturas (Modo Solo Consulta)."}), 403
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
+    order = cursor.fetchone()
+    if not order:
+        conn.close()
+        return jsonify({"error": "Pedido no encontrado."}), 404
+
+    inv_num = order["invoice_number"]
+    if not inv_num:
+        year = datetime.now().year
+        cursor.execute("SELECT invoice_number FROM orders WHERE invoice_number LIKE ?", (f"FAC-{year}-%",))
+        all_inv = cursor.fetchall()
+        max_num = 0
+        for r in all_inv:
+            inv_str = r["invoice_number"] or ""
+            parts = inv_str.split("-")
+            if len(parts) == 3 and parts[2].isdigit():
+                max_num = max(max_num, int(parts[2]))
+        next_num = max_num + 1
+        inv_num = f"FAC-{year}-{next_num:04d}"
+
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute("UPDATE orders SET invoice_number = ?, updated_at = ? WHERE id = ?", (inv_num, now_str, order_id))
+        cursor.execute("""
+            INSERT INTO order_history (order_id, status, comment, timestamp)
+            VALUES (?, ?, ?, ?)
+        """, (order_id, order["status"], f"Factura oficial emitida por Administración: Nº {inv_num}", now_str))
+        conn.commit()
+
+    conn.close()
+    return jsonify({
+        "success": True,
+        "invoice_number": inv_num,
+        "message": f"Factura {inv_num} emitida correctamente por administración."
+    })
 
 @app.route("/api/admin/orders/<int:order_id>/status", methods=["PATCH"])
 def admin_update_order_status(order_id):
@@ -1777,6 +1905,53 @@ def admin_manage_product(product_id):
 
     return jsonify({"success": True, "message": "Prenda actualizada con éxito."})
 
+@app.route("/api/admin/catalog/<int:product_id>/toggle-stock", methods=["POST"])
+def admin_toggle_product_stock(product_id):
+    """Permite a administración o conserjería marcar/desmarcar tallas o prendas completas como agotadas con un solo click"""
+    role = get_admin_role()
+    if role == "viewer":
+        return jsonify({"error": "No tiene permisos para modificar stock (Modo Solo Consulta)."}), 403
+
+    data = request.get_json() or {}
+    size = data.get("size")
+    toggle_product = data.get("toggle_product")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, sizes_json, out_of_stock_sizes_json, is_out_of_stock FROM products WHERE id = ?", (product_id,))
+    prod = cursor.fetchone()
+    if not prod:
+        conn.close()
+        return jsonify({"error": "Prenda no encontrada."}), 404
+
+    try:
+        oos = json.loads(prod["out_of_stock_sizes_json"] or "[]")
+    except Exception:
+        oos = []
+
+    is_out_of_stock = int(prod["is_out_of_stock"] or 0)
+
+    if toggle_product:
+        is_out_of_stock = 0 if is_out_of_stock == 1 else 1
+        cursor.execute("UPDATE products SET is_out_of_stock = ? WHERE id = ?", (is_out_of_stock, product_id))
+    elif size:
+        size = str(size).strip()
+        if size in oos:
+            oos.remove(size)
+        else:
+            oos.append(size)
+        cursor.execute("UPDATE products SET out_of_stock_sizes_json = ? WHERE id = ?", (json.dumps(oos), product_id))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "product_id": product_id,
+        "out_of_stock_sizes": oos,
+        "is_out_of_stock": is_out_of_stock
+    })
+
 @app.route("/api/admin/import-catalog", methods=["POST"])
 def admin_bulk_import():
     data = request.get_json() or {}
@@ -1995,7 +2170,8 @@ def preparador_picking_list():
         SELECT 
             oi.product_name,
             oi.size,
-            SUM(oi.quantity) as total_qty,
+            SUM(CASE WHEN COALESCE(oi.is_out_of_stock, 0) = 1 THEN 0 ELSE oi.quantity END) as total_qty,
+            SUM(CASE WHEN COALESCE(oi.is_out_of_stock, 0) = 1 THEN oi.quantity ELSE 0 END) as out_of_stock_qty,
             COUNT(DISTINCT oi.order_id) as total_orders
         FROM order_items oi
         JOIN orders o ON oi.order_id = o.id

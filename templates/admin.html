@@ -267,7 +267,18 @@
                              class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500 cursor-pointer">
                     </label>
 
-                    <span class="font-mono font-black text-xs text-white bg-[#002B66] px-2.5 py-1 rounded-md" x-text="order.invoice_number || ('FAC-2026-000' + order.id)"></span>
+                    <!-- Estado de Factura Oficial -->
+                    <template x-if="order.invoice_number">
+                      <span class="font-mono font-black text-xs text-emerald-950 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md flex items-center gap-1" title="Factura oficial emitida">
+                        <span>✅</span> <span x-text="order.invoice_number"></span>
+                      </span>
+                    </template>
+                    <template x-if="!order.invoice_number">
+                      <span class="font-mono font-bold text-[10px] text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md" title="Factura no emitida aún (se emite por administración)">
+                        Sin Factura
+                      </span>
+                    </template>
+
                     <span class="font-mono font-bold text-xs text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200" x-text="'Ref: ' + order.locator"></span>
                     <h3 class="text-base font-bold text-slate-900" x-text="order.student_name"></h3>
                     <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-semibold" x-text="order.student_course"></span>
@@ -327,13 +338,23 @@
                     <span :class="getStatusBadgeClass(order.status)" class="text-xs font-bold px-3 py-2 rounded-xl border inline-block" x-text="order.status"></span>
                   </div>
 
-                  <!-- Botón Emisor de Factura Oficial -->
-                  <a :href="'/factura/' + order.locator" target="_blank"
-                     class="px-3.5 py-2 text-xs font-bold text-white bg-[#002B66] hover:bg-[#001D47] rounded-xl shadow-xs transition flex items-center gap-1.5"
-                     title="Abrir Emisor de Factura Oficial de este pedido">
-                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Emitir Factura
-                  </a>
+                  <!-- Botón Emisor de Factura Oficial / Generar Factura -->
+                  <template x-if="order.invoice_number">
+                    <a :href="'/factura/' + order.locator" target="_blank"
+                       class="px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition flex items-center gap-1.5"
+                       title="Ver Factura Oficial emitida">
+                      <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                      Ver Factura
+                    </a>
+                  </template>
+                  <template x-if="!order.invoice_number && userRole !== 'viewer'">
+                    <button @click="emitOrderInvoice(order)"
+                            class="px-3.5 py-2 text-xs font-bold text-white bg-blue-900 hover:bg-blue-950 rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                            title="Generar y emitir Factura Oficial correlativa para este pedido">
+                      <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                      Generar Factura
+                    </button>
+                  </template>
 
                   <!-- Botón Avisar por Email a la Familia (Oculto en visor) -->
                   <button x-show="userRole !== 'viewer'"
@@ -390,17 +411,17 @@
                             <span x-show="item.student_name" class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-1.5 py-0.5 rounded border border-indigo-100" x-text="'👦 ' + item.student_name"></span>
                             
                             <!-- Botones Gestión Presencial en Portería (Operador y Maestro) -->
-                            <div x-show="userRole !== 'viewer'" class="inline-flex items-center gap-1 ml-1">
+                            <div x-show="userRole !== 'viewer'" class="inline-flex items-center gap-1.5 ml-2">
                               <button @click="openInPersonModal(order, item, 'exchange')"
                                       type="button"
-                                      class="inline-flex items-center gap-0.5 px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-[10px] font-bold cursor-pointer transition"
-                                      title="Cambiar talla de esta prenda en portería">
-                                <span>🔄 Talla</span>
+                                      class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-300 rounded-lg text-[11px] font-black cursor-pointer transition shadow-2xs"
+                                      title="Cambiar prenda o talla en portería">
+                                <span>🔄 Cambiar Prenda</span>
                               </button>
                               <button @click="openInPersonModal(order, item, 'return')"
                                       type="button"
-                                      class="inline-flex items-center gap-0.5 px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded text-[10px] font-bold cursor-pointer transition"
-                                      title="Devolver esta prenda en portería y descontar del pedido">
+                                      class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 rounded-lg text-[11px] font-black cursor-pointer transition shadow-2xs"
+                                      title="Recoger prenda en mano en portería, devolver y descontar del pedido">
                                 <span>↩️ Devolver</span>
                               </button>
                             </div>
@@ -565,9 +586,16 @@
                   </template>
                 </td>
                 <td class="py-3 px-4">
-                  <div class="flex flex-wrap gap-1 max-w-xs">
+                  <div class="flex flex-wrap gap-1 max-w-sm">
                     <template x-for="sz in prod.sizes" :key="sz">
-                      <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[10px]" x-text="sz"></span>
+                      <button type="button"
+                              @click="toggleSizeStock(prod, sz)"
+                              :class="isSizeOutOfStock(prod, sz) ? 'bg-amber-100 text-amber-950 border-amber-300 font-black ring-1 ring-amber-400' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'"
+                              class="px-1.5 py-0.5 rounded border font-mono text-[10px] transition cursor-pointer flex items-center gap-0.5"
+                              :title="isSizeOutOfStock(prod, sz) ? 'Agotada (clic para marcar disponible)' : 'Disponible (clic para marcar agotada)'">
+                        <span x-text="sz"></span>
+                        <span x-show="isSizeOutOfStock(prod, sz)" class="text-[8px] bg-amber-200 px-0.5 rounded font-black text-amber-900">Agotada</span>
+                      </button>
                     </template>
                   </div>
                 </td>
@@ -1193,18 +1221,62 @@
             </div>
           </div>
 
-          <!-- Bloque para CAMBIO DE TALLA -->
+          <!-- Bloque para CAMBIO DE PRENDA / TALLA -->
           <div x-show="inPersonAction === 'exchange'" class="space-y-3 bg-blue-50/50 p-3.5 rounded-xl border border-blue-100">
+            <!-- Selector de Tipo de Cambio -->
+            <div>
+              <label class="block font-bold text-blue-950 text-[11px] uppercase tracking-wider mb-1">Tipo de cambio solicitado por la familia:</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" @click="inPersonExchangeType = 'size'"
+                        :class="inPersonExchangeType === 'size' ? 'bg-[#002B66] text-white shadow-xs font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-blue-100/40'"
+                        class="p-2 rounded-xl text-center text-xs transition cursor-pointer">
+                  Misma Prenda (Cambio Talla)
+                </button>
+                <button type="button" @click="inPersonExchangeType = 'product'; if(!inPersonNewProductId) inPersonNewProductId = inPersonItem.product_id"
+                        :class="inPersonExchangeType === 'product' ? 'bg-[#002B66] text-white shadow-xs font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-blue-100/40'"
+                        class="p-2 rounded-xl text-center text-xs transition cursor-pointer">
+                  Cambiar por Otra Prenda
+                </button>
+              </div>
+            </div>
+
+            <!-- Si elige cambiar por otra prenda del catálogo -->
+            <div x-show="inPersonExchangeType === 'product'" class="space-y-2 pt-1 border-t border-blue-200/60">
+              <label class="block font-bold text-blue-950">Selecciona la nueva prenda del catálogo *</label>
+              <select x-model="inPersonNewProductId" @change="onExchangeProductChange()" class="w-full p-2 bg-white border border-blue-300 rounded-lg font-bold text-xs text-slate-800">
+                <template x-for="p in catalogProducts" :key="p.id">
+                  <option :value="p.id" :selected="p.id === inPersonNewProductId" x-text="p.name + ' (' + formatMoney(p.price) + ')'"></option>
+                </template>
+              </select>
+
+              <!-- Comparativa de importes y ajuste automático en pedido -->
+              <div class="p-2.5 bg-white rounded-lg border border-blue-200 text-[11px] space-y-1">
+                <div class="flex justify-between text-slate-600">
+                  <span>Prenda que devuelve la familia:</span>
+                  <span class="font-bold text-slate-900" x-text="inPersonItem.product_name + ' (' + formatMoney(inPersonItem.unit_price) + ')'"></span>
+                </div>
+                <div class="flex justify-between text-blue-900 font-bold">
+                  <span>Nueva prenda entregada:</span>
+                  <span x-text="(selectedExchangeProduct?.name || '') + ' (' + formatMoney(selectedExchangeProduct?.price || 0) + ')'"></span>
+                </div>
+                <div class="flex justify-between pt-1 border-t border-slate-100 text-xs font-black">
+                  <span>Ajuste en total del pedido:</span>
+                  <span :class="((selectedExchangeProduct?.price || inPersonItem.unit_price) - inPersonItem.unit_price) >= 0 ? 'text-emerald-700' : 'text-amber-700'"
+                        x-text="formatMoney((selectedExchangeProduct?.price || inPersonItem.unit_price) - inPersonItem.unit_price)"></span>
+                </div>
+              </div>
+            </div>
+
             <div>
               <div class="flex items-center justify-between mb-1">
-                <label class="font-bold text-blue-950">Nueva talla entregada a la familia *</label>
-                <span class="text-[10px] text-blue-800 font-semibold">Tallas Oficiales</span>
+                <label class="font-bold text-blue-950">Talla entregada a la familia *</label>
+                <span class="text-[10px] text-blue-800 font-semibold">Tallas Disponibles</span>
               </div>
               <input type="text" x-model="inPersonNewSize" placeholder="Ej: T.6, T.8, T.10, S, M, L..."
                      class="w-full p-2.5 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-900 font-bold text-xs text-blue-950">
               
               <div class="flex flex-wrap gap-1 mt-2">
-                <template x-for="sz in ['T.2', 'T.4', 'T.6', 'T.8', 'T.10', 'T.12', 'T.14', 'T.16', 'T.18', 'T.20', 'T.22', 'T.24', 'S', 'M', 'L', 'XL']" :key="sz">
+                <template x-for="sz in exchangeSizesList" :key="sz">
                   <button type="button" @click="inPersonNewSize = sz"
                           :class="inPersonNewSize === sz ? 'bg-blue-900 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-blue-100'"
                           class="px-2 py-1 rounded text-[11px] font-mono cursor-pointer transition"
@@ -1569,6 +1641,8 @@
         inPersonOrder: null,
         inPersonItem: null,
         inPersonAction: 'exchange', // 'exchange' o 'return'
+        inPersonExchangeType: 'size', // 'size' o 'product'
+        inPersonNewProductId: null,
         inPersonNewSize: '',
         inPersonReturnQty: 1,
         inPersonReason: 'Prenda reservada para prueba en casa y devuelta en portería',
@@ -1579,13 +1653,35 @@
           this.inPersonOrder = order;
           this.inPersonItem = item;
           this.inPersonAction = action;
+          this.inPersonExchangeType = 'size';
+          this.inPersonNewProductId = item.product_id;
           this.inPersonNewSize = item.size || '';
           this.inPersonReturnQty = item.quantity || 1;
           this.inPersonReason = action === 'return' 
-            ? 'Prenda reservada para prueba en casa y devuelta en portería'
-            : 'Probado en el centro, cambio de talla necesario';
+            ? 'Prenda devuelta en mano en portería por la familia'
+            : 'Cambio presencial solicitado por la familia';
           this.inPersonStaffNotes = '';
           this.openInPersonModalState = true;
+        },
+
+        get selectedExchangeProduct() {
+          if (!this.inPersonNewProductId) return null;
+          return this.catalogProducts.find(p => p.id === parseInt(this.inPersonNewProductId)) || null;
+        },
+
+        get exchangeSizesList() {
+          const p = this.selectedExchangeProduct;
+          if (p && p.sizes && p.sizes.length) return p.sizes;
+          return ['T.2', 'T.4', 'T.6', 'T.8', 'T.10', 'T.12', 'T.14', 'T.16', 'T.18', 'T.20', 'T.22', 'T.24', 'S', 'M', 'L', 'XL'];
+        },
+
+        onExchangeProductChange() {
+          const p = this.selectedExchangeProduct;
+          if (p && p.sizes && p.sizes.length) {
+            if (!p.sizes.includes(this.inPersonNewSize)) {
+              this.inPersonNewSize = p.sizes[0];
+            }
+          }
         },
 
         // Compatibilidad con llamadas previas
@@ -1611,17 +1707,20 @@
 
           this.submittingInPerson = true;
           try {
+            const payload = {
+              action: this.inPersonAction,
+              item_id: this.inPersonItem.id,
+              new_product_id: this.inPersonExchangeType === 'product' ? this.inPersonNewProductId : this.inPersonItem.product_id,
+              new_size: this.inPersonNewSize.trim(),
+              quantity: this.inPersonReturnQty,
+              reason: this.inPersonReason.trim(),
+              notes: this.inPersonStaffNotes.trim()
+            };
+
             const res = await fetch(`/api/admin/orders/${this.inPersonOrder.id}/item-action`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: this.inPersonAction,
-                item_id: this.inPersonItem.id,
-                new_size: this.inPersonNewSize.trim(),
-                quantity: this.inPersonReturnQty,
-                reason: this.inPersonReason.trim(),
-                notes: this.inPersonStaffNotes.trim()
-              })
+              body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (res.ok) {
@@ -1641,6 +1740,47 @@
           } finally {
             this.submittingInPerson = false;
           }
+        },
+
+        async emitOrderInvoice(order) {
+          if (!confirm(`¿Deseas emitir formalmente la Factura Oficial y asignarle numeración correlativa al pedido ${order.locator}?`)) return;
+          try {
+            const res = await fetch(`/api/admin/orders/${order.id}/emit-invoice`, { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+              alert("Factura emitida correctamente: " + data.invoice_number);
+              await this.fetchOrders();
+              await this.fetchStats();
+            } else {
+              alert("Error: " + (data.error || "No se pudo emitir la factura."));
+            }
+          } catch (e) {
+            alert("Error de conexión: " + e.message);
+          }
+        },
+
+        async toggleSizeStock(prod, size) {
+          try {
+            const res = await fetch(`/api/admin/catalog/${prod.id}/toggle-stock`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ size: size })
+            });
+            const data = await res.json();
+            if (res.ok) {
+              prod.out_of_stock_sizes = data.out_of_stock_sizes;
+            } else {
+              alert("Error al actualizar stock: " + (data.error || "Error"));
+            }
+          } catch (e) {
+            alert("Error de conexión: " + e.message);
+          }
+        },
+
+        isSizeOutOfStock(prod, size) {
+          if (!prod) return false;
+          if (prod.is_out_of_stock) return true;
+          return (prod.out_of_stock_sizes || []).includes(size);
         },
 
         // Gestión de contraseñas (Solo Maestro)

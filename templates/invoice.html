@@ -68,6 +68,16 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
+      <!-- Botón Emitir Factura Oficial (Solo Admin si aún no ha sido emitida) -->
+      {% if is_admin and not is_emitted %}
+      <button @click="emitInvoice()"
+              :disabled="emittingInvoice"
+              class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 border border-emerald-500 rounded-xl transition cursor-pointer shadow-sm">
+        <span>⚡</span>
+        <span x-text="emittingInvoice ? 'Emitiendo...' : 'Emitir Factura Oficial (Asignar Nº)'"></span>
+      </button>
+      {% endif %}
+
       <!-- Botón Copiar Datos Fiscales para otra App -->
       <button @click="copyBillingForExternalApp()"
               class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition cursor-pointer">
@@ -159,14 +169,16 @@
 
       <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end bg-slate-50 sm:bg-transparent p-4 sm:p-0 rounded-xl border border-slate-200 sm:border-0">
         <div class="sm:text-right">
-          <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-[#002B66] text-white">
-            DOCUMENTO DE FACTURACIÓN
+          <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider {% if is_emitted %}bg-[#002B66] text-white{% else %}bg-amber-100 text-amber-900 border border-amber-300{% endif %}">
+            {% if is_emitted %}FACTURA SIMPLIFICADA OFICIAL{% else %}COMPROBANTE DE RESERVA OFICIAL{% endif %}
           </span>
           <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1 font-mono tracking-tight">
-            {{ order.invoice_number or ('FAC-2026-' ~ '%04d'|format(order.id)) }}
+            {% if is_emitted %}{{ order.invoice_number }}{% else %}Ref: {{ order.locator }}{% endif %}
           </p>
-          <p class="text-xs text-slate-600 font-mono">Ref. Pedido: <strong>{{ order.locator }}</strong></p>
-          <p class="text-[11px] text-slate-500 mt-0.5">Fecha emisión: <strong>{{ order.created_at[:10] }}</strong></p>
+          <p class="text-xs text-slate-600 font-mono">
+            {% if is_emitted %}Ref. Pedido: <strong>{{ order.locator }}</strong>{% else %}Factura: <strong class="text-amber-800">No emitida aún</strong>{% endif %}
+          </p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Fecha: <strong>{{ order.created_at[:10] }}</strong></p>
           <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase
             {% if order.status == 'Listo para recoger' %} bg-emerald-100 text-emerald-800
             {% elif order.status == 'Entregado' %} bg-blue-100 text-blue-800
@@ -269,7 +281,17 @@
           {% set unit_base = (item.unit_price|float) / (1 + vat_rate / 100) %}
           <tr class="hover:bg-slate-50">
             <td class="py-3 px-3 font-mono font-bold text-slate-600">{{ item.ref_code or 'UNIF' }}</td>
-            <td class="py-3 px-3 font-bold text-slate-900">{{ item.product_name }}</td>
+            <td class="py-3 px-3 font-bold text-slate-900">
+              {{ item.product_name }}
+              {% if item.missing_stock == 1 or item.is_out_of_stock == 1 or line_gross == 0 %}
+              <div class="mt-0.5">
+                <span class="inline-block px-1.5 py-0.5 bg-amber-100 text-amber-950 font-black text-[9px] rounded border border-amber-300">
+                  ⚠️ AGOTADO - PENDIENTE DE REPOSICIÓN
+                </span>
+                <span class="text-[10px] text-amber-800 font-semibold block">No cobrado en este recibo (0,00 €). Se entregará al recibir reposición.</span>
+              </div>
+              {% endif %}
+            </td>
             <td class="py-3 px-2 text-slate-600">{{ item.student_name or order.student_name }}</td>
             <td class="py-3 px-2 text-center">
               <span class="inline-block bg-slate-100 font-mono text-[11px] font-bold text-slate-800 px-2 py-0.5 rounded border border-slate-200">
@@ -297,11 +319,24 @@
           <strong>Observaciones del pedido:</strong> {{ order.notes }}
         </div>
         {% endif %}
+        {% set has_oos = items|selectattr('missing_stock', 'equalto', 1)|list %}
+        {% if has_oos or (order.stock_alert == 1) %}
+        <div class="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-950 space-y-1">
+          <p class="font-bold text-amber-900 text-xs">⚠️ Prendas pendientes de reposición:</p>
+          <p class="leading-relaxed">Las prendas indicadas como <strong>AGOTADO</strong> tienen un coste actual de <strong>0,00 €</strong> y <strong>NO HAN SIDO COBRADAS</strong> en este recibo escolar. Quedan reservadas para el alumno y se entregarán en portería tan pronto como el colegio reciba el nuevo stock del taller.</p>
+        </div>
+        {% endif %}
+        {% if not is_emitted %}
+        <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 space-y-1">
+          <p class="font-bold text-blue-900 text-xs">ℹ️ Comprobante Oficial de Reserva:</p>
+          <p class="leading-relaxed">Este documento acredita la reserva formal de uniformidad de la familia. Si precisa Factura Oficial con desglose fiscal para su empresa o justificación contable, Secretaría se la emitirá a petición de la familia.</p>
+        </div>
+        {% endif %}
         <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 leading-relaxed">
           <p class="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Información de Cobro y Recogida:</p>
           <p>• <strong>Forma de Cobro:</strong> Cargo directo mediante <strong>Recibo Escolar</strong> en la cuenta habitual del colegio.</p>
           <p>• <strong>Punto de Recogida:</strong> {{ settings.get('pickup_location', 'Portería del Colegio (C/ El Greco, 16)') }} ({{ settings.get('pickup_schedule', 'Lunes a Viernes de 08:00 a 18:30') }}).</p>
-          <p>• <strong>Cambios de talla o devoluciones:</strong> Plazo de 15 días tras la retirada en portería con prendas y etiquetas originales.</p>
+          <p>• <strong>Cambios de prenda/talla o devoluciones:</strong> En portería del centro con las prendas y etiquetas originales.</p>
         </div>
       </div>
 
@@ -339,6 +374,7 @@
         saving: false,
         saveSuccess: false,
         copied: false,
+        emittingInvoice: false,
         billingForm: {
           billing_name: {{ (order.billing_name or order.parent_name) | tojson }},
           parent_nif: {{ (order.parent_nif or '') | tojson }},
@@ -346,6 +382,25 @@
           billing_postal_code: {{ (order.billing_postal_code or '') | tojson }},
           billing_city: {{ (order.billing_city or 'Madrid') | tojson }},
           payment_method: {{ (order.payment_method or 'Facturación por App del Colegio (Recibo Escolar)') | tojson }}
+        },
+
+        async emitInvoice() {
+          if (!confirm("¿Deseas emitir formalmente la Factura Oficial y asignarle numeración correlativa ahora?")) return;
+          this.emittingInvoice = true;
+          try {
+            const res = await fetch('/api/admin/orders/{{ order.id }}/emit-invoice', { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+              alert("Factura emitida correctamente con número: " + data.invoice_number);
+              window.location.reload();
+            } else {
+              alert("Error: " + (data.error || "No se pudo emitir la factura."));
+            }
+          } catch (e) {
+            alert("Error de conexión: " + e.message);
+          } finally {
+            this.emittingInvoice = false;
+          }
         },
 
         async saveBillingData() {

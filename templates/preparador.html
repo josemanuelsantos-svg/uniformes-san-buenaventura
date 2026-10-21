@@ -39,12 +39,10 @@
       <!-- Acciones de Cabecera -->
       <div class="flex items-center gap-2">
         
-        <!-- Botón Volver a Admin (solo si es Maestro) -->
-        {% if current_role == 'master' %}
+        <!-- Enlace a Portería / Devoluciones / Panel -->
         <a href="/admin" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition">
-          <span>⚙️ Panel Completo</span>
+          <span>🏢 Portería / Devoluciones</span>
         </a>
-        {% endif %}
 
         <!-- Botón Refrescar Grande -->
         <button @click="fetchOrders(true)" :disabled="loading"
@@ -321,6 +319,12 @@
                             
                             <!-- Cantidad en Grande -->
                             <span class="px-2 py-0.5 bg-slate-200 text-slate-900 text-xs font-extrabold rounded-md" x-text="item.quantity + ' ud' + (item.quantity > 1 ? 's' : '')"></span>
+
+                            <template x-if="item.is_out_of_stock == 1">
+                              <span class="px-2 py-0.5 bg-rose-100 text-rose-800 text-[11px] font-black rounded-md border border-rose-300">
+                                🚫 Agotada (Reserva 0 €)
+                              </span>
+                            </template>
                           </div>
                         </div>
 
@@ -443,9 +447,13 @@
                 <p class="font-bold text-slate-900 text-xs sm:text-sm leading-snug truncate"
                    :class="pick.checked ? 'line-through text-slate-400' : ''"
                    x-text="pick.product_name"></p>
-                <div class="flex items-center gap-2 mt-1">
+                <div class="flex flex-wrap items-center gap-2 mt-1">
                   <span class="px-2 py-0.5 bg-[#002B66] text-white text-xs font-black rounded-md" x-text="'Talla ' + pick.size"></span>
                   <span class="text-xs text-slate-500 font-medium" x-text="'en ' + pick.total_orders + ' pedido' + (pick.total_orders > 1 ? 's' : '')"></span>
+                  <template x-if="pick.out_of_stock_qty > 0">
+                    <span class="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-black rounded-md border border-rose-200"
+                          x-text="'⚠️ ' + pick.out_of_stock_qty + ' agotada(s) pendientes de proveedor'"></span>
+                  </template>
                 </div>
               </div>
             </div>
