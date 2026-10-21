@@ -75,9 +75,9 @@ def seed():
         # ================= 1. UNIFORME INFANTIL (Orden 1 al 10) =================
         {
             "category_id": cat_map["uniforme-infantil"],
-            "name": "Babi Escolar Oficial (Cuadro Pequeño) - CSB",
+            "name": "Babi Escolar Oficial - CSB",
             "code": "BAB-CSB",
-            "desc": "Babi oficial obligatorio para Educación Infantil (1º, 2º y 3º). Confeccionado en tejido de CUADRO VICHY PEQUEÑO reglamentario del colegio, canesú marino, bolsillo en contraste y escudo bordado CSB. ¡Atención! Evite prendas no oficiales del exterior con cuadros grandes no reglamentarios.",
+            "desc": "Babi oficial obligatorio para Educación Infantil (1º, 2º y 3º). Confeccionado en tejido vichy reglamentario del colegio, canesú marino, bolsillo en contraste y escudo bordado CSB.",
             "base_price": 22.00,
             "tier_data": (["T.2", "T.3", "T.4", "T.5", "T.6", "T.8"], {s: 22.00 for s in ["T.2", "T.3", "T.4", "T.5", "T.6", "T.8"]}),
             "image": "/static/images/uniforms/babi.svg",
