@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Factura {{ order.invoice_number or order.locator }} - Colegio San Buenaventura</title>
+  <title>{% if is_emitted %}Factura {{ order.invoice_number }}{% else %}Comprobante de Reserva {{ order.locator }}{% endif %} - Colegio San Buenaventura</title>
   <!-- Favicon Oficial Colegio San Buenaventura -->
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
@@ -55,52 +55,63 @@
   {% set subtotal_base = order.total_amount / (1 + vat_rate / 100) %}
   {% set total_vat = order.total_amount - subtotal_base %}
 
-  <!-- ================= BARRA SUPERIOR DEL EMISOR DE FACTURAS (NO SE IMPRIME) ================= -->
-  <div class="max-w-4xl mx-auto mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-wrap items-center justify-between gap-3 no-print">
-    <div class="flex items-center gap-2.5">
+  <!-- ================= BARRA SUPERIOR (NO SE IMPRIME) ================= -->
+  <div class="max-w-4xl mx-auto mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 no-print">
+    <div class="flex items-center gap-2">
       <a href="/?locator={{ order.locator }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-        Tienda
+        <span>Tienda</span>
       </a>
+      {% if is_admin %}
       <a href="/admin" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-2 rounded-xl transition">
-        Panel Secretaría
+        <span>Panel Secretaría</span>
       </a>
+      {% endif %}
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
-      <!-- Botón Emitir Factura Oficial (Solo Admin si aún no ha sido emitida) -->
+      <!-- Botón Emitir Factura Oficial (Solo Admin si está entregado y aún no ha sido emitida) -->
       {% if is_admin and not is_emitted %}
-      <button @click="emitInvoice()"
-              :disabled="emittingInvoice"
-              class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 border border-emerald-500 rounded-xl transition cursor-pointer shadow-sm">
-        <span>⚡</span>
-        <span x-text="emittingInvoice ? 'Emitiendo...' : 'Emitir Factura Oficial (Asignar Nº)'"></span>
-      </button>
+        {% if order.status == 'Entregado' %}
+        <button @click="emitInvoice()"
+                :disabled="emittingInvoice"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 border border-emerald-500 rounded-xl transition cursor-pointer shadow-sm">
+          <span>⚡</span>
+          <span x-text="emittingInvoice ? 'Emitiendo...' : 'Emitir Factura Oficial (Asignar Nº)'"></span>
+        </button>
+        {% else %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 bg-slate-100 rounded-xl border border-slate-200" title="La factura oficial solo se puede emitir una vez que el pedido haya sido entregado y cobrado">
+          🔒 Factura disponible tras entrega y cobro
+        </span>
+        {% endif %}
       {% endif %}
 
+      {% if is_admin %}
       <!-- Botón Copiar Datos Fiscales para otra App -->
       <button @click="copyBillingForExternalApp()"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition cursor-pointer">
-        <span x-text="copied ? '✅ ¡Datos Copiados!' : '📋 Copiar Datos para App Facturación'"></span>
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition cursor-pointer">
+        <span x-text="copied ? '✅ ¡Copiado!' : '📋 Copiar para App Contable'"></span>
       </button>
 
       <!-- Botón Editar / Completar Datos Fiscales en vivo -->
       <button @click="editingBilling = !editingBilling"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition cursor-pointer">
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition cursor-pointer">
         <span>✏️</span>
-        <span x-text="editingBilling ? 'Cerrar Editor Fiscal' : 'Editar Datos Fiscales'"></span>
+        <span x-text="editingBilling ? 'Cerrar' : 'Editar Datos'"></span>
       </button>
+      {% endif %}
 
       <!-- Botón Imprimir / Emitir PDF -->
       <button onclick="window.print()"
-              class="inline-flex items-center gap-2 bg-[#002B66] hover:bg-[#001D47] text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-md transition cursor-pointer">
+              class="inline-flex items-center gap-2 bg-[#002B66] hover:bg-[#001D47] text-white text-xs sm:text-sm font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl shadow-md transition cursor-pointer">
         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-        Emitir / Imprimir Factura PDF
+        <span>{% if is_emitted %}Imprimir Factura PDF{% else %}Imprimir Comprobante PDF{% endif %}</span>
       </button>
     </div>
   </div>
 
-  <!-- ================= PANEL RÁPIDO DE EDICIÓN DE DATOS FISCALES (NO SE IMPRIME) ================= -->
+  {% if is_admin %}
+  <!-- ================= PANEL RÁPIDO DE EDICIÓN DE DATOS FISCALES (SOLO ADMIN, NO SE IMPRIME) ================= -->
   <div x-show="editingBilling" x-cloak class="max-w-4xl mx-auto mb-6 bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-5 shadow-md no-print">
     <div class="flex items-center justify-between mb-3 pb-2 border-b border-amber-200">
       <div>
@@ -145,14 +156,15 @@
       </div>
       <div class="flex items-end justify-end gap-2">
         <button type="submit" :disabled="saving" class="w-full py-2 bg-[#002B66] hover:bg-[#001D47] text-white font-bold rounded-lg shadow transition cursor-pointer">
-          <span x-text="saving ? 'Guardando...' : '💾 Guardar y Actualizar Factura'"></span>
+          <span x-text="saving ? 'Guardando...' : '💾 Guardar y Actualizar Datos'"></span>
         </button>
       </div>
     </form>
   </div>
+  {% endif %}
 
-  <!-- ================= HOJA OFICIAL DE FACTURACIÓN A4 ================= -->
-  <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-8 sm:p-12 print-sheet">
+  <!-- ================= HOJA OFICIAL (A4 / COMPROBANTE O FACTURA) ================= -->
+  <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-5 sm:p-12 print-sheet">
     
     <!-- Cabecera Institucional y Nº de Factura -->
     <div class="flex flex-col sm:flex-row justify-between items-start border-b-2 border-[#002B66] pb-6 gap-6">
@@ -176,7 +188,7 @@
             {% if is_emitted %}{{ order.invoice_number }}{% else %}Ref: {{ order.locator }}{% endif %}
           </p>
           <p class="text-xs text-slate-600 font-mono">
-            {% if is_emitted %}Ref. Pedido: <strong>{{ order.locator }}</strong>{% else %}Factura: <strong class="text-amber-800">No emitida aún</strong>{% endif %}
+            {% if is_emitted %}Ref. Pedido: <strong>{{ order.locator }}</strong>{% else %}Tipo: <strong class="text-amber-800 font-sans">Comprobante de Reserva</strong>{% endif %}
           </p>
           <p class="text-[11px] text-slate-500 mt-0.5">Fecha: <strong>{{ order.created_at[:10] }}</strong></p>
           <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase
@@ -258,8 +270,8 @@
     </div>
 
     <!-- Tabla Contable Desglosada de Líneas de Pedido -->
-    <div class="overflow-x-auto my-6">
-      <table class="w-full text-left border-collapse text-xs">
+    <div class="overflow-x-auto my-6 -mx-2 px-2 sm:mx-0 sm:px-0">
+      <table class="w-full min-w-[620px] text-left border-collapse text-xs">
         <thead>
           <tr class="bg-slate-900 text-white uppercase tracking-wider text-[10px] font-bold">
             <th class="py-2.5 px-3 rounded-tl-lg">Código</th>
@@ -329,12 +341,12 @@
         {% if not is_emitted %}
         <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-950 space-y-1">
           <p class="font-bold text-blue-900 text-xs">ℹ️ Comprobante Oficial de Reserva:</p>
-          <p class="leading-relaxed">Este documento acredita la reserva formal de uniformidad de la familia. Si precisa Factura Oficial con desglose fiscal para su empresa o justificación contable, Secretaría se la emitirá a petición de la familia.</p>
+          <p class="leading-relaxed">Este documento acredita la reserva formal de uniformidad de la familia. La factura oficial con desglose fiscal la facilitará Administración una vez completado el pago y la entrega del pedido en portería.</p>
         </div>
         {% endif %}
         <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 leading-relaxed">
           <p class="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Información de Cobro y Recogida:</p>
-          <p>• <strong>Forma de Cobro:</strong> Cargo directo mediante <strong>Recibo Escolar</strong> en la cuenta habitual del colegio.</p>
+          <p>• <strong>Forma de Cobro:</strong> Cargo directo mediante <strong>Recibo Escolar</strong> en la cuenta habitual del colegio tras la entrega.</p>
           <p>• <strong>Punto de Recogida:</strong> {{ settings.get('pickup_location', 'Portería del Colegio (C/ El Greco, 16)') }} ({{ settings.get('pickup_schedule', 'Lunes a Viernes de 08:00 a 18:30') }}).</p>
           <p>• <strong>Cambios de prenda/talla o devoluciones:</strong> En portería del centro con las prendas y etiquetas originales.</p>
         </div>
@@ -351,7 +363,7 @@
           <span class="font-mono font-bold text-slate-800">{{ "%.2f"|format(total_vat)|replace('.', ',') }} €</span>
         </div>
         <div class="flex justify-between text-base font-black text-slate-900 pt-2.5 border-t-2 border-slate-300">
-          <span>TOTAL FACTURA:</span>
+          <span>{% if is_emitted %}TOTAL FACTURA:{% else %}TOTAL RESERVA:{% endif %}</span>
           <span class="font-mono text-lg text-[#002B66]">{{ "%.2f"|format(order.total_amount)|replace('.', ',') }} €</span>
         </div>
         <p class="text-[10px] text-right text-slate-400">Importes expresados en Euros (€) con IVA desglosado</p>

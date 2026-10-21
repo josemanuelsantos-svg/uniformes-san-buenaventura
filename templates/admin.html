@@ -36,76 +36,99 @@
 
   <!-- ================= TOP HEADER ADMIN ================= -->
   <header class="bg-[#002B66] text-white border-b-2 border-[#F5A623] sticky top-0 z-40 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         
-        <div class="flex items-center gap-3">
-          <a href="/admin" class="flex items-center gap-2.5 sm:gap-3">
-            <img src="/static/images/logo.png" alt="Colegio San Buenaventura" class="h-9 w-auto bg-white/95 p-1 rounded-lg shadow-sm">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <a href="/admin" class="flex items-center gap-2 sm:gap-3">
+            <img src="/static/images/logo.png" alt="Colegio San Buenaventura" class="h-8 sm:h-9 w-auto bg-white/95 p-1 rounded-lg shadow-sm">
             <div>
               <span class="font-bold font-serif-title text-xs sm:text-sm tracking-wide text-white block">Secretaría & Almacén</span>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border"
+              <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold border"
                     :class="roleInfo.badge_color || 'bg-slate-100 text-slate-800'"
                     x-text="roleInfo.badge || userRole"></span>
             </div>
           </a>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-3">
-          <!-- Botón Escáner QR de Entrega -->
-          <button @click="openQrScannerModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-xs transition cursor-pointer" title="Escanear código QR de la familia para entrega inmediata o verificación">
+        <div class="flex items-center gap-1.5 sm:gap-3">
+          <!-- Botón Escáner QR de Entrega (Siempre visible y prioritario) -->
+          <button @click="openQrScannerModal()" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-xs transition cursor-pointer" title="Escanear código QR de la familia para entrega inmediata">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-            <span>Escanear QR</span>
+            <span class="hidden sm:inline">Escanear QR</span>
+            <span class="sm:hidden font-bold">QR</span>
           </button>
 
-          <!-- Botón Lote Etiquetas -->
-          <a href="/admin/etiquetas/lote" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-100 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition" title="Imprimir etiquetas de bolsa en lote para todos los pedidos preparados">
-            🏷️ <span class="hidden sm:inline">Etiquetas</span> Lote
-          </a>
-
-          <!-- Botones Exportar Excel (Resumen Facturas y Detalle Contable por Líneas) -->
-          <div class="inline-flex items-center rounded-lg overflow-hidden shadow-xs border border-amber-500/40">
-            <a href="/api/admin/export-csv?mode=resumen" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-slate-950 bg-[#F5A623] hover:bg-amber-400 transition" title="Excel de Facturación: 1 fila por pedido con NIF, Titular, Dirección, Base, IVA y Total">
-              <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              <span>Excel Facturas</span>
+          <!-- Acciones de Escritorio (md+) -->
+          <div class="hidden md:flex items-center gap-2">
+            <!-- Botón Lote Etiquetas -->
+            <a href="/admin/etiquetas/lote" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-100 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition" title="Imprimir etiquetas de bolsa en lote">
+              🏷️ Etiquetas Lote
             </a>
-            <a href="/api/admin/export-csv?mode=lineas" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-amber-950 bg-amber-200 hover:bg-amber-300 border-l border-amber-500/40 transition" title="Excel Contable Detallado: 1 fila por cada prenda vendida con código y desglose de IVA">
-              <span>📑 Líneas</span>
+
+            <!-- Botones Exportar Excel -->
+            <div class="inline-flex items-center rounded-lg overflow-hidden shadow-xs border border-amber-500/40">
+              <a href="/api/admin/export-csv?mode=resumen" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-slate-950 bg-[#F5A623] hover:bg-amber-400 transition" title="Excel de Facturación">
+                <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Excel Facturas</span>
+              </a>
+              <a href="/api/admin/export-csv?mode=lineas" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-amber-950 bg-amber-200 hover:bg-amber-300 border-l border-amber-500/40 transition" title="Excel Contable Detallado">
+                <span>📑 Líneas</span>
+              </a>
+            </div>
+
+            <!-- Botón Acceso Rápido a Preparación de Lotes -->
+            <a href="/preparador" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-sm transition" title="Abrir portal simplificado para preparar pedidos">
+              <span>📦 Almacén</span>
+            </a>
+
+            <!-- Botón Gestión de Claves (Solo Maestro) -->
+            <button x-show="userRole === 'master'" @click="openPasswordModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-amber-100 hover:text-white bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 rounded-lg transition cursor-pointer" title="Gestionar claves">
+              🔑 <span>Claves</span>
+            </button>
+
+            <!-- Botón SMTP (Solo Maestro) -->
+            <button x-show="userRole === 'master'" @click="openSmtpModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-100 hover:text-white bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 rounded-lg transition cursor-pointer" title="Configuración de correo">
+              ✉️ <span>SMTP</span>
+            </button>
+
+            <a href="/" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-blue-100 hover:text-white hover:bg-white/10 rounded-lg transition">
+              <span>Tienda</span>
             </a>
           </div>
 
-          <!-- Botón Acceso Rápido a Preparación de Lotes -->
-          <a href="/preparador" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-sm transition" title="Abrir portal simplificado para preparar pedidos">
-            <span>📦 Preparación de Lotes</span>
-          </a>
-
-          <!-- Botón Gestión de Claves (Solo Maestro) -->
-          <button x-show="userRole === 'master'" @click="openPasswordModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-amber-100 hover:text-white bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 rounded-lg transition cursor-pointer" title="Gestionar claves de acceso a los 3 perfiles">
-            🔑 <span class="hidden lg:inline">Claves</span>
-          </button>
-
-          <!-- Botón Configuración de Correo SMTP (Solo Maestro) -->
-          <button x-show="userRole === 'master'" @click="openSmtpModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-emerald-100 hover:text-white bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 rounded-lg transition cursor-pointer" title="Configurar Servidor de Envío de Correos (SMTP)">
-            ✉️ <span class="hidden lg:inline">Correo SMTP</span>
-          </button>
-
-          <a href="/" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-100 hover:text-white hover:bg-white/10 rounded-lg transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-            <span class="hidden md:inline">Ver</span> Tienda
-          </a>
-
-          <!-- Botón Salir -->
-          <a href="/admin/logout" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-rose-200 hover:text-white hover:bg-rose-900/50 rounded-lg transition" title="Cerrar Sesión de Secretaría">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-            <span class="hidden md:inline">Salir</span>
-          </a>
-
-          <button @click="fetchOrders(); fetchStats()" class="p-2 text-blue-200 hover:text-white hover:bg-white/10 rounded-lg transition" title="Refrescar">
+          <!-- Botón Refrescar -->
+          <button @click="fetchOrders(); fetchStats()" class="p-2 text-blue-200 hover:text-white hover:bg-white/10 rounded-lg transition cursor-pointer" title="Refrescar">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           </button>
+
+          <!-- Botón Salir -->
+          <a href="/admin/logout" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-200 hover:text-white hover:bg-rose-900/50 rounded-lg transition" title="Cerrar Sesión">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            <span class="hidden sm:inline">Salir</span>
+          </a>
         </div>
 
       </div>
+    </div>
+
+    <!-- Barra de Herramientas Horizontal para Móviles (md:hidden) -->
+    <div class="md:hidden bg-blue-950/90 border-t border-blue-900 px-3 py-1.5 overflow-x-auto scrollbar-none flex items-center gap-2 text-xs">
+      <a href="/preparador" class="px-2.5 py-1 bg-amber-400 text-slate-950 font-black rounded-lg shrink-0 flex items-center gap-1 whitespace-nowrap">
+        <span>📦 Almacén</span>
+      </a>
+      <a href="/admin/etiquetas/lote" target="_blank" class="px-2 py-1 bg-white/10 text-white rounded-lg shrink-0 whitespace-nowrap">
+        🏷️ Etiquetas
+      </a>
+      <a href="/api/admin/export-csv?mode=resumen" class="px-2 py-1 bg-[#F5A623] text-slate-950 font-bold rounded-lg shrink-0 whitespace-nowrap">
+        📊 Excel
+      </a>
+      <a href="/" target="_blank" class="px-2 py-1 bg-white/10 text-white rounded-lg shrink-0 whitespace-nowrap">
+        🌐 Tienda
+      </a>
+      <button x-show="userRole === 'master'" @click="openPasswordModal()" class="px-2 py-1 bg-amber-500/30 text-amber-200 rounded-lg shrink-0 whitespace-nowrap">
+        🔑 Claves
+      </button>
     </div>
   </header>
 
@@ -383,7 +406,7 @@
                     <span :class="getStatusBadgeClass(order.status)" class="text-xs font-bold px-3 py-2 rounded-xl border inline-block" x-text="order.status"></span>
                   </div>
 
-                  <!-- Botón Emisor de Factura Oficial / Generar Factura -->
+                  <!-- Botón Emisor de Factura Oficial / Generar Factura (Solo tras entrega y cobro) -->
                   <template x-if="order.invoice_number">
                     <a :href="'/factura/' + order.locator" target="_blank"
                        class="px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition flex items-center gap-1.5"
@@ -393,12 +416,22 @@
                     </a>
                   </template>
                   <template x-if="!order.invoice_number && userRole !== 'viewer'">
-                    <button @click="emitOrderInvoice(order)"
-                            class="px-3.5 py-2 text-xs font-bold text-white bg-blue-900 hover:bg-blue-950 rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-                            title="Generar y emitir Factura Oficial correlativa para este pedido">
-                      <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                      Generar Factura
-                    </button>
+                    <div>
+                      <!-- Si está entregado: Botón para generar factura -->
+                      <button x-show="order.status === 'Entregado'"
+                              @click="emitOrderInvoice(order)"
+                              class="px-3.5 py-2 text-xs font-bold text-white bg-blue-900 hover:bg-blue-950 rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                              title="Generar y emitir Factura Oficial correlativa para este pedido entregado">
+                        <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Generar Factura
+                      </button>
+                      <!-- Si aún no está entregado: Indicativo de pendiente -->
+                      <span x-show="order.status !== 'Entregado'"
+                            class="px-2.5 py-1.5 text-[10px] font-semibold text-slate-400 bg-slate-100 rounded-lg border border-slate-200 inline-block"
+                            title="La factura oficial solo se puede emitir una vez que el pedido haya sido entregado y cobrado">
+                        Factura tras entrega
+                      </span>
+                    </div>
                   </template>
 
                   <!-- Botón Avisar por Email a la Familia (Oculto en visor) -->
@@ -1830,6 +1863,10 @@
         },
 
         async emitOrderInvoice(order) {
+          if (order.status !== 'Entregado') {
+            alert("⚠️ La factura oficial solo se puede emitir una vez completada la entrega y el pago del pedido.");
+            return;
+          }
           if (!confirm(`¿Deseas emitir formalmente la Factura Oficial y asignarle numeración correlativa al pedido ${order.locator}?`)) return;
           try {
             const res = await fetch(`/api/admin/orders/${order.id}/emit-invoice`, { method: 'POST' });

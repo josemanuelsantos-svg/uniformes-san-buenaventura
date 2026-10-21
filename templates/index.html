@@ -38,15 +38,15 @@
 
   <!-- ================= TOP HEADER INSTITUCIONAL ================= -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-20">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
         <!-- Brand / Logo Oficial -->
-        <a href="/" class="flex items-center gap-3 group">
-          <img src="/static/images/logo.png" alt="Colegio San Buenaventura" class="h-14 sm:h-16 w-auto object-contain transition-transform group-hover:scale-105">
+        <a href="/" class="flex items-center gap-2 sm:gap-3 group shrink-0">
+          <img src="/static/images/logo.png" alt="Colegio San Buenaventura" class="h-11 sm:h-16 w-auto object-contain transition-transform group-hover:scale-105">
         </a>
 
-        <!-- Right action buttons -->
-        <div class="flex items-center gap-1.5 sm:gap-3">
+        <!-- Desktop Action Buttons (visibles en tablets y PC) -->
+        <div class="hidden md:flex items-center gap-2 lg:gap-3">
           <!-- Botón Packs por Etapa -->
           <a href="#packs-escolares"
              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition shadow-2xs">
@@ -57,41 +57,70 @@
           <button @click="openRecommenderModal = true"
                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition cursor-pointer">
             <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-            <span class="hidden md:inline">Recomendador</span> Tallas
+            <span>Recomendador Tallas</span>
           </button>
 
           <!-- Botón Guía de Tallas -->
           <button @click="openSizeGuideModal = true"
                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold text-[#002B66] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition cursor-pointer">
             <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-            <span class="hidden sm:inline">Guía</span> Tallas
+            <span>Guía Tallas</span>
           </button>
 
           <!-- Botón Consultar Pedido -->
           <button @click="openTrackerModal = true"
                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer">
             <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <span class="hidden sm:inline">Consultar mi</span> Pedido
+            <span>Consultar Pedido</span>
           </button>
 
           <!-- Acceso Administración -->
           <a href="/admin" class="inline-flex items-center gap-1 px-2.5 py-2 text-xs font-medium text-slate-500 hover:text-blue-900 hover:bg-blue-50 rounded-xl transition" title="Panel de Gestión del Colegio">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-            <span class="hidden md:inline">Secretaría</span>
+            <span>Secretaría</span>
           </a>
+        </div>
 
-          <!-- Botón Carrito Flotante / Encabezado -->
+        <!-- Acciones en móvil y botón carrito (siempre accesible y cómodo) -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <!-- Botón buscar pedido rápido en móvil -->
+          <button @click="openTrackerModal = true"
+                  class="md:hidden p-2 text-slate-600 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+                  title="Consultar mi reserva">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </button>
+
+          <!-- Botón Carrito / Reserva -->
           <button @click="openCartDrawer = true"
-                  class="relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#002B66] hover:bg-[#001D47] border border-blue-900 rounded-xl shadow-md transition cursor-pointer">
-            <svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                  class="relative inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#002B66] hover:bg-[#001D47] border border-blue-900 rounded-xl shadow-md transition cursor-pointer shrink-0">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
             <span class="hidden sm:inline">Mi Reserva</span>
             <span x-show="totalCartCount > 0" x-cloak
-                  class="absolute -top-1.5 -right-1.5 bg-[#F5A623] text-slate-900 font-extrabold text-xs rounded-full h-5.5 min-w-[22px] px-1 flex items-center justify-center shadow"
+                  class="absolute -top-1.5 -right-1.5 bg-[#F5A623] text-slate-900 font-black text-[10px] sm:text-xs rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center shadow"
                   x-text="totalCartCount"></span>
-            <span class="font-bold ml-1 text-amber-200" x-text="formatMoney(cartTotal)"></span>
+            <span class="font-bold text-amber-200" x-text="formatMoney(cartTotal)"></span>
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Barra de Accesos Rápidos Horizontal Móvil (solo visible en pantallas < md) -->
+    <div class="md:hidden bg-slate-100/95 border-t border-slate-200/80 px-3 py-2 overflow-x-auto scrollbar-none flex items-center gap-2 text-xs">
+      <a href="#packs-escolares" class="px-3 py-1.5 bg-amber-100 text-amber-950 font-bold rounded-lg border border-amber-300 shrink-0 whitespace-nowrap flex items-center gap-1">
+        <span>🎒 Packs</span>
+      </a>
+      <button @click="openRecommenderModal = true" class="px-2.5 py-1.5 bg-white text-blue-900 font-semibold rounded-lg border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1 cursor-pointer shadow-2xs">
+        <span>🎯 Recomendar</span>
+      </button>
+      <button @click="openSizeGuideModal = true" class="px-2.5 py-1.5 bg-white text-slate-800 font-semibold rounded-lg border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1 cursor-pointer shadow-2xs">
+        <span>📏 Guía Tallas</span>
+      </button>
+      <button @click="openTrackerModal = true" class="px-2.5 py-1.5 bg-white text-slate-700 font-medium rounded-lg border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1 cursor-pointer shadow-2xs">
+        <span>🔍 Mi Pedido</span>
+      </button>
+      <a href="/admin" class="px-2 py-1.5 bg-white text-slate-500 font-medium rounded-lg border border-slate-200 shrink-0 whitespace-nowrap flex items-center gap-1 ml-auto">
+        <span>🔒 Acceso</span>
+      </a>
     </div>
   </header>
 
@@ -131,21 +160,21 @@
 
           <!-- Selector de las 3 Secciones Rotatorias en Cabecera -->
           <div class="space-y-2 pt-1">
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <button @click="setLookbook('infantil')"
                       :class="lookbookMode === 'infantil' ? 'bg-amber-400 text-slate-950 font-bold shadow-lg scale-102 ring-2 ring-amber-300' : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'"
-                      class="px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5">
-                <span>🧸 Uniforme infantil</span>
+                      class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+                <span>🧸 <span class="hidden sm:inline">Uniforme </span>Infantil</span>
               </button>
               <button @click="setLookbook('uniforme')"
                       :class="lookbookMode === 'uniforme' ? 'bg-amber-400 text-slate-950 font-bold shadow-lg scale-102 ring-2 ring-amber-300' : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'"
-                      class="px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5">
-                <span>👔 Uniforme de Primaria y Secundaria</span>
+                      class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+                <span>👔 <span class="hidden sm:inline">Uniforme </span>Primaria / ESO</span>
               </button>
               <button @click="setLookbook('chandal')"
                       :class="lookbookMode === 'chandal' ? 'bg-amber-400 text-slate-950 font-bold shadow-lg scale-102 ring-2 ring-amber-300' : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'"
-                      class="px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5">
-                <span>🏃‍♂️ Chándal de Primaria y Secundaria</span>
+                      class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+                <span>🏃‍♂️ <span class="hidden sm:inline">Chándal </span>Deporte</span>
               </button>
             </div>
             
@@ -893,17 +922,17 @@
               </div>
 
               <!-- Píldoras rápidas de talla con indicativo de agotado -->
-              <div class="flex flex-wrap gap-1 mb-2">
+              <div class="flex flex-wrap gap-1.5 mb-2.5">
                 {% for sz in product.sizes %}
                 <button type="button"
                         @click="selectedSizes[{{ product.id }}] = '{{ sz }}'"
                         :class="[
-                          selectedSizes[{{ product.id }}] === '{{ sz }}' ? 'bg-blue-900 text-white border-blue-900 shadow-2xs scale-105' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/40',
-                          isSizeOutOfStock(getProductById({{ product.id }}), '{{ sz }}') ? 'border-amber-400 bg-amber-50/60' : ''
+                          selectedSizes[{{ product.id }}] === '{{ sz }}' ? 'bg-blue-900 text-white border-blue-900 shadow-2xs font-black ring-2 ring-blue-500/50' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/40',
+                          isSizeOutOfStock(getProductById({{ product.id }}), '{{ sz }}') ? 'border-amber-400 bg-amber-50/70' : ''
                         ]"
-                        class="px-2 py-1 text-[11px] font-bold rounded-lg border transition cursor-pointer relative flex items-center gap-1">
+                        class="px-2.5 py-1.5 min-h-[34px] min-w-[34px] text-xs font-bold rounded-lg border transition cursor-pointer relative flex items-center justify-center gap-1">
                   <span>{{ sz }}</span>
-                  <span x-show="isSizeOutOfStock(getProductById({{ product.id }}), '{{ sz }}')" class="text-[9px] font-black text-amber-800 bg-amber-200 px-1 rounded leading-none">Agotada</span>
+                  <span x-show="isSizeOutOfStock(getProductById({{ product.id }}), '{{ sz }}')" class="text-[9px] font-black text-amber-900 bg-amber-200 px-1 rounded leading-none">Agotada</span>
                 </button>
                 {% endfor %}
               </div>
@@ -953,16 +982,16 @@
     <!-- Backdrop -->
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="openCartDrawer = false"></div>
 
-    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
-      <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+      <div class="w-full sm:max-w-md bg-white shadow-2xl flex flex-col">
         
         <!-- Header Drawer -->
-        <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
             <h2 class="text-base font-bold text-slate-900">Tu Reserva de Uniforme</h2>
           </div>
-          <button @click="openCartDrawer = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <button @click="openCartDrawer = false" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
@@ -1053,18 +1082,18 @@
             </div>
           </div>
           <div class="flex items-center justify-between mb-4 pt-2 border-t border-slate-200">
-            <span class="text-sm font-bold text-slate-800">Total Factura:</span>
+            <span class="text-sm font-bold text-slate-800">Total de la reserva:</span>
             <span class="text-2xl font-black text-blue-950" x-text="formatMoney(cartTotal)"></span>
           </div>
 
           <button @click="openCheckoutModal = true; openCartDrawer = false"
                   :disabled="cart.length === 0"
                   class="w-full py-3.5 px-4 bg-blue-900 hover:bg-blue-950 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
-            <span>Datos de Alumno y Facturación</span>
+            <span>Continuar con la Reserva</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </button>
           <p class="text-[11px] text-slate-500 text-center mt-2 font-medium">
-            🧾 Sin pago con tarjeta en la web. Se factura a través de la gestión administrativa del colegio.
+            📦 Reserva directa online. El cobro se cargará mediante recibo escolar tras la entrega en portería.
           </p>
         </div>
 
@@ -1072,19 +1101,19 @@
     </div>
   </div>
 
-  <!-- ================= MODAL FORMULARIO DE CHECKOUT / DATOS Y FACTURACIÓN ================= -->
+  <!-- ================= MODAL FORMULARIO DE CHECKOUT / DATOS DEL ALUMNO Y FAMILIA ================= -->
   <div x-show="openCheckoutModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+    <div class="flex items-center justify-center min-h-screen px-3 sm:px-4 py-6 sm:py-8">
       <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="openCheckoutModal = false"></div>
 
-      <div class="relative bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
-        <div class="flex items-start justify-between border-b border-slate-100 pb-4 mb-5">
+      <div class="relative bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-slate-200 z-10">
+        <div class="flex items-start justify-between border-b border-slate-100 pb-3.5 mb-4">
           <div>
-            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-100 text-blue-900 mb-1">Reserva Oficial Sin Pago Online</span>
-            <h3 class="text-xl font-bold font-serif-title text-slate-900">Datos del Alumno y Facturación</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Completa los datos para preparar las prendas y emitir la factura oficial del colegio.</p>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-100 text-blue-900 mb-1">Reserva Oficial Online</span>
+            <h3 class="text-lg sm:text-xl font-bold font-serif-title text-slate-900">Datos del Alumno y Familia</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Completa los datos para preparar el lote de uniformes en almacén.</p>
           </div>
-          <button @click="openCheckoutModal = false" class="text-slate-400 hover:text-slate-600">
+          <button @click="openCheckoutModal = false" class="text-slate-400 hover:text-slate-600 p-1">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
@@ -1097,13 +1126,13 @@
             <div>
               <p class="font-bold">¡Pedido conjunto para varios hermanos detectado!</p>
               <p class="text-indigo-800 text-[11px] mt-0.5 leading-relaxed">
-                Has etiquetado prendas para diferentes alumnos. Prepararemos paquetes etiquetados para cada hermano bajo una única factura familiar.
+                Has etiquetado prendas para diferentes alumnos. Prepararemos paquetes etiquetados para cada hermano bajo una única reserva familiar.
               </p>
             </div>
           </div>
 
           <!-- 1. Datos Alumno -->
-          <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3">
+          <div class="bg-blue-50/50 p-3.5 sm:p-4 rounded-xl border border-blue-100 space-y-3">
             <h4 class="font-bold text-blue-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
               <span>🎓 1. Información del Alumno/a</span>
             </h4>
@@ -1112,12 +1141,12 @@
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Nombre y Apellidos del Alumno/a *</label>
                 <input type="text" x-model="orderForm.student_name" required placeholder="Ej: Mateo Gómez Fernández"
-                       class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800">
+                       class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
               </div>
 
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Curso Escolar *</label>
-                <select x-model="orderForm.student_course" required class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800 font-medium">
+                <select x-model="orderForm.student_course" required class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-blue-800 font-medium">
                   <option value="">-- Selecciona el curso --</option>
                   <optgroup label="Educación Infantil">
                     <option value="1º Infantil (3 años)">1º Infantil (3 años)</option>
@@ -1148,7 +1177,7 @@
           </div>
 
           <!-- 2. Datos de Contacto Familiar -->
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200 space-y-3">
             <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">📱 2. Contacto Familiar (Avisos de Recogida)</h4>
             
             <div>
@@ -1156,74 +1185,74 @@
               <input type="text" x-model="orderForm.parent_name"
                      @input="if (!orderForm.billing_name) orderForm.billing_name = orderForm.parent_name"
                      required placeholder="Ej: Laura Fernández Ruiz"
-                     class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800">
+                     class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Teléfono Móvil *</label>
                 <input type="tel" x-model="orderForm.parent_phone" required placeholder="Ej: 612 345 678"
-                       class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800">
+                       class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Correo Electrónico *</label>
                 <input type="email" x-model="orderForm.parent_email" required placeholder="Ej: familia@ejemplo.com"
-                       class="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-800">
+                       class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
               </div>
             </div>
           </div>
 
-          <!-- 3. Datos Fiscales de Facturación Claros (Para App de Facturación del Colegio) -->
-          <div class="bg-amber-50/60 p-4 rounded-xl border-2 border-amber-200/90 space-y-3">
+          <!-- 3. Datos del Titular / Familia (Gestión de Recibo Escolar) -->
+          <div class="bg-amber-50/60 p-3.5 sm:p-4 rounded-xl border-2 border-amber-200/90 space-y-3">
             <div class="flex items-center justify-between">
               <h4 class="font-extrabold text-amber-950 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <span>🧾 3. Datos Fiscales para Emisión de Factura Oficial</span>
+                <span>📋 3. Datos del Titular / Familia (Recibo Escolar)</span>
               </h4>
-              <span class="text-[10px] font-bold bg-white text-amber-900 px-2 py-0.5 rounded border border-amber-300">Facturación Colegio</span>
+              <span class="text-[10px] font-bold bg-white text-amber-900 px-2 py-0.5 rounded border border-amber-300">Gestión Escolar</span>
             </div>
             <p class="text-[11px] text-amber-900/90 leading-relaxed">
-              Estos datos se utilizarán directamente para emitir tu factura reglamentaria y tramitar el cargo en la aplicación de facturación del colegio.
+              Estos datos se utilizarán para la identificación de la reserva y la gestión del recibo escolar tras la entrega de las prendas.
             </p>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="sm:col-span-2">
-                <label class="block font-semibold text-slate-800 mb-1">Titular de la Factura / Razón Social *</label>
-                <input type="text" x-model="orderForm.billing_name" required placeholder="Nombre completo o Razón Social"
-                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-800">
+                <label class="block font-semibold text-slate-800 mb-1">Nombre Completo del Titular *</label>
+                <input type="text" x-model="orderForm.billing_name" required placeholder="Nombre completo del padre, madre o tutor"
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
               </div>
               <div>
-                <label class="block font-semibold text-slate-800 mb-1">DNI / NIF / NIE / CIF *</label>
+                <label class="block font-semibold text-slate-800 mb-1">DNI / NIF / NIE *</label>
                 <input type="text" x-model="orderForm.parent_nif" required placeholder="Ej: 12345678Z"
-                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono uppercase focus:ring-2 focus:ring-blue-800">
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono uppercase text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
               </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div class="sm:col-span-2">
-                <label class="block font-semibold text-slate-700 mb-1">Dirección Fiscal (Calle, Nº, Piso) *</label>
+                <label class="block font-semibold text-slate-700 mb-1">Dirección (Calle, Nº, Piso) *</label>
                 <input type="text" x-model="orderForm.billing_address" required placeholder="Ej: C/ Mayor 14, 3º B"
-                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-800">
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Código Postal *</label>
                 <input type="text" x-model="orderForm.billing_postal_code" required placeholder="Ej: 28019"
-                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-800">
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg font-mono text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Localidad / Ciudad *</label>
                 <input type="text" x-model="orderForm.billing_city" required placeholder="Madrid"
-                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-800">
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
               </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div>
-                <label class="block font-semibold text-slate-800 mb-1">Forma de Pago Oficial *</label>
+                <label class="block font-semibold text-slate-800 mb-1">Modalidad de Cobro *</label>
                 <div class="p-2.5 bg-amber-50/80 border border-amber-300 rounded-lg text-xs text-amber-950 font-semibold flex items-center gap-2">
                   <span class="text-base shrink-0">🏦</span>
                   <div>
                     <span class="block text-slate-900 font-bold">Recibo Escolar (Directo en cuenta)</span>
-                    <span class="text-[11px] text-slate-600 font-normal">Se cargará en el recibo mensual del centro. No se abona nada al retirar en portería.</span>
+                    <span class="text-[11px] text-slate-600 font-normal">Se cargará en el recibo mensual del centro tras la entrega. No se abona nada al retirar en portería.</span>
                   </div>
                 </div>
                 <input type="hidden" x-model="orderForm.payment_method">
@@ -1231,7 +1260,7 @@
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Observaciones (Opcional)</label>
                 <input type="text" x-model="orderForm.notes" placeholder="Ej: Recogerá la abuela / Talla dudosa"
-                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-800">
+                       class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-base sm:text-sm focus:ring-2 focus:ring-blue-800">
               </div>
             </div>
           </div>
@@ -1257,7 +1286,7 @@
               <span class="font-mono" x-text="formatMoney(cartTotal - (cartTotal / 1.21))"></span>
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-blue-800">
-              <span class="text-sm font-bold">Total Factura a Emitir:</span>
+              <span class="text-sm font-bold">Total de la reserva:</span>
               <span class="text-xl font-black text-amber-300" x-text="formatMoney(cartTotal)"></span>
             </div>
           </div>
@@ -1272,8 +1301,8 @@
             </button>
             <button type="submit" :disabled="submittingOrder"
                     class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
-              <span x-show="!submittingOrder">Confirmar Reserva y Generar Factura</span>
-              <span x-show="submittingOrder">Registrando y generando factura...</span>
+              <span x-show="!submittingOrder">Confirmar Reserva de Uniforme</span>
+              <span x-show="submittingOrder">Confirmando reserva...</span>
             </button>
           </div>
 
@@ -1347,7 +1376,7 @@
         </div>
 
         <p class="text-[11px] text-slate-400 mt-4 leading-relaxed">
-          * Si precisa Factura Oficial con desglose fiscal específico para su empresa o declaración, Secretaría se la emitirá a petición de la familia.
+          * Si precisa Factura Oficial con desglose fiscal específico, Administración se la facilitará una vez completado el pago y la entrega del pedido en portería.
         </p>
       </div>
     </div>
@@ -1358,7 +1387,7 @@
     <div class="flex items-center justify-center min-h-screen px-4 py-8">
       <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openTrackerModal = false"></div>
 
-      <div class="relative bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
+      <div class="relative bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-slate-200 z-10">
         
         <div class="flex items-start justify-between border-b border-slate-100 pb-4 mb-6">
           <div>
@@ -1478,12 +1507,12 @@
               </div>
             </div>
 
-            <!-- Botón Factura y Bloque Informativo de Cambios y Devoluciones Presenciales -->
+            <!-- Botón Comprobante y Bloque Informativo de Cambios y Devoluciones Presenciales -->
             <div class="space-y-2.5 pt-1">
-              <a :href="trackedOrder.invoice_url" target="_blank"
-                 class="w-full py-2.5 px-3 text-center bg-[#002B66] hover:bg-[#001D47] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
-                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                <span>Ver / Descargar Factura Oficial (PDF)</span>
+              <a :href="'/comprobante/' + trackedOrder.order.locator" target="_blank"
+                 class="w-full py-2.5 px-3 text-center bg-[#002B66] hover:bg-[#001D47] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Ver Comprobante Oficial de Reserva</span>
               </a>
 
               <!-- Información de Cambios y Devoluciones Presenciales -->
@@ -1549,7 +1578,7 @@
     <div class="flex items-center justify-center min-h-screen px-4 py-8">
       <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openSizeGuideModal = false; openSizeGuide = false"></div>
 
-      <div class="relative bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10">
+      <div class="relative bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-slate-200 z-10">
         <div class="flex items-start justify-between border-b border-slate-100 pb-4 mb-4">
           <div class="flex items-center gap-3">
             <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-black">📏</span>
@@ -1609,7 +1638,7 @@
     <div class="flex items-center justify-center min-h-screen px-4 py-8">
       <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openPackModal = false"></div>
 
-      <div class="relative bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10 space-y-5">
+      <div class="relative bg-white rounded-3xl max-w-xl w-full p-4 sm:p-8 shadow-2xl border border-slate-200 z-10 space-y-4 sm:space-y-5">
         
         <div class="flex items-start justify-between border-b border-slate-100 pb-4">
           <div>
@@ -1697,7 +1726,7 @@
     <div class="flex items-center justify-center min-h-screen px-4 py-8">
       <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openRecommenderModal = false"></div>
 
-      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10 space-y-5">
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-4 sm:p-8 shadow-2xl border border-slate-200 z-10 space-y-4 sm:space-y-5">
         
         <div class="flex items-start justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2.5">
@@ -1920,7 +1949,7 @@
     <div class="flex items-center justify-center min-h-screen px-4 py-8">
       <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="openExchangeModal = false"></div>
 
-      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 z-10 text-xs space-y-4">
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-4 sm:p-8 shadow-2xl border border-slate-200 z-10 text-xs space-y-4">
         <div class="flex items-start justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-3">
             <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl font-black">🏢</span>

@@ -311,7 +311,7 @@ def invoice_view(locator):
         abort(404, description="Pedido no encontrado")
 
     order = dict(order_row)
-    # La factura no se genera automáticamente al padre, debe ser emitida por el administrador
+    # La factura no se genera automáticamente al padre, debe ser emitida por el administrador tras entrega y cobro
     is_emitted = bool(order.get("invoice_number"))
     if not order.get("billing_name"):
         order["billing_name"] = order["parent_name"]
@@ -331,6 +331,11 @@ def invoice_view(locator):
     is_admin = bool(session.get("is_admin"))
     user_role = get_admin_role() if is_admin else None
 
+    # Si un padre entra por /factura/ pero la factura aún no ha sido emitida por secretaría,
+    # se le redirige al comprobante de reserva oficial
+    if request.path.startswith("/factura/") and not is_admin and not is_emitted:
+        return redirect(f"/comprobante/{locator.upper()}")
+
     return render_template(
         "invoice.html",
         order=order,
@@ -340,19 +345,6 @@ def invoice_view(locator):
         is_admin=is_admin,
         user_role=user_role
     )
-
-    cursor.execute("""
-        SELECT oi.*, COALESCE(NULLIF(oi.product_code, ''), p.code, 'UNIF') as ref_code
-        FROM order_items oi
-        LEFT JOIN products p ON oi.product_id = p.id
-        WHERE oi.order_id = ?
-    """, (order["id"],))
-    items = [dict(r) for r in cursor.fetchall()]
-
-    cursor.execute("SELECT key, value FROM school_settings")
-    settings = {row["key"]: row["value"] for row in cursor.fetchall()}
-
-    conn.close()
     qr_code = generate_qr_base64(order["locator"])
     return render_template("invoice.html", order=order, items=items, settings=settings, qr_code=qr_code)
 
@@ -945,7 +937,8 @@ def get_order_by_locator(locator):
         "returns": order_returns,
         "settings": settings,
         "qr_code": qr_b64,
-        "invoice_url": f"/factura/{order['locator']}"
+        "voucher_url": f"/comprobante/{order['locator']}",
+        "invoice_url": f"/factura/{order['locator']}" if order.get("invoice_number") else f"/comprobante/{order['locator']}"
     })
 
 @app.route("/api/admin/orders/scan", methods=["GET", "POST"])
@@ -1624,6 +1617,14 @@ def admin_emit_invoice(order_id):
     if not order:
         conn.close()
         return jsonify({"error": "Pedido no encontrado."}), 404
+
+    order_dict = dict(order)
+    # Requisito estricto de secretaría: La factura solo sale cuando se haya hecho la entrega y el pago
+    if order_dict.get("status") != "Entregado":
+        conn.close()
+        return jsonify({
+            "error": f"La factura oficial solo se puede emitir una vez completada la entrega y el pago del pedido (estado actual: '{order_dict.get('status')}')."
+        }), 400
 
     inv_num = order["invoice_number"]
     if not inv_num:

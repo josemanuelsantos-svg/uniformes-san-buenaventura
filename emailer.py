@@ -436,9 +436,9 @@ Colegio San Buenaventura
                 </div>
 
                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #1e3a8a; line-height: 1.5;">
-                    <strong>ℹ️ Información de cobro, recogida y facturación:</strong><br>
-                    • <strong>Forma de cobro:</strong> El importe se cargará directamente por <strong>Recibo Escolar</strong> en su cuenta bancaria habitual del colegio (no requiere pago online ni presencial).<br>
-                    • <strong>Factura Oficial:</strong> Si precisa Factura Oficial con desglose fiscal específico, Secretaría se la emitirá a petición de la familia.<br>
+                    <strong>ℹ️ Información de cobro y entrega:</strong><br>
+                    • <strong>Forma de cobro:</strong> El importe se cargará directamente mediante <strong>Recibo Escolar</strong> tras la entrega del uniforme.<br>
+                    • <strong>Factura Oficial:</strong> Si necesita factura con desglose fiscal específico, Administración se la facilitará una vez completado el pago y la entrega en portería.<br>
                     • <strong>Punto de recogida:</strong> <strong>Portería del Colegio</strong> (C/ El Greco, 16) una vez reciba el aviso de pedido preparado.
                 </div>
             </div>
@@ -463,7 +463,7 @@ def send_order_ready_email(order, items, base_url="http://localhost:5050/"):
     course = order["student_course"]
     parent = order["parent_name"]
     total = f"{order['total_amount']:.2f} €"
-    invoice_url = f"{base_url.rstrip('/')}/factura/{locator}"
+    voucher_url = f"{base_url.rstrip('/')}/comprobante/{locator}"
 
     subject = f"¡Tu uniforme está LISTO PARA RECOGER! [{locator}] - Colegio San Buenaventura"
 
@@ -480,8 +480,8 @@ DATOS DE RECOGIDA:
 - Horario de portería: Lunes a Viernes de 08:00 a 18:30
 - Importe de la reserva: {total} (se carga directamente por Recibo Escolar)
 
-Por favor, indique su código localizador ({locator}) en portería para retirar las prendas. Puede consultar o descargar su factura oficial aquí:
-{invoice_url}
+Por favor, indique su código localizador ({locator}) en portería para retirar las prendas. Puede consultar su comprobante de reserva aquí:
+{voucher_url}
 
 Atentamente,
 Portería y Almacén de Uniformes
@@ -512,13 +512,13 @@ Colegio San Buenaventura
                     <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #064e3b; line-height: 1.6;">
                         <li><strong>Punto de recogida:</strong> Portería del Colegio San Buenaventura (C/ El Greco, 16)</li>
                         <li><strong>Horario:</strong> Lunes a Viernes de 08:00 a 18:30</li>
-                        <li><strong>Cobro:</strong> {total} (cargado directamente por Recibo Escolar)</li>
+                        <li><strong>Cobro:</strong> {total} (cargado directamente por Recibo Escolar tras la entrega)</li>
                     </ul>
                 </div>
 
                 <div style="text-align: center; margin: 25px 0;">
-                    <a href="{invoice_url}" style="background-color: #065f46; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px; display: inline-block;">
-                        Ver / Imprimir Factura del Pedido
+                    <a href="{voucher_url}" style="background-color: #065f46; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px; display: inline-block;">
+                        📄 Consultar Comprobante de Reserva
                     </a>
                 </div>
 
