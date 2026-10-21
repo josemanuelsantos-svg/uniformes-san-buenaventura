@@ -250,11 +250,14 @@ def index():
 def admin_login():
     error = None
     key_arg = request.args.get("key", "").strip()
+    next_target = request.args.get("next", "").strip()
     role_detected = verify_admin_key(key_arg) if key_arg else None
     if role_detected:
         session["is_admin"] = True
         session["admin_role"] = role_detected
-        next_path = "/admin"
+        if next_target:
+            return redirect(next_target)
+        next_path = "/preparador" if role_detected == "operator" else "/admin"
         if request.args.get("scanner"):
             next_path += "?scanner=1"
         return redirect(next_path)
@@ -265,7 +268,10 @@ def admin_login():
         if role:
             session["is_admin"] = True
             session["admin_role"] = role
-            return redirect("/admin")
+            if next_target:
+                return redirect(next_target)
+            next_path = "/preparador" if role == "operator" else "/admin"
+            return redirect(next_path)
         else:
             error = "Clave de acceso no reconocida. Introduce una clave autorizada para Maestro, Cambios o Consulta."
     return render_template("admin_login.html", error=error)
@@ -281,6 +287,8 @@ def admin():
     if not check_admin_auth():
         return redirect("/admin/login")
     role = get_admin_role()
+    if role == "operator":
+        return redirect("/preparador")
     role_info = ROLE_METADATA.get(role, ROLE_METADATA["viewer"])
     return render_template("admin.html", current_role=role, role_info=role_info)
 
@@ -1806,6 +1814,203 @@ def admin_bulk_import():
     conn.commit()
     conn.close()
     return jsonify({"success": True, "inserted_count": inserted})
+
+def resolve_item_image(name, code=None):
+    n = (name or "").lower()
+    if "babi" in n or "baby" in n:
+        return "/static/images/uniforms/babi.svg"
+    elif "jersey" in n:
+        return "/static/images/uniforms/jersey.svg"
+    elif "falda" in n:
+        return "/static/images/uniforms/falda.svg"
+    elif "polo" in n and "larga" in n:
+        return "/static/images/uniforms/polo-mlarga.svg"
+    elif "polo" in n:
+        return "/static/images/uniforms/polo-mcorta.svg"
+    elif "sudadera" in n and "infantil" in n:
+        return "/static/images/uniforms/sudadera-chandal-infantil.svg"
+    elif "sudadera" in n:
+        return "/static/images/uniforms/sudadera-chandal.svg"
+    elif "chándal" in n and "infantil" in n:
+        return "/static/images/uniforms/chandal-infantil.svg"
+    elif "chándal" in n or "chandal" in n:
+        return "/static/images/uniforms/chandal-completo.svg"
+    elif "pantalón" in n and "corto" in n:
+        return "/static/images/uniforms/pantalon-corto-deporte.svg"
+    elif "pantalón" in n and "vestir" in n and "corto" in n:
+        return "/static/images/uniforms/pantalon-vestir-corto.svg"
+    elif "pantalón" in n and "vestir" in n:
+        return "/static/images/uniforms/pantalon-vestir-largo.svg"
+    elif "pantalón" in n and "infantil" in n:
+        return "/static/images/uniforms/pantalon-chandal-infantil.svg"
+    elif "pantalón" in n and ("chándal" in n or "chandal" in n or "deporte" in n):
+        return "/static/images/uniforms/pantalon-chandal.svg"
+    elif "camiseta" in n:
+        return "/static/images/uniforms/camiseta-deporte.svg"
+    elif "calcetín" in n and "blanco" in n:
+        return "/static/images/uniforms/calcetin-blanco.svg"
+    elif "calcetín" in n and "largo" in n:
+        return "/static/images/uniforms/calcetin-largo.svg"
+    elif "calcetín" in n:
+        return "/static/images/uniforms/calcetin-corto.svg"
+    elif "leotardo" in n:
+        return "/static/images/uniforms/leotardo.svg"
+    return "/static/images/uniforms/polo-mcorta.svg"
+
+@app.route("/preparador")
+@app.route("/almacen")
+def preparador_view():
+    if not check_admin_auth():
+        return redirect("/admin/login?next=/preparador")
+    role = get_admin_role()
+    role_info = ROLE_METADATA.get(role, ROLE_METADATA["operator"])
+    return render_template("preparador.html", current_role=role, role_info=role_info)
+
+@app.route("/api/preparador/orders", methods=["GET"])
+def preparador_get_orders():
+    if not check_admin_auth():
+        return jsonify({"error": "No autorizado"}), 401
+    
+    filter_type = request.args.get("filter", "pendientes").strip().lower()
+    search = request.args.get("search", "").strip().lower()
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    query = "SELECT * FROM orders WHERE 1=1"
+    params = []
+
+    if filter_type == "pendientes":
+        query += " AND status IN ('Pendiente', 'En preparación') AND (stock_alert IS NULL OR stock_alert = 0)"
+    elif filter_type == "falta_stock":
+        query += " AND (stock_alert = 1 OR status = 'Falta de stock')"
+    elif filter_type == "listos":
+        query += " AND status IN ('Listo para recoger', 'Entregado')"
+    # "todos" has no status filter
+
+    if search:
+        query += " AND (LOWER(locator) LIKE ? OR LOWER(student_name) LIKE ? OR LOWER(student_course) LIKE ? OR LOWER(parent_name) LIKE ?)"
+        s = f"%{search}%"
+        params.extend([s, s, s, s])
+
+    query += " ORDER BY CASE WHEN status = 'Pendiente' THEN 1 WHEN status = 'En preparación' THEN 2 ELSE 3 END, id ASC"
+    cursor.execute(query, params)
+    orders = [dict(r) for r in cursor.fetchall()]
+
+    for ord_item in orders:
+        cursor.execute("SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC", (ord_item["id"],))
+        raw_items = [dict(it) for it in cursor.fetchall()]
+        items = []
+        for it in raw_items:
+            it["image_url"] = resolve_item_image(it.get("product_name"), it.get("product_code"))
+            items.append(it)
+        ord_item["items"] = items
+
+    conn.close()
+    return jsonify({"success": True, "orders": orders})
+
+@app.route("/api/preparador/orders/<int:order_id>/item/<int:item_id>/toggle", methods=["POST"])
+def preparador_toggle_item(order_id, item_id):
+    if not check_admin_auth():
+        return jsonify({"error": "No autorizado"}), 401
+    data = request.get_json() or {}
+    field = data.get("field")
+    val = 1 if data.get("value") else 0
+
+    if field not in ("is_prepared", "missing_stock"):
+        return jsonify({"error": "Campo no válido"}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    if field == "missing_stock":
+        cursor.execute("UPDATE order_items SET missing_stock = ?, is_prepared = CASE WHEN ? = 1 THEN 0 ELSE is_prepared END WHERE id = ? AND order_id = ?", (val, val, item_id, order_id))
+    else:
+        cursor.execute("UPDATE order_items SET is_prepared = ?, missing_stock = CASE WHEN ? = 1 THEN 0 ELSE missing_stock END WHERE id = ? AND order_id = ?", (val, val, item_id, order_id))
+
+    # Recalculate stock_alert
+    cursor.execute("SELECT COUNT(*) FROM order_items WHERE order_id = ? AND missing_stock = 1", (order_id,))
+    missing_count = cursor.fetchone()[0]
+    has_stock_alert = 1 if missing_count > 0 else 0
+    cursor.execute("UPDATE orders SET stock_alert = ?, updated_at = ? WHERE id = ?", (has_stock_alert, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), order_id))
+
+    cursor.execute("SELECT product_name, size FROM order_items WHERE id = ?", (item_id,))
+    it_info = cursor.fetchone()
+    if it_info:
+        item_label = f"{it_info['product_name']} ({it_info['size']})"
+        if field == "missing_stock" and val == 1:
+            cursor.execute("INSERT INTO order_history (order_id, status, comment, timestamp) VALUES (?, ?, ?, ?)",
+                           (order_id, "Falta de stock", f"⚠️ Falta de stock indicada en prenda: {item_label}", datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        elif field == "is_prepared" and val == 1:
+            cursor.execute("INSERT INTO order_history (order_id, status, comment, timestamp) VALUES (?, ?, ?, ?)",
+                           (order_id, "En preparación", f"Prenda introducida en bolsa: {item_label}", datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "has_stock_alert": bool(has_stock_alert)})
+
+@app.route("/api/preparador/orders/<int:order_id>/set-status", methods=["POST"])
+def preparador_set_order_status(order_id):
+    if not check_admin_auth():
+        return jsonify({"error": "No autorizado"}), 401
+    data = request.get_json() or {}
+    new_status = data.get("status")
+    note = (data.get("note") or "").strip()
+
+    valid_statuses = ("Listo para recoger", "En preparación", "Falta de stock", "Pendiente")
+    if new_status not in valid_statuses:
+        return jsonify({"error": "Estado no válido"}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    stock_alert = 1 if new_status == "Falta de stock" or data.get("stock_alert") else 0
+    save_status = "En preparación" if new_status == "Falta de stock" else new_status
+
+    if new_status == "Listo para recoger":
+        cursor.execute("UPDATE order_items SET is_prepared = 1, missing_stock = 0 WHERE order_id = ?", (order_id,))
+        stock_alert = 0
+
+    cursor.execute("UPDATE orders SET status = ?, stock_alert = ?, updated_at = ? WHERE id = ?",
+                   (save_status, stock_alert, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), order_id))
+
+    history_msg = f"Pedido marcado como '{new_status}' por almacén."
+    if note:
+        history_msg += f" Nota: {note}"
+    cursor.execute("INSERT INTO order_history (order_id, status, comment, timestamp) VALUES (?, ?, ?, ?)",
+                   (order_id, save_status, history_msg, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "status": save_status, "stock_alert": stock_alert})
+
+@app.route("/api/preparador/picking", methods=["GET"])
+def preparador_picking_list():
+    if not check_admin_auth():
+        return jsonify({"error": "No autorizado"}), 401
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT 
+            oi.product_name,
+            oi.size,
+            SUM(oi.quantity) as total_qty,
+            COUNT(DISTINCT oi.order_id) as total_orders
+        FROM order_items oi
+        JOIN orders o ON oi.order_id = o.id
+        WHERE o.status IN ('Pendiente', 'En preparación')
+        GROUP BY oi.product_name, oi.size
+        ORDER BY oi.product_name ASC, oi.size ASC
+    """)
+    rows = cursor.fetchall()
+    items = []
+    for r in rows:
+        it = dict(r)
+        it["image_url"] = resolve_item_image(it["product_name"])
+        items.append(it)
+    conn.close()
+    return jsonify({"success": True, "items": items})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5050))

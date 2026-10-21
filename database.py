@@ -198,6 +198,8 @@ def init_db():
         cursor.execute("ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT 'Facturación por App del Colegio'")
     if "invoice_number" not in orders_cols:
         cursor.execute("ALTER TABLE orders ADD COLUMN invoice_number TEXT DEFAULT ''")
+    if "stock_alert" not in orders_cols:
+        cursor.execute("ALTER TABLE orders ADD COLUMN stock_alert INTEGER DEFAULT 0")
 
     # Migración de columnas en tabla order_items
     cursor.execute("PRAGMA table_info(order_items)")
@@ -206,6 +208,10 @@ def init_db():
         cursor.execute("ALTER TABLE order_items ADD COLUMN student_name TEXT DEFAULT ''")
     if "product_code" not in item_cols:
         cursor.execute("ALTER TABLE order_items ADD COLUMN product_code TEXT DEFAULT ''")
+    if "is_prepared" not in item_cols:
+        cursor.execute("ALTER TABLE order_items ADD COLUMN is_prepared INTEGER DEFAULT 0")
+    if "missing_stock" not in item_cols:
+        cursor.execute("ALTER TABLE order_items ADD COLUMN missing_stock INTEGER DEFAULT 0")
 
     # Rellenar datos fiscales y número de factura correlativo en pedidos existentes que no lo tengan
     cursor.execute("SELECT id, parent_name, invoice_number, billing_name FROM orders ORDER BY id ASC")
